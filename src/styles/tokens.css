@@ -1,0 +1,72 @@
+/*
+ * Design tokens. Every color, radius, spacing, and font in the app comes from
+ * here, so the design system can be swapped by replacing this file and the
+ * component styles in src/components/ui.
+ */
+:root {
+  --color-bg: #ffffff;
+  --color-surface: #f7f7f8;
+  --color-surface-raised: #ffffff;
+  --color-border: #e4e4e7;
+  --color-text: #3f3f46;
+  --color-text-strong: #09090b;
+  --color-text-muted: #71717a;
+  --color-primary: #7c3aed;
+  --color-primary-hover: #6d28d9;
+  --color-primary-fg: #ffffff;
+  --color-primary-soft: rgba(124, 58, 237, 0.1);
+  --color-danger: #dc2626;
+  --color-danger-soft: rgba(220, 38, 38, 0.1);
+  --color-success: #16a34a;
+  --color-success-soft: rgba(22, 163, 74, 0.12);
+  --color-warning: #d97706;
+  --color-thumb: #ffffff;
+
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+
+  --font-sans: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: ui-monospace, Consolas, monospace;
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-md: 16px;
+  --text-lg: 20px;
+  --text-xl: 28px;
+  --text-2xl: 44px;
+
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --focus-ring: 0 0 0 3px var(--color-primary-soft);
+
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #111114;
+    --color-surface: #18181c;
+    --color-surface-raised: #1f1f24;
+    --color-border: #2e2e35;
+    --color-text: #c4c4cc;
+    --color-text-strong: #fafafa;
+    --color-text-muted: #8b8b95;
+    --color-primary: #a78bfa;
+    --color-primary-hover: #c4b5fd;
+    --color-primary-fg: #111114;
+    --color-primary-soft: rgba(167, 139, 250, 0.15);
+    --color-danger: #f87171;
+    --color-danger-soft: rgba(248, 113, 113, 0.15);
+    --color-success: #4ade80;
+    --color-success-soft: rgba(74, 222, 128, 0.15);
+    --color-warning: #fbbf24;
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  }
+}

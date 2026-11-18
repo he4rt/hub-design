@@ -1,0 +1,14 @@
+services:
+  web:
+    command: bun run dev --host 0.0.0.0 --port "$PORT" --strictPort
+    portal:
+      url: /
+      title: Landing
+      description: Landing page. The debug sidebar (Alt+D) runs mock actions on every screen.
+    portals:
+      - url: /app
+        title: App
+        description: Member area. Sign in with any mock user and the password "password".
+      - url: /admin
+        title: Admin
+        description: Admin panel with mock data.

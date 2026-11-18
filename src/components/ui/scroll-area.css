@@ -1,0 +1,23 @@
+.ui-scroll-area {
+  overflow: hidden;
+  min-height: 0;
+}
+
+.ui-scroll-area__viewport {
+  width: 100%;
+  height: 100%;
+}
+
+.ui-scroll-area__scrollbar {
+  display: flex;
+  width: 8px;
+  padding: 1px;
+  touch-action: none;
+  user-select: none;
+}
+
+.ui-scroll-area__thumb {
+  flex: 1;
+  border-radius: 999px;
+  background: var(--color-border);
+}

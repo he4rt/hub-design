@@ -1,0 +1,29 @@
+.ui-toggle-group {
+  display: inline-flex;
+  padding: 2px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.ui-toggle-group__item {
+  height: 26px;
+  padding: 0 var(--space-2);
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text);
+  font: 500 var(--text-xs) / 1 var(--font-sans);
+  cursor: pointer;
+
+  &[data-state='on'] {
+    background: var(--color-surface-raised);
+    color: var(--color-text-strong);
+    box-shadow: var(--shadow-md);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+  }
+}

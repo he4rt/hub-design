@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Prepares a fresh orb: Bun and the locked dependencies.
+# Long-running services live in .amp/services.yaml.
+
+step() { echo "==> $1"; }
+
+if ! command -v bun >/dev/null 2>&1; then
+  step "Installing Bun"
+  curl -fsSL https://bun.sh/install | bash
+  export PATH="$HOME/.bun/bin:$PATH"
+fi
+
+step "Installing dependencies (bun $(bun --version))"
+time bun install --frozen-lockfile

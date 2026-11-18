@@ -1,0 +1,34 @@
+.ui-switch {
+  position: relative;
+  flex-shrink: 0;
+  width: 36px;
+  height: 20px;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: var(--color-border);
+  cursor: pointer;
+
+  &[data-state='checked'] {
+    background: var(--color-primary);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+  }
+}
+
+.ui-switch__thumb {
+  display: block;
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  background: var(--color-thumb);
+  transform: translateX(2px);
+  transition: transform 120ms;
+
+  &[data-state='checked'] {
+    transform: translateX(18px);
+  }
+}
