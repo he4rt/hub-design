@@ -79,8 +79,9 @@
 
   .admin-layout__sidebar {
     flex-direction: row;
+    flex-wrap: wrap;
     align-items: center;
-    gap: var(--space-4);
+    gap: var(--space-2) var(--space-4);
     position: static;
     width: auto;
     height: auto;
@@ -91,6 +92,14 @@
 
   .admin-layout__nav {
     flex-direction: row;
+    order: 1;
+    flex-basis: 100%;
+    min-width: 0;
+    overflow-x: auto;
+
+    a {
+      white-space: nowrap;
+    }
   }
 
   .admin-layout__account {

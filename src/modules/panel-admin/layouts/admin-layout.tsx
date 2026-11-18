@@ -25,6 +25,11 @@ export function AdminLayout() {
             Visão geral
           </NavLink>
           <NavLink to="/admin/users">Usuários</NavLink>
+          <NavLink to="/admin/squads" end>
+            Squads
+          </NavLink>
+          <NavLink to="/admin/squads/entry-tests">Testes de entrada</NavLink>
+          <NavLink to="/admin/system/github">Integração GitHub</NavLink>
         </nav>
         <div className="admin-layout__account">
           <span className="admin-layout__user" title={admin.email}>

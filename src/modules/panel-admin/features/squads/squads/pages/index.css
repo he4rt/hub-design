@@ -1,0 +1,40 @@
+.admin-squads__scroll {
+  overflow-x: auto;
+}
+
+.admin-squads {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+  white-space: nowrap;
+
+  th {
+    color: var(--color-text-muted);
+    font-weight: 500;
+    text-align: left;
+  }
+
+  th,
+  td {
+    height: 45px;
+    padding: var(--space-2) var(--space-3);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  tr:last-child td {
+    border-bottom: none;
+  }
+}
+
+.admin-squads__name a {
+  display: inline-block;
+  max-width: 28ch;
+  overflow: hidden;
+  color: var(--color-text-strong);
+  text-overflow: ellipsis;
+  vertical-align: middle;
+}
+
+.admin-squads__num {
+  font-variant-numeric: tabular-nums;
+}

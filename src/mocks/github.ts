@@ -208,3 +208,33 @@ export function accessDiverged(description: string) {
     }))
   })
 }
+
+/** `repository.created` + `projects_v2.created`: the App finished creating the project on GitHub. */
+export function projectProvisioned(projectId: string) {
+  return mockAction('github.webhook.projects_v2.created', { projectId }, () => {
+    const state = db.get()
+    const project = state.teamProjects.find((p) => p.id === projectId && p.status === 'provisioning')
+    if (!project) throw new MockError('Não há projeto esperando o GitHub.')
+    const squad = state.squadTeams.find((s) => s.id === project.squadId)
+    const now = new Date().toISOString()
+    const number = 20 + Math.floor(Math.random() * 80)
+    db.set((s) => ({
+      ...s,
+      teamProjects: s.teamProjects.map((p) =>
+        p.id === projectId
+          ? { ...p, status: 'active' as const, startedAt: now, board: { number, url: `https://github.com/orgs/he4rt/projects/${number}` } }
+          : p,
+      ),
+      squadTeams: s.squadTeams.map((sq) => (sq.id === project.squadId ? { ...sq, status: 'active' as const } : sq)),
+      memberships:
+        squad?.captainId && !s.memberships.some((m) => m.projectId === projectId && m.userId === squad.captainId)
+          ? [
+              ...s.memberships,
+              { id: newId(), squadId: project.squadId, projectId, userId: squad.captainId, responsibilities: 'Capitão.', joinedAt: now, leftAt: null, leftReason: null },
+            ]
+          : s.memberships,
+    }))
+    appendLog({ squadId: project.squadId, projectId, kind: 'project-started', actorId: 'u8', detail: project.name })
+    touchSync()
+  })
+}
