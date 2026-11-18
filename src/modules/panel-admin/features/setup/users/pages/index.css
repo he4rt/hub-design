@@ -1,5 +1,9 @@
-.users-page__error {
-  margin-bottom: var(--space-4);
-  color: var(--color-danger);
-  font-size: var(--text-sm);
+.users-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+
+  .page-header {
+    margin-bottom: 0;
+  }
 }

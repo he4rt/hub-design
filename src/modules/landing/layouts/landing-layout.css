@@ -17,3 +17,9 @@
   font-size: var(--text-lg);
   text-decoration: none;
 }
+
+@media (max-width: 767px) {
+  .landing-layout__header {
+    padding: var(--space-3) var(--space-4);
+  }
+}

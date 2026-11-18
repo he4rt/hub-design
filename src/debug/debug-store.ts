@@ -33,7 +33,8 @@ type DebugState = {
 const LOG_LIMIT = 100
 
 export const debugStore = createStore<DebugState>({
-  open: true,
+  // Starts closed on a phone, where the panel covers the page.
+  open: window.matchMedia('(min-width: 768px)').matches,
   latencyMs: 300,
   failNext: false,
   groups: {},

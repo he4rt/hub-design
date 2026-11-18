@@ -1,0 +1,13 @@
+.form-message {
+  min-height: calc(var(--text-sm) * 1.5);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+
+  &[data-tone='error'] {
+    color: var(--color-danger);
+  }
+
+  &[data-tone='success'] {
+    color: var(--color-success);
+  }
+}

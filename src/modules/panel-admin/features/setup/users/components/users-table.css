@@ -1,5 +1,10 @@
+.users-table__scroll {
+  overflow-x: auto;
+}
+
 .users-table {
   width: 100%;
+  white-space: nowrap;
   border-collapse: collapse;
   font-size: var(--text-sm);
 
@@ -11,6 +16,7 @@
 
   th,
   td {
+    height: 45px;
     padding: var(--space-2) var(--space-3);
     border-bottom: 1px solid var(--color-border);
   }
@@ -20,8 +26,84 @@
   }
 }
 
+.users-table__date {
+  font-variant-numeric: tabular-nums;
+}
+
 .users-table__empty {
   padding: var(--space-8);
   color: var(--color-text-muted);
   text-align: center;
+}
+
+/* On a phone each user is a compact row instead of a wide, scrolling table. */
+@media (max-width: 767px) {
+  .users-table,
+  .users-table tbody {
+    display: block;
+  }
+
+  .users-table thead {
+    display: none;
+  }
+
+  .users-table tr {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    grid-template-areas:
+      'name name actions'
+      'email email actions'
+      'role date actions';
+    column-gap: var(--space-3);
+    align-items: center;
+    padding: var(--space-3) 0;
+    border-bottom: 1px solid var(--color-border);
+
+    &:first-child {
+      padding-top: 0;
+    }
+
+    &:last-child {
+      padding-bottom: 0;
+      border-bottom: none;
+    }
+  }
+
+  .users-table td {
+    height: auto;
+    padding: 0;
+    border: none;
+  }
+
+  .users-table__name {
+    grid-area: name;
+    color: var(--color-text-strong);
+    font-weight: 500;
+  }
+
+  .users-table__email {
+    grid-area: email;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--color-text-muted);
+  }
+
+  .users-table__role,
+  .users-table__date {
+    color: var(--color-text-muted);
+    font-size: var(--text-xs);
+  }
+
+  .users-table__role {
+    grid-area: role;
+  }
+
+  .users-table__date {
+    grid-area: date;
+  }
+
+  .users-table__actions {
+    grid-area: actions;
+  }
 }

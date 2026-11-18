@@ -15,5 +15,6 @@
   strong {
     color: var(--color-text-strong);
     font-size: var(--text-xl);
+    font-variant-numeric: tabular-nums;
   }
 }

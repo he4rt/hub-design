@@ -140,5 +140,18 @@
 
 .debug-log-entry__time {
   margin-left: auto;
+  font-variant-numeric: tabular-nums;
   color: var(--color-text-muted);
+}
+
+/* On a phone the panel overlays the page instead of squeezing it. */
+@media (max-width: 767px) {
+  .debug-sidebar {
+    position: fixed;
+    top: 0;
+    right: 0;
+    z-index: 40;
+    width: 100vw;
+    box-shadow: var(--shadow-md);
+  }
 }

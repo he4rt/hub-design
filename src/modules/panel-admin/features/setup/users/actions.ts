@@ -28,11 +28,16 @@ export function createUsers(count: number) {
   })
 }
 
+/** Shared by the action and the UI, so the delete button only shows when the action accepts it. */
+export function canDeleteUser(user: User): boolean {
+  return user.role !== 'admin'
+}
+
 export function deleteUser(userId: string) {
   return mockAction('panel-admin.users.destroy', { userId }, () => {
     const user = db.get().users.find((u) => u.id === userId)
     if (!user) throw new MockError('Usuário não encontrado.')
-    if (user.role === 'admin') throw new MockError('Administradores não podem ser removidos.')
+    if (!canDeleteUser(user)) throw new MockError('Administradores não podem ser removidos.')
     db.set((state) => ({
       ...state,
       users: state.users.filter((u) => u.id !== userId),

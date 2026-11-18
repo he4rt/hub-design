@@ -1,5 +1,6 @@
 import { useActionState, useState } from 'react'
 import { Navigate, useNavigate } from 'react-router'
+import { FormMessage } from '@/components/form-message'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -63,9 +64,9 @@ export default function Login() {
           onChange={(e) => setPassword(e.target.value)}
         />
       </div>
-      {error && <p role="alert" className="auth-form__error">{error}</p>}
-      <Button type="submit" disabled={pending}>
-        {pending ? 'Entrando…' : 'Entrar'}
+      <FormMessage tone="error">{error}</FormMessage>
+      <Button type="submit" loading={pending}>
+        Entrar
       </Button>
     </form>
   )

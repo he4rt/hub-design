@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useTransition } from 'react'
+import { FormMessage } from '@/components/form-message'
 import { PageHeader } from '@/components/page-header'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -12,39 +13,43 @@ import './index.css'
 export default function Users() {
   const users = useDb((state) => state.users)
   const [error, setError] = useState<string | null>(null)
+  const [pending, startTransition] = useTransition()
 
-  async function run(action: () => Promise<unknown>) {
+  function run(action: () => Promise<unknown>) {
     setError(null)
-    try {
-      await action()
-    } catch (e) {
-      setError(errorMessage(e))
-    }
+    startTransition(async () => {
+      try {
+        await action()
+      } catch (e) {
+        setError(errorMessage(e))
+      }
+    })
   }
 
   useDebugActions('Usuários', [
     { label: 'Criar 10 usuários', run: () => run(() => createUsers(10)) },
     {
       label: 'Remover um admin (erro esperado)',
+      description: 'Chama a ação direto, ignorando a UI que esconde o botão.',
       run: () => run(() => deleteUser(users.find((u) => u.role === 'admin')?.id ?? 'missing')),
     },
   ])
 
   return (
-    <>
+    <div className="users-page">
       <PageHeader
         title="Usuários"
         description={`${users.length} cadastrados`}
-        actions={<Button onClick={() => run(() => createUsers(1))}>Novo usuário</Button>}
+        actions={
+          <Button loading={pending} onClick={() => run(() => createUsers(1))}>
+            Novo usuário
+          </Button>
+        }
       />
-      {error && (
-        <p role="alert" className="users-page__error">
-          {error}
-        </p>
-      )}
+      <FormMessage tone="error">{error}</FormMessage>
       <Card>
-        <UsersTable users={users} onDelete={(user) => run(() => deleteUser(user.id))} />
+        <UsersTable users={users} disabled={pending} onDelete={(user) => run(() => deleteUser(user.id))} />
       </Card>
-    </>
+    </div>
   )
 }

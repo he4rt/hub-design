@@ -1,4 +1,5 @@
 .ui-button {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -21,6 +22,11 @@
   &:disabled {
     opacity: 0.55;
     cursor: not-allowed;
+  }
+
+  &[data-loading] {
+    opacity: 0.8;
+    cursor: progress;
   }
 
   &[data-size='sm'] {
@@ -60,5 +66,33 @@
     &:hover:not(:disabled) {
       border-color: var(--color-danger);
     }
+  }
+}
+
+/* Sits in the left padding, so the button keeps its size and label while loading. */
+.ui-button__spinner {
+  position: absolute;
+  top: 50%;
+  left: 3px;
+  width: 10px;
+  height: 10px;
+  margin-top: -5px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 999px;
+  animation: ui-button-spin 700ms linear infinite;
+
+  [data-size='sm'] > & {
+    left: 1px;
+    width: 8px;
+    height: 8px;
+    margin-top: -4px;
+    border-width: 1.5px;
+  }
+}
+
+@keyframes ui-button-spin {
+  to {
+    transform: rotate(360deg);
   }
 }

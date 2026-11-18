@@ -14,6 +14,11 @@
     box-shadow: var(--focus-ring);
   }
 
+  /* iOS zooms into inputs under 16px. */
+  @media (max-width: 767px) {
+    font-size: var(--text-md);
+  }
+
   &[aria-invalid='true'] {
     border-color: var(--color-danger);
   }

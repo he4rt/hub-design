@@ -12,12 +12,3 @@
   gap: var(--space-1);
   width: 100%;
 }
-
-.profile-form__result {
-  font-size: var(--text-sm);
-  color: var(--color-success);
-
-  &[data-ok='false'] {
-    color: var(--color-danger);
-  }
-}

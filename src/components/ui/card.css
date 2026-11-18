@@ -7,3 +7,9 @@
   border-radius: var(--radius-lg);
   background: var(--color-surface-raised);
 }
+
+@media (max-width: 767px) {
+  .ui-card {
+    padding: var(--space-4);
+  }
+}

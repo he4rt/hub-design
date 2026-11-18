@@ -1,4 +1,5 @@
 import { useActionState, useState } from 'react'
+import { FormMessage } from '@/components/form-message'
 import { PageHeader } from '@/components/page-header'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -50,13 +51,11 @@ function ProfileForm({ account }: { account: User }) {
             <Label htmlFor="email">E-mail</Label>
             <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
           </div>
-          {result && (
-            <p role="status" data-ok={result.ok} className="profile-form__result">
-              {result.ok ? 'Perfil salvo.' : result.error}
-            </p>
-          )}
-          <Button type="submit" disabled={pending}>
-            {pending ? 'Salvando…' : 'Salvar'}
+          <FormMessage tone={result?.ok === false ? 'error' : 'success'}>
+            {result && (result.ok ? 'Perfil salvo.' : result.error)}
+          </FormMessage>
+          <Button type="submit" loading={pending}>
+            Salvar
           </Button>
         </form>
       </Card>

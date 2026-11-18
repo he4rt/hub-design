@@ -1,12 +1,16 @@
 import { Button } from '@/components/ui/button'
 import type { User } from '@/mocks/db'
+import { canDeleteUser } from '../actions'
 import './users-table.css'
 
 export function UsersTable({
   users,
+  disabled,
   onDelete,
 }: {
   users: User[]
+  /** Disables the row actions while another action runs. */
+  disabled: boolean
   onDelete: (user: User) => void
 }) {
   if (users.length === 0) {
@@ -14,31 +18,37 @@ export function UsersTable({
   }
 
   return (
-    <table className="users-table">
-      <thead>
-        <tr>
-          <th>Nome</th>
-          <th>E-mail</th>
-          <th>Papel</th>
-          <th>Criado em</th>
-          <th aria-label="Ações" />
-        </tr>
-      </thead>
-      <tbody>
-        {users.map((user) => (
-          <tr key={user.id}>
-            <td>{user.name}</td>
-            <td>{user.email}</td>
-            <td>{user.role === 'admin' ? 'Admin' : 'Membro'}</td>
-            <td>{user.createdAt}</td>
-            <td>
-              <Button variant="danger" size="sm" onClick={() => onDelete(user)}>
-                Remover
-              </Button>
-            </td>
+    <div className="users-table__scroll">
+      <table className="users-table">
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>E-mail</th>
+            <th>Papel</th>
+            <th>Criado em</th>
+            <th aria-label="Ações" />
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {users.map((user) => (
+            <tr key={user.id}>
+              <td className="users-table__name">{user.name}</td>
+              <td className="users-table__email" title={user.email}>
+                {user.email}
+              </td>
+              <td className="users-table__role">{user.role === 'admin' ? 'Admin' : 'Membro'}</td>
+              <td className="users-table__date">{user.createdAt}</td>
+              <td className="users-table__actions">
+                {canDeleteUser(user) && (
+                  <Button variant="danger" size="sm" disabled={disabled} onClick={() => onDelete(user)}>
+                    Remover
+                  </Button>
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   )
 }

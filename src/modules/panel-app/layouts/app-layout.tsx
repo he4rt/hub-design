@@ -1,3 +1,4 @@
+import { useTransition } from 'react'
 import { Link, Navigate, NavLink, Outlet, useNavigate } from 'react-router'
 import { Button } from '@/components/ui/button'
 import { useAccount } from '@/modules/panel-app/hooks/use-account'
@@ -8,6 +9,7 @@ import './app-layout.css'
 export function AppLayout() {
   const account = useAccount()
   const navigate = useNavigate()
+  const [loggingOut, startLogout] = useTransition()
 
   if (!account) return <Navigate to="/app/login" replace />
 
@@ -23,14 +25,19 @@ export function AppLayout() {
           </NavLink>
           <NavLink to="/app/settings/profile">Configurações</NavLink>
         </nav>
-        <span className="app-layout__user">{account.name}</span>
+        <span className="app-layout__user" title={account.name}>
+          {account.name}
+        </span>
         <Button
           variant="ghost"
           size="sm"
-          onClick={async () => {
-            await logout()
-            navigate('/app/login')
-          }}
+          loading={loggingOut}
+          onClick={() =>
+            startLogout(async () => {
+              await logout()
+              navigate('/app/login')
+            })
+          }
         >
           Sair
         </Button>
