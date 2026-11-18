@@ -1,0 +1,53 @@
+.my-squad__board {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(160px, 1fr));
+  gap: var(--space-3);
+  overflow-x: auto;
+}
+
+.my-squad__column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+  padding: var(--space-2);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+
+  h3 {
+    color: var(--color-text-muted);
+    font-size: var(--text-xs);
+    font-weight: 500;
+  }
+}
+
+.my-squad__card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+  padding: var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-raised);
+  color: var(--color-text-strong);
+  font-size: var(--text-sm);
+  text-decoration: none;
+
+  &:hover {
+    border-color: var(--color-primary);
+  }
+}
+
+.my-squad__card-title {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.my-squad__history {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--space-4);
+}

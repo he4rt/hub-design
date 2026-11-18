@@ -84,3 +84,12 @@
 .stack-page__num {
   font-variant-numeric: tabular-nums;
 }
+
+.stack-page__grow {
+  flex: 1 1 260px;
+  min-width: 0;
+}
+
+.ui-input.stack-page__narrow {
+  max-width: 120px;
+}

@@ -31,6 +31,7 @@ export function AppLayout() {
             Início
           </NavLink>
           <NavLink to="/app/discussions">Fórum</NavLink>
+          <NavLink to="/app/squads">Squads</NavLink>
           <NavLink to="/app/settings/profile">Configurações</NavLink>
         </nav>
         <span className="app-layout__user" title={account.name}>

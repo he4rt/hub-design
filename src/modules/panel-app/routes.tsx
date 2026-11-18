@@ -19,6 +19,12 @@ import ProjectShow from './features/development/squads/projects/pages/show'
 import MyApplications from './features/squads/applications/pages/index'
 import EntryTest from './features/squads/entry-test/pages/show'
 import ApplicationCreate from './features/squads/squads/applications/pages/create'
+import CaptainApplications from './features/squads/squads/applications/pages/index'
+import Deliveries from './features/squads/squads/deliveries/pages/index'
+import Members from './features/squads/squads/members/pages/index'
+import MySquads from './features/squads/squads/pages/index'
+import MySquad from './features/squads/squads/pages/show'
+import ProjectEdit from './features/squads/squads/projects/pages/edit'
 import { AppLayout } from './layouts/app-layout'
 import { PublicLayout } from './layouts/public-layout'
 
@@ -66,6 +72,12 @@ export const panelAppRoutes: RouteObject = {
         { path: 'settings/profile', Component: Profile },
         { path: 'squads/entry-test', Component: EntryTest },
         { path: 'squads/applications', Component: MyApplications },
+        { path: 'squads', Component: MySquads },
+        { path: 'squads/:squad', Component: MySquad },
+        { path: 'squads/:squad/applications', Component: CaptainApplications },
+        { path: 'squads/:squad/deliveries', Component: Deliveries },
+        { path: 'squads/:squad/members', Component: Members },
+        { path: 'squads/:squad/projects/:project/edit', Component: ProjectEdit },
         { path: 'squads/:squad/projects/:project/applications/create', Component: ApplicationCreate },
       ],
     },
