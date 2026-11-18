@@ -74,9 +74,9 @@ export function distribute() {
   }
 }
 
-/** Oldest first; a request sent back by a conflict goes to the front. */
+/** Oldest first; a request sent back to the queue goes to the front. */
 export function byQueueOrder(a: ValidationRequest, b: ValidationRequest): number {
-  return Number(b.conflicts.length > 0) - Number(a.conflicts.length > 0) || a.createdAt.localeCompare(b.createdAt)
+  return Number(!!b.requeuedAt) - Number(!!a.requeuedAt) || a.createdAt.localeCompare(b.createdAt)
 }
 
 export function evaluationCriterion(state: MockDb, request: ValidationRequest) {

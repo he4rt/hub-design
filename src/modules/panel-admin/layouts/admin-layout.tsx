@@ -29,6 +29,10 @@ export function AdminLayout() {
             Squads
           </NavLink>
           <NavLink to="/admin/squads/entry-tests">Testes de entrada</NavLink>
+          <NavLink to="/admin/validation/validators">Validadores</NavLink>
+          <NavLink to="/admin/validation/queue">Fila de validação</NavLink>
+          <NavLink to="/admin/validation/reviews">Revisões</NavLink>
+          <NavLink to="/admin/validation/contestations">Contestações</NavLink>
           <NavLink to="/admin/system/github">Integração GitHub</NavLink>
         </nav>
         <div className="admin-layout__account">

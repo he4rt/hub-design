@@ -30,7 +30,7 @@ export function declareConflict(validatorId: string, requestId: string, descript
       ...s,
       validationRequests: s.validationRequests.map((r) =>
         r.id === requestId
-          ? { ...r, status: 'queued' as const, validatorId: null, assignedAt: null, conflicts: [...r.conflicts, { validatorId, description: text, at: new Date().toISOString() }] }
+          ? { ...r, status: 'queued' as const, validatorId: null, assignedAt: null, requeuedAt: new Date().toISOString(), conflicts: [...r.conflicts, { validatorId, description: text, at: new Date().toISOString() }] }
           : r,
       ),
       validations: s.validations.filter((v) => !(v.requestId === requestId && v.status === 'draft')),
@@ -68,7 +68,7 @@ function toValidation(state: ReturnType<typeof db.get>, validatorId: string, req
     recordedAt: null,
     published: false,
     publishedAt: null,
-    supersedesId: null,
+    supersedesId: request.supersedesId ?? null,
   }
 }
 

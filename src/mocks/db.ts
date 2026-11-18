@@ -281,6 +281,10 @@ export type ValidationRequest = {
   validatorId: string | null
   assignedAt: string | null
   conflicts: { validatorId: string; description: string; at: string }[]
+  /** Set when a request goes back to the queue (conflict, suspension); it then goes to the front. */
+  requeuedAt?: string | null
+  /** A correction after a contestation: the new validation points to this one. */
+  supersedesId?: string | null
   createdAt: string
 }
 
