@@ -4,6 +4,7 @@ import { Avatar } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import { ValidationRecord } from '@/components/validation/validation-record'
 import { useDebugActions } from '@/debug/use-debug-actions'
 import { formatPostDate, OBJECTIVE_PROGRESS } from '@/lib/feed-post'
 import { areaLabels, labelOf, SITUATIONS } from '@/lib/member-profile'
@@ -25,6 +26,9 @@ export default function Show() {
   const feedPosts = useDb((state) => state.feedPosts)
   const feedCollections = useDb((state) => state.feedCollections)
   const [params, setParams] = useSearchParams()
+  const validations = useDb((state) => state.validations)
+  const projects = useDb((state) => state.teamProjects)
+  const contestations = useDb((state) => state.contestations)
 
   useDebugActions('Perfil público', [
     { label: 'Abrir perfil inexistente', run: () => navigate('/members/nao-existe') },
@@ -75,6 +79,11 @@ export default function Show() {
     .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name))
   const selected = collections.find((c) => c.id === params.get('collection'))?.id ?? 'all'
   const shown = selected === 'all' ? posts : posts.filter((p) => p.collectionIds.includes(selected))
+  // A correction replaces the record it corrects on the profile; the old one stays reachable from the new one.
+  const published = validations
+    .filter((v) => v.memberId === member.id && v.status === 'recorded' && v.published)
+    .filter((v) => !validations.some((n) => n.supersedesId === v.id && n.status === 'recorded'))
+    .sort((a, b) => (b.recordedAt ?? '').localeCompare(a.recordedAt ?? ''))
   const meta = [areaLabels(member.areas), member.city && `${member.city.name} — ${member.city.uf}`].filter(Boolean)
 
   return (
@@ -119,6 +128,23 @@ export default function Show() {
               </li>
             ))}
           </ul>
+        </Card>
+      )}
+
+      {published.length > 0 && (
+        <Card>
+          <h2>Validações</h2>
+          <p className="public-profile__muted">
+            Registradas por validadores de fora do squad. Cada uma aparece inteira, com pontos fortes e de melhoria.
+          </p>
+          {published.map((v) => (
+            <div key={v.id} className="public-profile__validation">
+              {contestations.some((c) => c.validationId === v.id && c.status === 'open') && (
+                <p className="public-profile__muted">Revisão em andamento.</p>
+              )}
+              <ValidationRecord validation={v} projectName={projects.find((p) => p.id === v.projectId)?.name} />
+            </div>
+          ))}
         </Card>
       )}
 
