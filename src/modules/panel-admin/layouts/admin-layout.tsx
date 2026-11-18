@@ -1,7 +1,19 @@
-import { Link, NavLink, Outlet } from 'react-router'
+import { useTransition } from 'react'
+import { Link, Navigate, NavLink, Outlet, useLocation, useNavigate } from 'react-router'
+import { Button } from '@/components/ui/button'
+import { logout } from '@/modules/panel-admin/features/auth/actions'
+import { useAdmin } from '@/modules/panel-admin/hooks/use-admin'
 import './admin-layout.css'
 
+/** Signed-in area of /admin; without an admin session it sends to the admin login. */
 export function AdminLayout() {
+  const admin = useAdmin()
+  const navigate = useNavigate()
+  const { pathname, search } = useLocation()
+  const [loggingOut, startLogout] = useTransition()
+
+  if (!admin) return <Navigate to={`/admin/login?redirect=${encodeURIComponent(pathname + search)}`} replace />
+
   return (
     <div className="admin-layout">
       <aside className="admin-layout__sidebar">
@@ -14,6 +26,24 @@ export function AdminLayout() {
           </NavLink>
           <NavLink to="/admin/users">Usuários</NavLink>
         </nav>
+        <div className="admin-layout__account">
+          <span className="admin-layout__user" title={admin.email}>
+            {admin.name}
+          </span>
+          <Button
+            variant="ghost"
+            size="sm"
+            loading={loggingOut}
+            onClick={() =>
+              startLogout(async () => {
+                await logout()
+                navigate('/admin/login')
+              })
+            }
+          >
+            Sair
+          </Button>
+        </div>
       </aside>
       <main className="admin-layout__content">
         <Outlet />

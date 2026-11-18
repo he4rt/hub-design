@@ -25,6 +25,7 @@ export function UsersTable({
             <th>Nome</th>
             <th>E-mail</th>
             <th>Papel</th>
+            <th>Aberto a oportunidades</th>
             <th>Criado em</th>
             <th aria-label="Ações" />
           </tr>
@@ -37,7 +38,8 @@ export function UsersTable({
                 {user.email}
               </td>
               <td className="users-table__role">{user.role === 'admin' ? 'Admin' : 'Membro'}</td>
-              <td className="users-table__date">{user.createdAt}</td>
+              <td className="users-table__role">{user.openToOpportunities ? 'Sim' : 'Não'}</td>
+              <td className="users-table__date">{user.createdAt.slice(0, 10)}</td>
               <td className="users-table__actions">
                 {canDeleteUser(user) && (
                   <Button variant="danger" size="sm" disabled={disabled} onClick={() => onDelete(user)}>

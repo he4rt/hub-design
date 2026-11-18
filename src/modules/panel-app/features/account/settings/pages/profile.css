@@ -12,3 +12,14 @@
   gap: var(--space-1);
   width: 100%;
 }
+
+.profile-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-width: 720px;
+}
+
+.profile-page__title {
+  font-size: var(--text-md);
+}

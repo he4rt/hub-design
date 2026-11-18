@@ -1,0 +1,11 @@
+.login__shared {
+  text-align: center;
+}
+
+.login__link-notice {
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--color-primary-soft);
+  color: var(--color-text-strong);
+  font-size: var(--text-sm);
+}

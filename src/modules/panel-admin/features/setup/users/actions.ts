@@ -1,4 +1,4 @@
-import { db, newId, type User } from '@/mocks/db'
+import { db, makeUser, newId, type User } from '@/mocks/db'
 import { MockError, mockAction } from '@/mocks/mock-action'
 
 const FIRST_NAMES = ['Carla', 'Diego', 'Elisa', 'Felipe', 'Gabi', 'Heitor', 'Iara', 'João']
@@ -11,13 +11,20 @@ function pick<T>(items: T[]): T {
 function fakeUser(): User {
   const first = pick(FIRST_NAMES)
   const id = newId()
-  return {
+  const now = new Date().toISOString()
+  return makeUser({
     id,
     name: `${first} ${pick(LAST_NAMES)}`,
     email: `${first.toLowerCase()}.${id}@he4rt.dev`,
-    role: 'member',
-    createdAt: new Date().toISOString().slice(0, 10),
-  }
+    username: `${first.toLowerCase()}-${id}`,
+    birthDate: '1998-01-01',
+    emailVerifiedAt: now,
+    usageNoticeAcceptedAt: now,
+    onboardedAt: now,
+    areas: ['full-stack'],
+    languages: ['JavaScript'],
+    createdAt: now,
+  })
 }
 
 export function createUsers(count: number) {

@@ -1,17 +1,22 @@
 import { useTransition } from 'react'
-import { Link, Navigate, NavLink, Outlet, useNavigate } from 'react-router'
+import { Link, Navigate, NavLink, Outlet, useLocation, useNavigate } from 'react-router'
 import { Button } from '@/components/ui/button'
 import { useAccount } from '@/modules/panel-app/hooks/use-account'
 import { logout } from '@/modules/panel-app/features/auth/actions'
 import './app-layout.css'
 
-/** Signed-in area of /app; redirects to the login page without a session. */
+/**
+ * Signed-in area of /app. Without a session it sends to the login page and
+ * comes back afterwards; an account without the dev profile goes to finish the sign-up.
+ */
 export function AppLayout() {
   const account = useAccount()
   const navigate = useNavigate()
+  const { pathname, search } = useLocation()
   const [loggingOut, startLogout] = useTransition()
 
-  if (!account) return <Navigate to="/app/login" replace />
+  if (!account) return <Navigate to={`/app/login?redirect=${encodeURIComponent(pathname + search)}`} replace />
+  if (!account.onboardedAt) return <Navigate to="/app/onboarding" replace />
 
   return (
     <div className="app-layout">

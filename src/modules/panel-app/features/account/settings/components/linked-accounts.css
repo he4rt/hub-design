@@ -1,0 +1,68 @@
+.linked-accounts__title {
+  font-size: var(--text-md);
+}
+
+.linked-accounts {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.linked-accounts__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-height: 48px;
+  border-top: 1px solid var(--color-border);
+
+  &:first-child {
+    border-top: none;
+  }
+}
+
+.linked-accounts__info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  font-size: var(--text-sm);
+
+  strong {
+    color: var(--color-text-strong);
+    font-weight: 500;
+  }
+
+  span {
+    overflow: hidden;
+    color: var(--color-text-muted);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+/* Same height as a small button, so the row keeps its size. */
+.linked-accounts__only {
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+}
+
+.linked-accounts__suggestion {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--color-primary-soft);
+  color: var(--color-text-strong);
+  font-size: var(--text-sm);
+}
+
+.linked-accounts__suggestion-actions {
+  display: flex;
+  gap: var(--space-2);
+}

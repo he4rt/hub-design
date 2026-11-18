@@ -8,7 +8,7 @@ services:
     portals:
       - url: /app
         title: App
-        description: Member area. Sign in with any mock user and the password "password".
+        description: Member area. Log in with ana@he4rt.dev / password, try Discord, GitHub or Google (simulated), or create an account.
       - url: /admin
         title: Admin
-        description: Admin panel with mock data.
+        description: Admin panel, its own login. daniel@he4rt.dev / password.

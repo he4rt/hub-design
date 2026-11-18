@@ -8,19 +8,36 @@ import { Label } from '@/components/ui/label'
 import { useDebugActions } from '@/debug/use-debug-actions'
 import type { User } from '@/mocks/db'
 import { errorMessage } from '@/mocks/mock-action'
+import { ProfileCompleteness } from '@/modules/panel-app/components/profile-completeness'
 import { useAccount } from '@/modules/panel-app/hooks/use-account'
 import { updateProfile } from '../actions'
+import { LinkedAccounts } from '../components/linked-accounts'
+import { MemberProfileForm } from '../components/member-profile-form'
+import { ProfilePublication } from '../components/profile-publication'
 import './profile.css'
 
 export default function Profile() {
   const account = useAccount()
   if (!account) return null
-  return <ProfileForm key={account.id} account={account} />
+  return (
+    <>
+      <PageHeader title="Perfil" description="Como você aparece para a comunidade." />
+      <div className="profile-page">
+        <ProfilePublication account={account} />
+        <Card>
+          <ProfileCompleteness user={account} />
+        </Card>
+        <LinkedAccounts account={account} />
+        <MemberProfileForm key={`profile-${account.id}`} account={account} />
+        <AccountForm key={`account-${account.id}`} account={account} />
+      </div>
+    </>
+  )
 }
 
 type Result = { ok: true } | { ok: false; error: string } | null
 
-function ProfileForm({ account }: { account: User }) {
+function AccountForm({ account }: { account: User }) {
   const [name, setName] = useState(account.name)
   const [email, setEmail] = useState(account.email)
 
@@ -33,32 +50,30 @@ function ProfileForm({ account }: { account: User }) {
     }
   }, null)
 
-  useDebugActions('Perfil', [
+  useDebugActions('Conta', [
     { label: 'Preencher e-mail já usado', run: () => setEmail('bruno@he4rt.dev') },
     { label: 'Preencher nome inválido', run: () => setName('A') },
   ])
 
   return (
-    <>
-      <PageHeader title="Perfil" description="Seu nome e e-mail." />
-      <Card>
-        <form action={submit} className="profile-form">
-          <div className="profile-form__field">
-            <Label htmlFor="name">Nome</Label>
-            <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
-          </div>
-          <div className="profile-form__field">
-            <Label htmlFor="email">E-mail</Label>
-            <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-          </div>
-          <FormMessage tone={result?.ok === false ? 'error' : 'success'}>
-            {result && (result.ok ? 'Perfil salvo.' : result.error)}
-          </FormMessage>
-          <Button type="submit" loading={pending}>
-            Salvar
-          </Button>
-        </form>
-      </Card>
-    </>
+    <Card>
+      <h2 className="profile-page__title">Conta</h2>
+      <form action={submit} className="profile-form">
+        <div className="profile-form__field">
+          <Label htmlFor="name">Nome</Label>
+          <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
+        </div>
+        <div className="profile-form__field">
+          <Label htmlFor="email">E-mail</Label>
+          <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+        </div>
+        <FormMessage tone={result?.ok === false ? 'error' : 'success'}>
+          {result && (result.ok ? 'Conta salva.' : result.error)}
+        </FormMessage>
+        <Button type="submit" loading={pending}>
+          Salvar
+        </Button>
+      </form>
+    </Card>
   )
 }

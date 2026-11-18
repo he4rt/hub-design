@@ -1,7 +1,17 @@
 import { debugStore, logFinish, logStart } from '@/debug/debug-store'
 
-/** Expected failure of a mocked action, such as a validation error. */
-export class MockError extends Error {}
+/**
+ * Expected failure of a mocked action, such as a validation error. `field`
+ * names the invalid input, like a Laravel validation error key.
+ */
+export class MockError extends Error {
+  field?: string
+
+  constructor(message: string, field?: string) {
+    super(message)
+    this.field = field
+  }
+}
 
 /**
  * Runs a mocked backend action: waits the latency set in the debug sidebar,

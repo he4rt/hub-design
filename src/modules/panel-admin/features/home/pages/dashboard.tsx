@@ -11,8 +11,13 @@ export default function Dashboard() {
   useDebugActions('Visão geral', [
     {
       label: 'Zerar usuários',
-      description: 'Mostra o estado vazio.',
-      run: () => db.set((state) => ({ ...state, users: [], session: null })),
+      description: 'Mostra o estado vazio; mantém só o admin logado.',
+      run: () =>
+        db.set((state) => ({
+          ...state,
+          users: state.users.filter((user) => user.id === state.adminSession?.userId),
+          session: null,
+        })),
     },
   ])
 
