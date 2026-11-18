@@ -6,7 +6,7 @@ web
 
 ## Users
 
-Pessoas em evolução profissional em tecnologia: entrantes, juniores, plenos e quem está migrando de carreira. Na v1 o foco é desenvolvimento; produto, design, QA e infraestrutura entram nas versões seguintes, dados depois delas, e marketing fica fora do escopo. Todos percorrem a mesma jornada, mudando apenas o ponto de partida; o que trava essa pessoa é visibilidade e preparo, não falta de conteúdo. Junto delas estão os membros que já chegaram e voltam para contribuir: validar trabalho, orientar e conduzir squads, com disponibilidade limitada e muitas vezes voluntária. Os dois lados dependem um do outro. A base que a comunidade já tem é suficiente para a v1: o Hub existe primeiro para valorizar quem já está, não para buscar volume. A conta vem de login social (Discord, GitHub, Google) ou de cadastro próprio, com redes vinculadas depois; quem quer métricas de código no perfil vincula o GitHub. Visitantes leem o perfil público sem login, e nenhuma ação é possível sem ele.
+Pessoas em evolução profissional em tecnologia: entrantes, juniores, plenos e quem está migrando de carreira. Na v1 o foco é desenvolvimento; produto, design, QA e infraestrutura entram nas versões seguintes, dados depois delas, e marketing fica fora do escopo. Todos percorrem a mesma jornada, mudando apenas o ponto de partida; o que trava essa pessoa é visibilidade e preparo, não falta de conteúdo. Junto delas estão os membros que já chegaram e voltam para contribuir: validar trabalho, orientar e conduzir squads, com disponibilidade limitada e muitas vezes voluntária. Os dois lados dependem um do outro. A base que a comunidade já tem é suficiente para a v1: o Hub existe primeiro para valorizar quem já está, não para buscar volume. A conta vem de login social (Discord, GitHub, Google) ou de cadastro próprio, com redes vinculadas depois. O GitHub é obrigatório para todos: é o ambiente de trabalho dos squads e a fonte da evidência técnica. Visitantes leem o perfil público sem login, e nenhuma ação é possível sem ele.
 
 ## Product Purpose
 
@@ -28,7 +28,7 @@ O He4rt Hub é a referência da trajetória dos membros da comunidade He4rt Deve
 - O Hub fica linkado em todos os pontos de contato da comunidade: site, descrição e mensagem fixada do grupo de WhatsApp, Discord e redes. Não existe fluxo dedicado de migração; a pessoa chega ao Hub por qualquer um desses meios.
 - Visitantes leem o perfil público. Participar de squad, validar, se candidatar e editar perfil exigem login.
 - A identidade tem uma fonte oficial única, compartilhada por Hub, Basement e Job Finder, e nenhuma funcionalidade mantém cópia divergente dela. Integrações preservam origem, integridade e histórico dos dados, e a indisponibilidade de um parceiro não compromete registros já consolidados.
-- Papéis: membro, capitão de squad, validador e administração. A administração habilita validadores a partir de prova técnica, cadastra vagas, gere squads e concede conquistas manuais; o capitão responde apenas pelo próprio squad.
+- Papéis: membro, capitão de squad, validador, staff (administração) e super admin. A staff habilita validadores a partir de prova técnica, revisa o teste de entrada, cadastra vagas, cria squads e projetos, aloca o capitão e concede conquistas manuais. O super admin pode tudo, inclusive trocar o capitão e tirar ou realocar membros, sempre com motivo registrado no log do squad. O capitão responde apenas pelo próprio squad.
 - Comportamento exato, limites e casos de exceção vivem nos documentos complementares (squads, validação, métricas, competências, privacidade e integrações) e no código; este arquivo registra apenas o que precisa continuar verdadeiro.
 
 ## Capabilities and Constraints
@@ -44,8 +44,8 @@ O que existe, uma linha cada, em quatro domínios:
 **Desenvolvimento**
 
 - **Preparação para o squad:** antes de entrar em um squad o membro monta o perfil, registra a trajetória e tem acesso ao material que cobre o teste de entrada.
-- **Squads:** times de projeto colaborativo em repositórios da organização He4rt no GitHub, conduzidos por um capitão. A entrada exige um teste simples (repositório público, commit e pull request), cujo conteúdo é publicado antes.
-- **Validação:** registro da avaliação do trabalho individual, feito por validador habilitado de fora do squad, com contexto, contribuição, pontos fortes, pontos de melhoria, avaliador identificado e conflito de interesse declarado.
+- **Squads:** times de projeto colaborativo em repositórios da organização He4rt no GitHub, conduzidos por um capitão. Cada projeto nasce no Hub com objetivo, critérios de aceite e critérios de avaliação. A entrada tem duas camadas: o teste de entrada, um pull request merged num repositório da He4rt e revisado por uma pessoa da staff, cujo conteúdo é publicado antes; e a candidatura, que o capitão aceita ou recusa, sempre com retorno construtivo.
+- **Validação:** registro da avaliação do trabalho individual, feito por validador habilitado de fora do squad, em geral alguém já no mercado, que funciona como uma recomendação para o portfólio do membro, com contexto, contribuição, pontos fortes, pontos de melhoria, avaliador identificado e conflito de interesse declarado.
 - **Histórico de participação:** projetos, responsabilidades, entregas, contribuições técnicas e não técnicas e validações.
 - **Log do squad:** registro permanente do que cada squad fez, projeto a projeto, que serve de referência e de currículo para os membros.
 
@@ -64,7 +64,7 @@ Regras que toda funcionalidade precisa manter:
 - **Validação não é certificado.** Não é nota, aprovação ou selo: é registro de evidência, com avaliador identificado e conflito de interesse declarado, e só é registrada com pontos fortes e pontos de melhoria. Prevê o caso de evidência insuficiente. É imutável, e correção ou contestação acontece por novo registro que não oculta o anterior.
 - **O capitão não valida o próprio squad.** Ele registra o contexto; quem valida é de fora do squad.
 - **A validação é da pessoa, não do squad.** Todo histórico distingue o que foi o membro do que foi o time.
-- **Validação é privada por padrão.** Só aparece no perfil público quando o membro escolhe publicar.
+- **Validação é privada por padrão.** Só aparece no perfil público quando o membro escolhe publicar, uma a uma e sempre inteira. Cargo e empresa do validador aparecem só quando ele autoriza.
 - **Quem valida não ganha com a contratação de quem validou.** Se houver retribuição ao validador, é pela validação feita, nunca pelo emprego de quem foi avaliado.
 - **Validador é habilitado pela administração.** Quem quer validar procura a administração e apresenta prova técnica de capacidade: currículo, certificações, perfis, arquivos e contribuições, dentro e fora da comunidade. Sem bagagem técnica suficiente o pedido não é aprovado, mas a recusa não é permanente e a pessoa pode pedir de novo depois de evoluir.
 - **O validador tem limite.** Cada validador tem uma janela de 3 validações abertas ao mesmo tempo. O que excede entra em uma fila única e é distribuído automaticamente para o validador que liberar espaço. A plataforma não promete prazo de atendimento que os validadores não conseguem cumprir.

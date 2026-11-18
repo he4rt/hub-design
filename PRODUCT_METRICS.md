@@ -72,21 +72,32 @@ XP é reconhecimento no perfil. Não libera acesso, não aparece em ranking e n�
 
 ## Core Events
 
-| Evento                  | Quando dispara                           |
-| ----------------------- | ---------------------------------------- |
-| account_created         | Conta criada no Hub                      |
-| profile_completed       | Perfil completo pela primeira vez        |
-| trajectory_record_added | Registro novo na trajetória              |
-| squad_test_submitted    | Pull request do teste de entrada enviado |
-| squad_joined            | Membro entra em um squad                 |
-| delivery_accepted       | Entrega aceita no squad                  |
-| validation_requested    | Pedido de validação criado               |
-| validation_assigned     | Validação distribuída a um validador     |
-| validation_recorded     | Validação registrada                     |
-| validation_published    | Membro publica uma validação no perfil   |
-| feed_post_created       | Publicação no diário de aprendizado      |
-| job_viewed              | Vaga aberta por membro elegível          |
-| job_applied             | Candidatura enviada com consentimento    |
+| Evento                          | Quando dispara                                        |
+| ------------------------------- | ----------------------------------------------------- |
+| account_created                 | Conta criada no Hub                                   |
+| profile_completed               | Perfil completo pela primeira vez                     |
+| trajectory_record_added         | Registro novo na trajetória                           |
+| squad_test_submitted            | Pull request do teste de entrada aberto               |
+| squad_test_approved             | Pull request do teste de entrada merged pela staff    |
+| squad_project_created           | Projeto de squad criado pela staff                    |
+| squad_application_submitted     | Candidatura enviada a um projeto                      |
+| squad_application_decided       | Capitão aceita ou recusa uma candidatura              |
+| squad_joined                    | Membro entra em um squad                              |
+| delivery_accepted               | Entrega aceita no squad                               |
+| delivery_returned               | Entrega devolvida pelo capitão                        |
+| validator_application_submitted | Pedido de habilitação de validador enviado            |
+| validator_application_decided   | Staff aprova ou recusa um pedido de habilitação       |
+| validation_requested            | Pedido de validação criado                            |
+| validation_assigned             | Validação distribuída a um validador                  |
+| validation_conflict_declared    | Validador devolve um pedido por conflito de interesse |
+| validation_review_decided       | Staff aprova ou devolve uma validação em revisão      |
+| validation_recorded             | Validação registrada                                  |
+| validation_published            | Membro publica uma validação no perfil                |
+| validation_unpublished          | Membro despublica uma validação                       |
+| validation_contested            | Contestação aberta sobre uma validação                |
+| feed_post_created               | Publicação no diário de aprendizado                   |
+| job_viewed                      | Vaga aberta por membro elegível                       |
+| job_applied                     | Candidatura enviada com consentimento                 |
 
 ## Data Rules
 
