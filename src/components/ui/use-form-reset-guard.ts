@@ -6,11 +6,11 @@ import { useEffect, useRef, type RefObject } from 'react'
  * check that tells when a change comes from that reset, so a controlled
  * control keeps the value its owner holds.
  */
-export function useFormResetGuard(ref: RefObject<HTMLButtonElement | null>) {
+export function useFormResetGuard(ref: RefObject<HTMLElement | null>) {
   const resetting = useRef(false)
 
   useEffect(() => {
-    const form = ref.current?.form
+    const form = ref.current?.closest('form')
     if (!form) return
     // Capture runs before Radix's own reset listener on the same form.
     const onReset = () => {

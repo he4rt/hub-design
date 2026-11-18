@@ -1,0 +1,71 @@
+.public-layout {
+  min-height: 100svh;
+  background: var(--color-surface);
+}
+
+.public-layout__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-8);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface-raised);
+}
+
+.public-layout__brand {
+  color: var(--color-text-strong);
+  font-weight: 700;
+  text-decoration: none;
+
+  &:focus-visible {
+    outline: none;
+    border-radius: var(--radius-sm);
+    box-shadow: var(--focus-ring);
+  }
+}
+
+/* The same look as the signed-in navigation. */
+.public-layout__nav {
+  display: flex;
+  flex: 1;
+  gap: var(--space-1);
+
+  a {
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-md);
+    color: var(--color-text);
+    font-size: var(--text-sm);
+    text-decoration: none;
+
+    &:hover {
+      background: var(--color-primary-soft);
+    }
+
+    &.active {
+      color: var(--color-primary);
+      background: var(--color-primary-soft);
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: var(--focus-ring);
+    }
+  }
+}
+
+.public-layout__actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+/* Pages here set their own width, so a banner can span the screen. */
+.public-layout__content {
+  min-width: 0;
+}
+
+@media (max-width: 767px) {
+  .public-layout__header {
+    padding: var(--space-3) var(--space-4);
+  }
+}

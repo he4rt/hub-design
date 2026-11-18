@@ -101,6 +101,181 @@ export type PendingSocialLink = { provider: SocialProvider; email: string; handl
 
 export type AnalyticsEvent = { event: string; props: Record<string, unknown>; at: string }
 
+/*
+ * Public profile records. Every record has `isPublic`: it shows on the public
+ * profile only when the member chose to publish it.
+ */
+
+export type DeclaredKnowledge = {
+  id: string
+  competency: string
+  level: 'basic' | 'intermediate' | 'advanced'
+  declaredAt: string
+  isPublic: boolean
+}
+
+export type LearningRecord = {
+  id: string
+  title: string
+  description: string | null
+  origin: 'member' | 'basement'
+  completedAt: string
+  isPublic: boolean
+}
+
+export type ExperienceRecord = {
+  id: string
+  role: string
+  organization: string
+  description: string | null
+  startedAt: string
+  endedAt: string | null
+  isPublic: boolean
+}
+
+/** An article the member wrote outside the Hub, such as on dev.to. */
+export type Article = {
+  id: string
+  title: string
+  summary: string | null
+  url: string
+  source: 'dev.to'
+  publishedAt: string
+  isPublic: boolean
+}
+
+/** Commit, pull request, or repository the member picked to show on their profile. */
+export type TechnicalEvidence = {
+  id: string
+  kind: 'commit' | 'pull-request' | 'repository'
+  repository: string
+  /** Short commit hash or pull request number; null for a repository. */
+  ref: string | null
+  title: string
+  /** In the member's words: the problem, what they changed, and the result. Short enough for a card. */
+  context: string
+  url: string
+  date: string
+  /** Squad project this evidence belongs to; null for the member's own repositories. */
+  projectId: string | null
+  isPublic: boolean
+}
+
+/**
+ * Learning journal post (the Feed): what the member learned and how they applied it.
+ * Every post belongs to a learning record and shows inside it, like the body of a commit message.
+ */
+export type JournalPost = {
+  id: string
+  title: string
+  publishedAt: string
+  learned: string
+  applied: string
+  body: string
+  learningId: string
+  isPublic: boolean
+}
+
+/** Public profile of a member (Fundação stage: no squads, validations, or XP yet). */
+export type MemberProfile = {
+  userId: string
+  handle: string
+  bio: string | null
+  /** Longer "Sobre mim", shown as the profile's README. Paragraphs are separated by a blank line. */
+  readme: string | null
+  currentFocus: string | null
+  areas: string[]
+  stacks: string[]
+  links: { id: string; label: string; url: string }[]
+  knowledge: DeclaredKnowledge[]
+  learnings: LearningRecord[]
+  experiences: ExperienceRecord[]
+  articles: Article[]
+  evidences: TechnicalEvidence[]
+  journalPosts: JournalPost[]
+}
+
+/** A project team in the He4rt organization on GitHub, led by a captain. Never closed, only inactive. */
+export type Squad = {
+  id: string
+  slug: string
+  name: string
+  description: string
+  captainId: string
+  status: 'active' | 'inactive'
+}
+
+/** A member's place in a squad project, kept apart from what the team did. */
+export type ProjectParticipant = {
+  userId: string
+  role: string
+  /** What this member answered for, as the captain registered it. */
+  responsibilities: string
+  joinedAt: string
+  /** The member chose to show this participation on their public profile. */
+  shownOnProfile: boolean
+}
+
+/** Commit or pull request in the project's repository, with its author. */
+export type ProjectEvidence = {
+  id: string
+  kind: 'commit' | 'pull-request'
+  /** Short commit hash or pull request number. */
+  ref: string
+  title: string
+  authorId: string
+  date: string
+  url: string
+}
+
+/** Work the squad accepted or is reviewing, credited to the members who did it. */
+export type Delivery = {
+  id: string
+  title: string
+  description: string
+  memberIds: string[]
+  status: 'accepted' | 'in-review'
+  date: string
+  evidenceIds: string[]
+}
+
+/** One project of a squad: the squad log keeps it for good, project by project. */
+export type SquadProject = {
+  id: string
+  squadId: string
+  slug: string
+  name: string
+  description: string
+  /** Repository under the He4rt organization, such as `he4rt/loja-comunitaria`. */
+  repository: string
+  startedAt: string
+  endedAt: string | null
+  participants: ProjectParticipant[]
+  deliveries: Delivery[]
+  evidences: ProjectEvidence[]
+}
+
+export type DiscussionCategory = 'question' | 'technical' | 'learning'
+
+/** What a discussion is about: a squad, a squad project, or one of the author's journal posts. */
+export type DiscussionContext = { type: 'squad' | 'project' | 'journal-post'; id: string }
+
+export type DiscussionReply = { id: string; authorId: string; body: string; createdAt: string }
+
+/** Forum discussion. Questions and answers live here, apart from the trajectory on the profile. */
+export type Discussion = {
+  id: string
+  title: string
+  category: DiscussionCategory
+  authorId: string
+  body: string
+  createdAt: string
+  context: DiscussionContext | null
+  replies: DiscussionReply[]
+  /** Reply the author marked as the one that solved the question. */
+  solvedReplyId: string | null
+}
+
 export type MockDb = {
   users: User[]
   /** Server-side only: passwords by user id. Accounts created by social login have none. */
@@ -114,6 +289,10 @@ export type MockDb = {
   adminSession: { userId: string } | null
   /** What PostHog would receive, newest first. */
   events: AnalyticsEvent[]
+  profiles: MemberProfile[]
+  squads: Squad[]
+  projects: SquadProject[]
+  discussions: Discussion[]
 }
 
 export const DEMO_PASSWORD = 'password'
@@ -242,18 +421,618 @@ const seed: MockDb = {
       objective: 'get-job',
       areas: ['back-end'],
     }),
+    makeUser({
+      id: 'u6',
+      name: 'Rafael Costa',
+      email: 'rafael@he4rt.dev',
+      username: 'rafael-costa',
+      birthDate: '1993-02-17',
+      ...joined('2025-02-03T12:00:00Z'),
+      objective: 'grow',
+      areas: ['back-end'],
+      startingPoint: 'senior',
+      languages: ['PHP', 'Go'],
+      situation: 'working',
+      bio: 'Capitão do squad Loja Comunitária.',
+      published: true,
+    }),
+    makeUser({
+      id: 'u7',
+      name: 'Júlia Martins',
+      email: 'julia@he4rt.dev',
+      username: 'julia-martins',
+      birthDate: '2002-07-08',
+      ...joined('2025-11-20T12:00:00Z'),
+      objective: 'get-job',
+      areas: ['front-end'],
+      startingPoint: 'junior',
+      languages: ['TypeScript'],
+      situation: 'studying',
+    }),
   ],
-  passwords: { u1: DEMO_PASSWORD, u2: DEMO_PASSWORD, u3: DEMO_PASSWORD, u4: DEMO_PASSWORD, u5: DEMO_PASSWORD },
+  passwords: {
+    u1: DEMO_PASSWORD,
+    u2: DEMO_PASSWORD,
+    u3: DEMO_PASSWORD,
+    u4: DEMO_PASSWORD,
+    u5: DEMO_PASSWORD,
+    u6: DEMO_PASSWORD,
+    u7: DEMO_PASSWORD,
+  },
   passwordResets: [],
   pendingSocialSignUp: null,
   pendingSocialLink: null,
   session: null,
   adminSession: null,
   events: [],
+  profiles: [
+    {
+      userId: 'u2',
+      handle: 'ana-souza',
+      bio: 'Quatro anos no suporte técnico, onde comecei a automatizar tarefas com scripts. Hoje estudo PHP e Laravel e faço sistemas pequenos para comércios do bairro.',
+      readme:
+        'Passei quatro anos no suporte técnico de um provedor de internet e foi lá que comecei a automatizar tarefas com scripts em Bash.\n\nHoje estudo PHP e Laravel e faço sistemas pequenos para comércios do bairro. Quero trabalhar com back-end em um time que revise código junto.\n\nGosto de entender por que algo quebrou antes de corrigir. É o que mais aparece nas minhas notas do diário.',
+      currentFocus: 'Filas e testes de integração em Laravel',
+      areas: ['Back-end', 'Front-end'],
+      stacks: ['PHP', 'Laravel', 'MySQL', 'TypeScript', 'React', 'Docker'],
+      links: [
+        { id: 'l1', label: 'GitHub', url: 'https://github.com/ana-souza-dev' },
+        { id: 'l2', label: 'dev.to', url: 'https://dev.to/ana-souza-dev' },
+        { id: 'l3', label: 'LinkedIn', url: 'https://www.linkedin.com/in/ana-souza-dev' },
+      ],
+      knowledge: [
+        { id: 'k1', competency: 'PHP', level: 'intermediate', declaredAt: '2025-03-25', isPublic: true },
+        { id: 'k2', competency: 'SQL', level: 'basic', declaredAt: '2025-03-25', isPublic: true },
+        { id: 'k3', competency: 'Laravel', level: 'basic', declaredAt: '2025-11-02', isPublic: true },
+        { id: 'k4', competency: 'React', level: 'basic', declaredAt: '2026-06-14', isPublic: true },
+      ],
+      learnings: [
+        {
+          id: 'a1',
+          title: 'Fundamentos de PHP',
+          description: 'Sintaxe, orientação a objetos e Composer.',
+          origin: 'basement',
+          completedAt: '2025-05-20',
+          isPublic: true,
+        },
+        {
+          id: 'a2',
+          title: 'Laravel do zero',
+          description: 'Rotas, Eloquent, filas e testes com Pest.',
+          origin: 'basement',
+          completedAt: '2025-10-30',
+          isPublic: true,
+        },
+        {
+          id: 'a3',
+          title: 'Leitura de "Refatoração", de Martin Fowler',
+          description: 'Anotei os padrões que mais uso nos meus projetos.',
+          origin: 'member',
+          completedAt: '2026-03-08',
+          isPublic: true,
+        },
+        {
+          id: 'a4',
+          title: 'Docker para quem desenvolve',
+          description: null,
+          origin: 'basement',
+          completedAt: '2026-07-19',
+          isPublic: false,
+        },
+      ],
+      experiences: [
+        {
+          id: 'e1',
+          role: 'Analista de suporte técnico',
+          organization: 'Provedor de internet regional',
+          description: 'Atendimento de nível 2 e scripts em Bash para diagnóstico de conexões.',
+          startedAt: '2021-02-01',
+          endedAt: '2025-08-31',
+          isPublic: true,
+        },
+        {
+          id: 'e2',
+          role: 'Desenvolvedora freelancer',
+          organization: 'Projetos próprios',
+          description: 'Sites e sistemas pequenos em Laravel para comércios do bairro.',
+          startedAt: '2025-09-01',
+          endedAt: null,
+          isPublic: true,
+        },
+      ],
+      articles: [
+        {
+          id: 'r1',
+          title: 'Como uma fila no Laravel destravou o checkout de um cliente',
+          summary: 'O envio de e-mail travava a compra. O que mudei, o que deu errado e como passei a ler o failed_jobs.',
+          url: 'https://dev.to/ana-souza-dev/fila-laravel-checkout',
+          source: 'dev.to',
+          publishedAt: '2026-08-14',
+          isPublic: true,
+        },
+        {
+          id: 'r2',
+          title: 'Pest para quem nunca escreveu um teste',
+          summary: 'Testei o cálculo de frete antes de refatorar e encontrei dois bugs antigos.',
+          url: 'https://dev.to/ana-souza-dev/pest-primeiros-testes',
+          source: 'dev.to',
+          publishedAt: '2026-05-10',
+          isPublic: true,
+        },
+        {
+          id: 'r3',
+          title: 'Anotações sobre EXPLAIN no MySQL',
+          summary: null,
+          url: 'https://dev.to/ana-souza-dev/explain-mysql',
+          source: 'dev.to',
+          publishedAt: '2026-04-22',
+          isPublic: false,
+        },
+      ],
+      evidences: [
+        {
+          id: 'v1',
+          kind: 'pull-request',
+          repository: 'ana-souza-dev/loja-bairro',
+          ref: '12',
+          title: 'Move o envio de e-mail do checkout para uma fila',
+          context: 'O checkout travava quando o servidor de e-mail demorava. Movi o envio para uma fila com retry, e a compra deixou de esperar.',
+          url: 'https://github.com/ana-souza-dev/loja-bairro/pull/12',
+          date: '2026-08-10',
+          projectId: null,
+          isPublic: true,
+        },
+        {
+          id: 'v2',
+          kind: 'commit',
+          repository: 'ana-souza-dev/frete-calc',
+          ref: '3f9c2a1',
+          title: 'Adiciona testes do cálculo de frete antes da refatoração',
+          context: 'Escrevi testes com Pest antes de refatorar o cálculo de frete. Eles acharam dois bugs antigos, que corrigi primeiro.',
+          url: 'https://github.com/ana-souza-dev/frete-calc/commit/3f9c2a1',
+          date: '2026-05-02',
+          projectId: null,
+          isPublic: true,
+        },
+        {
+          id: 'v3',
+          kind: 'repository',
+          repository: 'ana-souza-dev/scripts-suporte',
+          ref: null,
+          title: 'Scripts de diagnóstico de conexão',
+          context: 'Scripts em Bash que eu criei no suporte para diagnosticar a conexão dos clientes. Foi onde comecei a programar.',
+          url: 'https://github.com/ana-souza-dev/scripts-suporte',
+          date: '2023-06-15',
+          projectId: null,
+          isPublic: true,
+        },
+        {
+          id: 'v4',
+          kind: 'commit',
+          repository: 'ana-souza-dev/docker-estudos',
+          ref: '9b01e7c',
+          title: 'Primeiro docker-compose com PHP e MySQL',
+          context: 'Ambiente de estudo do curso de Docker.',
+          url: 'https://github.com/ana-souza-dev/docker-estudos/commit/9b01e7c',
+          date: '2026-07-15',
+          projectId: null,
+          isPublic: false,
+        },
+        {
+          id: 'v5',
+          kind: 'pull-request',
+          repository: 'he4rt/loja-comunitaria',
+          ref: '34',
+          title: 'Envia os e-mails do pedido por uma fila com retry',
+          context: 'Levei para a loja do squad a fila que fiz no checkout de um cliente. Os pedidos não travam mais quando o e-mail falha.',
+          url: 'https://github.com/he4rt/loja-comunitaria/pull/34',
+          date: '2026-10-18',
+          projectId: 'p1',
+          isPublic: true,
+        },
+      ],
+      journalPosts: [
+        {
+          id: 'j1',
+          title: 'Entendi filas no Laravel quebrando um sistema',
+          publishedAt: '2026-08-12',
+          learned: 'Tarefas lentas, como enviar e-mail, não devem rodar dentro da requisição do usuário.',
+          applied: 'Movi o envio de e-mail do checkout de um cliente para uma fila com retry.',
+          body: 'O checkout de uma loja travava sempre que o servidor de e-mail demorava. Movi o envio para uma fila com três tentativas e aprendi a olhar a tabela failed_jobs antes de culpar o SMTP. O que ainda não sei: como ser avisada quando a fila para. É o próximo passo.',
+          learningId: 'a2',
+          isPublic: true,
+        },
+        {
+          id: 'j2',
+          title: 'Primeiros testes com Pest num projeto real',
+          publishedAt: '2026-05-03',
+          learned: 'Escrever testes antes de refatorar mostra o comportamento atual, inclusive os bugs.',
+          applied: 'Testei o cálculo de frete antes de mexer nele e encontrei dois bugs antigos.',
+          body: 'Comecei com três casos de frete que eu sabia calcular de cabeça. Dois falharam: o código arredondava errado o peso e ignorava o CEP de outro estado. Corrigi os dois antes de refatorar. Ainda não sei testar a integração com os Correios sem deixar o teste lento.',
+          learningId: 'a3',
+          isPublic: true,
+        },
+        {
+          id: 'j4',
+          title: 'Dúvida sobre índices no MySQL',
+          publishedAt: '2026-04-20',
+          learned: 'Ainda não entendi como ler o EXPLAIN.',
+          applied: 'Uma consulta de relatório continua lenta.',
+          body: 'Uma consulta de relatório estava lenta e não entendi o resultado do EXPLAIN.',
+          learningId: 'a2',
+          isPublic: false,
+        },
+      ],
+    },
+    {
+      userId: 'u3',
+      handle: 'bruno-lima',
+      bio: null,
+      readme: null,
+      currentFocus: null,
+      areas: ['Front-end'],
+      stacks: ['HTML', 'CSS'],
+      links: [],
+      knowledge: [{ id: 'k5', competency: 'HTML e CSS', level: 'basic', declaredAt: '2026-10-28', isPublic: true }],
+      learnings: [],
+      experiences: [],
+      articles: [],
+      evidences: [],
+      journalPosts: [],
+    },
+  ],
+  squads: [
+    {
+      id: 's1',
+      slug: 'loja-comunitaria',
+      name: 'Loja Comunitária',
+      description: 'Loja virtual aberta para comércios de bairro, mantida pela comunidade.',
+      captainId: 'u6',
+      status: 'active',
+    },
+    {
+      id: 's2',
+      slug: 'agenda-he4rt',
+      name: 'Agenda He4rt',
+      description: 'Agenda dos eventos e calls da comunidade.',
+      captainId: 'u1',
+      status: 'inactive',
+    },
+  ],
+  projects: [
+    {
+      id: 'p1',
+      squadId: 's1',
+      slug: 'checkout',
+      name: 'Checkout e pedidos',
+      description:
+        'Fluxo de compra da loja: carrinho, cálculo de frete, pagamento simulado e e-mails do pedido. Cada entrega passa por revisão de outro membro antes de entrar.',
+      repository: 'he4rt/loja-comunitaria',
+      startedAt: '2026-09-07',
+      endedAt: null,
+      participants: [
+        {
+          userId: 'u6',
+          role: 'Capitão',
+          responsibilities: 'Organiza as entregas, registra o contexto de cada uma e revisa os pull requests.',
+          joinedAt: '2026-09-07',
+          shownOnProfile: true,
+        },
+        {
+          userId: 'u2',
+          role: 'Back-end',
+          responsibilities: 'Fila dos e-mails do pedido e testes do fluxo de compra.',
+          joinedAt: '2026-09-14',
+          shownOnProfile: true,
+        },
+        {
+          userId: 'u7',
+          role: 'Front-end',
+          responsibilities: 'Carrinho e acessibilidade das telas de compra.',
+          joinedAt: '2026-09-14',
+          shownOnProfile: false,
+        },
+        {
+          userId: 'u3',
+          role: 'Front-end',
+          responsibilities: 'Cálculo de frete na tela do checkout.',
+          joinedAt: '2026-10-26',
+          shownOnProfile: false,
+        },
+      ],
+      deliveries: [
+        {
+          id: 'd1',
+          title: 'E-mails do pedido por uma fila',
+          description: 'O pedido é confirmado na hora, e os e-mails saem por uma fila com três tentativas.',
+          memberIds: ['u2'],
+          status: 'accepted',
+          date: '2026-10-20',
+          evidenceIds: ['pe1', 'pe2'],
+        },
+        {
+          id: 'd2',
+          title: 'Carrinho navegável pelo teclado',
+          description: 'Carrinho usável só com teclado e com leitor de tela, revisado com o NVDA.',
+          memberIds: ['u7'],
+          status: 'accepted',
+          date: '2026-10-28',
+          evidenceIds: ['pe3'],
+        },
+        {
+          id: 'd3',
+          title: 'Frete calculado no checkout',
+          description: 'O frete aparece assim que o CEP é digitado, usando o cálculo testado da Ana.',
+          memberIds: ['u3', 'u2'],
+          status: 'in-review',
+          date: '2026-11-12',
+          evidenceIds: ['pe4'],
+        },
+      ],
+      evidences: [
+        {
+          id: 'pe5',
+          kind: 'commit',
+          ref: 'c07e1b2',
+          title: 'Configura o CI com Pest e Pint',
+          authorId: 'u6',
+          date: '2026-09-08',
+          url: 'https://github.com/he4rt/loja-comunitaria/commit/c07e1b2',
+        },
+        {
+          id: 'pe1',
+          kind: 'pull-request',
+          ref: '34',
+          title: 'Envia os e-mails do pedido por uma fila com retry',
+          authorId: 'u2',
+          date: '2026-10-18',
+          url: 'https://github.com/he4rt/loja-comunitaria/pull/34',
+        },
+        {
+          id: 'pe2',
+          kind: 'commit',
+          ref: 'a41c9e0',
+          title: 'Testa o envio de e-mail com a fila falhando',
+          authorId: 'u2',
+          date: '2026-10-17',
+          url: 'https://github.com/he4rt/loja-comunitaria/commit/a41c9e0',
+        },
+        {
+          id: 'pe3',
+          kind: 'pull-request',
+          ref: '29',
+          title: 'Carrinho navegável por teclado e leitor de tela',
+          authorId: 'u7',
+          date: '2026-10-27',
+          url: 'https://github.com/he4rt/loja-comunitaria/pull/29',
+        },
+        {
+          id: 'pe4',
+          kind: 'pull-request',
+          ref: '41',
+          title: 'Calcula o frete na tela do checkout',
+          authorId: 'u3',
+          date: '2026-11-11',
+          url: 'https://github.com/he4rt/loja-comunitaria/pull/41',
+        },
+      ],
+    },
+    {
+      id: 'p0',
+      squadId: 's1',
+      slug: 'catalogo',
+      name: 'Catálogo de produtos',
+      description: 'Cadastro e busca de produtos para os comércios publicarem o que vendem.',
+      repository: 'he4rt/loja-comunitaria',
+      startedAt: '2026-03-02',
+      endedAt: '2026-07-31',
+      participants: [
+        {
+          userId: 'u6',
+          role: 'Capitão',
+          responsibilities: 'Organizou as entregas e revisou os pull requests.',
+          joinedAt: '2026-03-02',
+          shownOnProfile: true,
+        },
+        {
+          userId: 'u7',
+          role: 'Front-end',
+          responsibilities: 'Busca de produtos e listagem por categoria.',
+          joinedAt: '2026-03-09',
+          shownOnProfile: false,
+        },
+      ],
+      deliveries: [
+        {
+          id: 'd0',
+          title: 'Busca de produtos por nome e categoria',
+          description: 'Busca com filtro por categoria, sem recarregar a página.',
+          memberIds: ['u7'],
+          status: 'accepted',
+          date: '2026-06-18',
+          evidenceIds: ['pe0'],
+        },
+      ],
+      evidences: [
+        {
+          id: 'pe0',
+          kind: 'pull-request',
+          ref: '12',
+          title: 'Busca de produtos com filtro por categoria',
+          authorId: 'u7',
+          date: '2026-06-16',
+          url: 'https://github.com/he4rt/loja-comunitaria/pull/12',
+        },
+      ],
+    },
+    {
+      id: 'p9',
+      squadId: 's2',
+      slug: 'calendario',
+      name: 'Calendário de eventos',
+      description: 'Página com as calls diárias e os eventos da comunidade, com lembrete por e-mail.',
+      repository: 'he4rt/agenda',
+      startedAt: '2025-08-04',
+      endedAt: '2025-12-15',
+      participants: [
+        {
+          userId: 'u1',
+          role: 'Capitão',
+          responsibilities: 'Organizou as entregas e revisou os pull requests.',
+          joinedAt: '2025-08-04',
+          shownOnProfile: true,
+        },
+        {
+          userId: 'u6',
+          role: 'Back-end',
+          responsibilities: 'Lembretes por e-mail e importação dos eventos.',
+          joinedAt: '2025-08-11',
+          shownOnProfile: true,
+        },
+      ],
+      deliveries: [
+        {
+          id: 'd9',
+          title: 'Lembrete por e-mail antes de cada call',
+          description: 'Lembrete enviado uma hora antes, com o link da call.',
+          memberIds: ['u6'],
+          status: 'accepted',
+          date: '2025-11-03',
+          evidenceIds: ['pe9'],
+        },
+      ],
+      evidences: [
+        {
+          id: 'pe9',
+          kind: 'pull-request',
+          ref: '7',
+          title: 'Envia lembrete por e-mail uma hora antes da call',
+          authorId: 'u6',
+          date: '2025-11-01',
+          url: 'https://github.com/he4rt/agenda/pull/7',
+        },
+      ],
+    },
+  ],
+  discussions: [
+    {
+      id: 't1',
+      title: 'Como ser avisada quando a fila do Laravel para?',
+      category: 'question',
+      authorId: 'u2',
+      body: 'Movi os e-mails de um checkout para uma fila com retry e aprendi a olhar a tabela failed_jobs. O que ainda não sei: como descobrir que o worker parou antes de o cliente reclamar. Vocês usam alguma notificação?',
+      createdAt: '2026-08-13T14:20:00Z',
+      context: { type: 'journal-post', id: 'j1' },
+      replies: [
+        {
+          id: 'r1',
+          authorId: 'u6',
+          body: 'Para job que falhou, o Queue::failing no AppServiceProvider já resolve: ele recebe o JobFailed e você manda o aviso. Para fila parada, o Horizon tem limite de espera por fila e avisa por e-mail ou Slack quando a espera passa dele.',
+          createdAt: '2026-08-13T18:02:00Z',
+        },
+        {
+          id: 'r2',
+          authorId: 'u2',
+          body: 'Configurei o limite de espera do Horizon em 60 segundos e parei o worker para testar. O aviso chegou em um minuto. Vou registrar isso na trajetória.',
+          createdAt: '2026-08-15T11:40:00Z',
+        },
+      ],
+      solvedReplyId: 'r1',
+    },
+    {
+      id: 't2',
+      title: 'Como testar a integração com os Correios sem deixar o teste lento?',
+      category: 'question',
+      authorId: 'u2',
+      body: 'Testei o cálculo de frete com Pest e achei dois bugs. Agora quero testar a chamada aos Correios, mas cada teste leva segundos e às vezes a API cai.',
+      createdAt: '2026-05-04T21:10:00Z',
+      context: { type: 'journal-post', id: 'j2' },
+      replies: [
+        {
+          id: 'r3',
+          authorId: 'u7',
+          body: 'No Laravel, o Http::fake() devolve uma resposta fixa sem sair para a rede. Guardo uma resposta real dos Correios num arquivo e uso ela no fake.',
+          createdAt: '2026-05-06T09:30:00Z',
+        },
+      ],
+      solvedReplyId: null,
+    },
+    {
+      id: 't3',
+      title: 'Fila ou evento síncrono para os e-mails do pedido?',
+      category: 'technical',
+      authorId: 'u6',
+      body: 'Antes de começar a entrega dos e-mails, quero alinhar: mandamos na mesma requisição, com evento síncrono, ou já usamos fila? A fila exige worker no ambiente de demonstração.',
+      createdAt: '2026-10-10T13:00:00Z',
+      context: { type: 'project', id: 'p1' },
+      replies: [
+        {
+          id: 'r4',
+          authorId: 'u2',
+          body: 'Fila. Num cliente meu o checkout travava quando o servidor de e-mail demorava. O worker roda no mesmo container com o Supervisor.',
+          createdAt: '2026-10-10T16:45:00Z',
+        },
+        {
+          id: 'r5',
+          authorId: 'u7',
+          body: 'Concordo. Só peço uma mensagem na tela dizendo que o e-mail pode levar alguns minutos.',
+          createdAt: '2026-10-12T10:05:00Z',
+        },
+      ],
+      solvedReplyId: null,
+    },
+    {
+      id: 't4',
+      title: 'Como rodar o projeto localmente no Windows?',
+      category: 'question',
+      authorId: 'u3',
+      body: 'Clonei a loja-comunitaria, mas o docker compose up para no container do PHP com erro de fim de linha no entrypoint.sh. Alguém já passou por isso?',
+      createdAt: '2026-11-16T22:15:00Z',
+      context: { type: 'project', id: 'p1' },
+      replies: [],
+      solvedReplyId: null,
+    },
+    {
+      id: 't5',
+      title: 'Ideias para o próximo projeto da Loja Comunitária',
+      category: 'technical',
+      authorId: 'u6',
+      body: 'O checkout deve fechar em dezembro. Para o próximo projeto, pensei em um painel para o comerciante acompanhar os pedidos. Outras ideias?',
+      createdAt: '2026-11-05T12:00:00Z',
+      context: { type: 'squad', id: 's1' },
+      replies: [
+        {
+          id: 'r6',
+          authorId: 'u7',
+          body: 'Painel faz sentido. Dá para começar só com a lista de pedidos do dia e o status de cada um.',
+          createdAt: '2026-11-06T08:20:00Z',
+        },
+      ],
+      solvedReplyId: null,
+    },
+    {
+      id: 't6',
+      title: 'Como vocês organizam as anotações de estudo?',
+      category: 'learning',
+      authorId: 'u1',
+      body: 'Vejo muita gente perdendo o que estudou porque as anotações ficam espalhadas. Como vocês guardam o que aprenderam para conseguir mostrar depois?',
+      createdAt: '2026-09-20T15:00:00Z',
+      context: null,
+      replies: [
+        {
+          id: 'r7',
+          authorId: 'u2',
+          body: 'Uma nota por coisa que apliquei de verdade: o que aprendi, onde usei e o que ainda não sei. O que não apliquei fica numa lista de estudo, separado.',
+          createdAt: '2026-09-21T10:00:00Z',
+        },
+      ],
+      solvedReplyId: null,
+    },
+  ],
 }
 
 /** The fake backend. Persisted in localStorage; reset it from the debug sidebar. */
-export const db = createStore(seed, { persist: 'he4rt:mock-db:v4' })
+export const db = createStore(seed, { persist: 'he4rt:mock-db:v5' })
 
 export function useDb<S>(selector: (db: MockDb) => S): S {
   return useStore(db, selector)

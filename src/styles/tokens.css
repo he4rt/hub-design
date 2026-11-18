@@ -22,6 +22,8 @@
   --color-warning: #d97706;
   --color-thumb: #ffffff;
   --color-overlay: rgba(9, 9, 11, 0.45);
+  /* Banner behind the public profile's identity card. */
+  --color-banner: #2e1065;
 
   --radius-sm: 4px;
   --radius-md: 8px;
@@ -36,7 +38,7 @@
   --space-12: 48px;
 
   --font-sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --font-mono: ui-monospace, Consolas, monospace;
+  --font-mono: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
   --text-xs: 12px;
   --text-sm: 14px;
   --text-md: 16px;
@@ -45,7 +47,8 @@
   --text-2xl: 44px;
 
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
-  --focus-ring: 0 0 0 3px var(--color-primary-soft);
+  /* A solid ring, visible on every surface. */
+  --focus-ring: 0 0 0 2px var(--color-bg), 0 0 0 4px var(--color-primary);
 
   color-scheme: light dark;
 }
@@ -69,6 +72,7 @@
     --color-success-soft: rgba(74, 222, 128, 0.15);
     --color-warning: #fbbf24;
     --color-overlay: rgba(0, 0, 0, 0.6);
+    --color-banner: #2e1065;
     --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
   }
 }

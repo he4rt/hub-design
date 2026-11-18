@@ -1,0 +1,27 @@
+.sign-in-prompt {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--color-surface);
+
+  p {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--color-text-strong);
+    font-size: var(--text-sm);
+
+    svg {
+      flex-shrink: 0;
+      color: var(--color-primary);
+    }
+  }
+}
+
+.sign-in-prompt__actions {
+  display: flex;
+  gap: var(--space-2);
+}

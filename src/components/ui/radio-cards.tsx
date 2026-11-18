@@ -1,11 +1,28 @@
-import type { ComponentProps, ReactNode } from 'react'
+import { useRef, type ComponentProps, type ReactNode } from 'react'
 import { cn } from '@/lib/cn'
 import { RadioGroup } from 'radix-ui'
+import { useFormResetGuard } from './use-form-reset-guard'
 import './radio-cards.css'
 
 /** Single choice shown as a list of cards with a label and an optional description. */
-export function RadioCards({ className, ...props }: ComponentProps<typeof RadioGroup.Root>) {
-  return <RadioGroup.Root className={cn('ui-radio-cards', className)} {...props} />
+export function RadioCards({
+  className,
+  onValueChange,
+  ...props
+}: Omit<ComponentProps<typeof RadioGroup.Root>, 'ref'>) {
+  const ref = useRef<HTMLDivElement>(null)
+  const isFormReset = useFormResetGuard(ref)
+
+  return (
+    <RadioGroup.Root
+      ref={ref}
+      className={cn('ui-radio-cards', className)}
+      onValueChange={(value) => {
+        if (!isFormReset()) onValueChange?.(value)
+      }}
+      {...props}
+    />
+  )
 }
 
 export function RadioCard({

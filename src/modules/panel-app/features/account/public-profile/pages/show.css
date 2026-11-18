@@ -1,0 +1,69 @@
+/* dev.to layout: a short banner, the identity card over it, the evidence, then a side column and the trajectory. */
+.public-profile-page__banner {
+  height: 80px;
+  background: var(--color-banner);
+}
+
+.public-profile-page__content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-width: 1024px;
+  margin: -64px auto 0;
+  padding: 0 var(--space-6) var(--space-12);
+}
+
+/* The header card leaves room above it for the half of the avatar that overlaps its top edge. */
+.public-profile-page__content > .profile-header {
+  margin-top: 40px;
+}
+
+.public-profile-page__grid {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-4);
+}
+
+.public-profile-page__main {
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.public-profile-page__heading {
+  font-size: var(--text-lg);
+}
+
+.public-profile-page__tab {
+  padding-top: var(--space-4);
+}
+
+.public-profile-page__empty {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-6) 0;
+  color: var(--color-text-muted);
+
+  code {
+    color: var(--color-text-strong);
+    font-size: var(--text-sm);
+  }
+}
+
+@media (max-width: 899px) {
+  .public-profile-page__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 767px) {
+  .public-profile-page__banner {
+    height: 64px;
+  }
+
+  .public-profile-page__content {
+    margin-top: -48px;
+    padding: 0 var(--space-3) var(--space-8);
+  }
+}

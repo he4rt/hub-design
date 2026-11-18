@@ -12,6 +12,8 @@ export type AnalyticsEventName =
   | 'profile_unpublished'
   | 'account_linked'
   | 'signup_blocked_underage'
+  | 'discussion_created'
+  | 'discussion_replied'
 
 const EVENTS_KEPT = 200
 
