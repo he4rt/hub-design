@@ -1,6 +1,8 @@
 import { useTransition } from 'react'
 import { Link, Navigate, NavLink, Outlet, useLocation, useMatches, useNavigate } from 'react-router'
 import { Button } from '@/components/ui/button'
+import { useDb } from '@/mocks/db'
+import { isActiveValidator } from '@/mocks/validation'
 import { useAccount } from '@/modules/panel-app/hooks/use-account'
 import { logout } from '@/modules/panel-app/features/auth/actions'
 import './app-layout.css'
@@ -11,6 +13,7 @@ import './app-layout.css'
  */
 export function AppLayout() {
   const account = useAccount()
+  const validator = useDb((s) => isActiveValidator(s, s.session?.userId))
   const navigate = useNavigate()
   const { pathname, search } = useLocation()
   const [loggingOut, startLogout] = useTransition()
@@ -32,6 +35,10 @@ export function AppLayout() {
           </NavLink>
           <NavLink to="/app/discussions">Fórum</NavLink>
           <NavLink to="/app/squads">Squads</NavLink>
+          <NavLink to="/app/validation" end>
+            Validações
+          </NavLink>
+          {validator && <NavLink to="/app/validation/queue">Fila</NavLink>}
           <NavLink to="/app/settings/profile">Configurações</NavLink>
         </nav>
         <span className="app-layout__user" title={account.name}>

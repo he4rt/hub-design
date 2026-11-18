@@ -25,6 +25,12 @@ import Members from './features/squads/squads/members/pages/index'
 import MySquads from './features/squads/squads/pages/index'
 import MySquad from './features/squads/squads/pages/show'
 import ProjectEdit from './features/squads/squads/projects/pages/edit'
+import ValidationQueue from './features/validation/queue/pages/index'
+import ValidationRecord from './features/validation/queue/pages/show'
+import ValidationRequestCreate from './features/validation/requests/pages/create'
+import ValidatorApplication from './features/validation/validator-application/pages/show'
+import Validations from './features/validation/validations/pages/index'
+import Validation from './features/validation/validations/pages/show'
 import { AppLayout } from './layouts/app-layout'
 import { PublicLayout } from './layouts/public-layout'
 
@@ -72,6 +78,12 @@ export const panelAppRoutes: RouteObject = {
         { path: 'settings/profile', Component: Profile },
         { path: 'squads/entry-test', Component: EntryTest },
         { path: 'squads/applications', Component: MyApplications },
+        { path: 'validation', Component: Validations },
+        { path: 'validation/requests/create', Component: ValidationRequestCreate },
+        { path: 'validation/validator-application', Component: ValidatorApplication },
+        { path: 'validation/queue', Component: ValidationQueue },
+        { path: 'validation/queue/:request', Component: ValidationRecord },
+        { path: 'validation/:validation', Component: Validation },
         { path: 'squads', Component: MySquads },
         { path: 'squads/:squad', Component: MySquad },
         { path: 'squads/:squad/applications', Component: CaptainApplications },

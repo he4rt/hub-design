@@ -1,0 +1,30 @@
+.validation-request__group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+
+  legend {
+    margin-bottom: var(--space-2);
+    color: var(--color-text-strong);
+    font-size: var(--text-sm);
+    font-weight: 500;
+  }
+}
+
+.validation-request__option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  font-size: var(--text-sm);
+  cursor: pointer;
+
+  &[data-disabled] {
+    color: var(--color-text-muted);
+    cursor: not-allowed;
+  }
+}
