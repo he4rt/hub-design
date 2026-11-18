@@ -218,3 +218,15 @@ useDebugActions('Usuários', [
 - Use as ações de debug para passar por cada estado: vazio, erro, carregando (latência de 3000ms) e
   com muitos dados.
 - Abra, selecione, feche e abra de novo cada overlay que você mudou, com teclado e com toque.
+
+## Commits
+
+Todo commit termina com os dois co-autores, nesta ordem, depois de uma linha em branco:
+
+```text
+Co-authored-by: Dandan <d.mariano.costa@gmail.com>
+Co-authored-by: 7K <zthetr7k@gmail.com>
+```
+
+Não deixe no commit trailers de ferramenta, como `Amp-Thread-ID` ou `Co-Authored-By` de um modelo.
+Quando a ferramenta acrescenta um sozinho, remova antes do push.
