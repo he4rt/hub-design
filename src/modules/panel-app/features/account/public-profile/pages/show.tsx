@@ -1,15 +1,19 @@
-import { useNavigate, useParams } from 'react-router'
+import { useNavigate, useParams, useSearchParams } from 'react-router'
 import { NotFound } from '@/components/not-found'
 import { Card } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useDebugActions } from '@/debug/use-debug-actions'
 import { useDb } from '@/mocks/db'
+import { AchievementList } from '../components/achievement-list'
+import { AchievementsBox } from '../components/achievements-box'
 import { ContributionsShowcase } from '../components/contributions-showcase'
+import { JourneyBand } from '../components/journey-band'
 import { OwnerNotice } from '../components/owner-notice'
 import { ProfileHeader } from '../components/profile-header'
 import { ProfileSidebar } from '../components/profile-sidebar'
 import { ReadmeCard } from '../components/readme-card'
 import { TrajectoryGraph } from '../components/trajectory-graph'
+import { achievementsModels, parseAchievementsModel, shownAchievements } from '../lib/achievements'
 import { missingProfileItems } from '../lib/completeness'
 import { trajectoryEntries } from '../lib/trajectory'
 import './show.css'
@@ -18,12 +22,15 @@ import './show.css'
 export default function PublicProfile() {
   const { handle } = useParams()
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
   const profile = useDb((db) => db.profiles.find((p) => p.handle === handle))
   const user = useDb((db) => db.users.find((u) => u.id === profile?.userId))
   const sessionUserId = useDb((db) => db.session?.userId)
   const squads = useDb((db) => db.squads)
   const projects = useDb((db) => db.projects)
   const discussions = useDb((db) => db.discussions)
+  const memberAchievements = useDb((db) => db.memberAchievements)
+  const model = parseAchievementsModel(searchParams.get('conquistas'))
 
   useDebugActions('Perfil público', [
     { label: 'Ver perfil completo', run: () => navigate('/app/members/ana-souza') },
@@ -34,6 +41,14 @@ export default function PublicProfile() {
       description: 'Entre como ana@he4rt.dev ou bruno@he4rt.dev (senha "password"); o login volta a este perfil.',
       run: () => navigate(`/app/login?redirect=${encodeURIComponent(`/app/members/${handle}`)}`),
     },
+    ...achievementsModels.map((option) => ({
+      label: `Conquistas: ${option.label}`,
+      run: () =>
+        setSearchParams((params) => {
+          params.set('conquistas', option.value)
+          return params
+        }),
+    })),
   ])
 
   // A missing profile and a profile turned off look the same, so the link never reveals an account.
@@ -46,6 +61,11 @@ export default function PublicProfile() {
   ]
   const isOwner = sessionUserId === profile.userId
   const firstName = user.name.split(' ')[0]
+  const achievements = shownAchievements(
+    memberAchievements.filter((achievement) => achievement.userId === profile.userId),
+    isOwner,
+  )
+  const achievementProps = { items: achievements, journey: profile.journey, isOwner, firstName }
 
   const trajectory =
     entries.length > 0 ? (
@@ -59,32 +79,53 @@ export default function PublicProfile() {
       <p className="public-profile-page__empty">{firstName} ainda não publicou registros na trajetória.</p>
     )
 
+  const achievementsTab =
+    achievements.length > 0 ? (
+      <AchievementList items={achievements} />
+    ) : (
+      <p className="public-profile-page__empty">
+        {isOwner ? 'Suas conquistas aparecem aqui conforme você avança.' : `${firstName} ainda não publicou conquistas.`}
+      </p>
+    )
+  const hasTabs = Boolean(profile.readme) || model === 'aba'
+
   return (
     <div className="public-profile-page">
       <div className="public-profile-page__banner" />
       <div className="public-profile-page__content">
-        {isOwner && (
-          <OwnerNotice missing={missingProfileItems(profile, entries.length > 0)} />
-        )}
+        {isOwner && <OwnerNotice missing={missingProfileItems(profile, entries.length > 0)} />}
         <ProfileHeader name={user.name} photoUrl={user.photoUrl} profile={profile} isOwner={isOwner} />
+        {model === 'jornada' && <JourneyBand {...achievementProps} />}
         {contributions.length > 0 && <ContributionsShowcase entries={contributions} />}
 
         <div className="public-profile-page__grid">
-          <ProfileSidebar profile={profile} />
+          <div className="public-profile-page__side">
+            <ProfileSidebar profile={profile} />
+            {model === 'vitrine' && <AchievementsBox {...achievementProps} />}
+          </div>
 
           <Card className="public-profile-page__main">
-            {profile.readme ? (
-              <Tabs defaultValue="trajectory">
+            {hasTabs ? (
+              // Keyed by model so switching it on the same profile starts on the trajectory again.
+              <Tabs key={model} defaultValue="trajectory">
                 <TabsList aria-label="Seções do perfil">
                   <TabsTrigger value="trajectory">Trajetória</TabsTrigger>
-                  <TabsTrigger value="about">Sobre</TabsTrigger>
+                  {model === 'aba' && <TabsTrigger value="achievements">Conquistas</TabsTrigger>}
+                  {profile.readme && <TabsTrigger value="about">Sobre</TabsTrigger>}
                 </TabsList>
                 <TabsContent value="trajectory" className="public-profile-page__tab">
                   {trajectory}
                 </TabsContent>
-                <TabsContent value="about" className="public-profile-page__tab">
-                  <ReadmeCard handle={profile.handle} readme={profile.readme} />
-                </TabsContent>
+                {model === 'aba' && (
+                  <TabsContent value="achievements" className="public-profile-page__tab">
+                    {achievementsTab}
+                  </TabsContent>
+                )}
+                {profile.readme && (
+                  <TabsContent value="about" className="public-profile-page__tab">
+                    <ReadmeCard handle={profile.handle} readme={profile.readme} />
+                  </TabsContent>
+                )}
               </Tabs>
             ) : (
               <>

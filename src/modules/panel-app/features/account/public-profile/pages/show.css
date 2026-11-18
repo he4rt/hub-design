@@ -67,3 +67,11 @@
     padding: 0 var(--space-3) var(--space-8);
   }
 }
+
+/* Side column: the summary box and, in the "vitrine" model, the achievements under it. */
+.public-profile-page__side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
