@@ -21,7 +21,7 @@ function fakeUser(): User {
 }
 
 export function createUsers(count: number) {
-  return mockAction('panel-admin.users.create', { count }, () => {
+  return mockAction('panel-admin.users.store', { count }, () => {
     const users = Array.from({ length: count }, fakeUser)
     db.set((state) => ({ ...state, users: [...state.users, ...users] }))
     return { ids: users.map((user) => user.id) }
@@ -29,7 +29,7 @@ export function createUsers(count: number) {
 }
 
 export function deleteUser(userId: string) {
-  return mockAction('panel-admin.users.delete', { userId }, () => {
+  return mockAction('panel-admin.users.destroy', { userId }, () => {
     const user = db.get().users.find((u) => u.id === userId)
     if (!user) throw new MockError('Usuário não encontrado.')
     if (user.role === 'admin') throw new MockError('Administradores não podem ser removidos.')
