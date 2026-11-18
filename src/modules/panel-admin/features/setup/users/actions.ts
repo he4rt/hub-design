@@ -1,5 +1,6 @@
 import { db, makeUser, newId, type User } from '@/mocks/db'
 import { MockError, mockAction } from '@/mocks/mock-action'
+import { isStaff } from '@/mocks/squads'
 
 const FIRST_NAMES = ['Carla', 'Diego', 'Elisa', 'Felipe', 'Gabi', 'Heitor', 'Iara', 'João']
 const LAST_NAMES = ['Alves', 'Costa', 'Moura', 'Nunes', 'Rocha', 'Teixeira']
@@ -37,14 +38,14 @@ export function createUsers(count: number) {
 
 /** Shared by the action and the UI, so the delete button only shows when the action accepts it. */
 export function canDeleteUser(user: User): boolean {
-  return user.role !== 'admin'
+  return !isStaff(user)
 }
 
 export function deleteUser(userId: string) {
   return mockAction('panel-admin.users.destroy', { userId }, () => {
     const user = db.get().users.find((u) => u.id === userId)
     if (!user) throw new MockError('Usuário não encontrado.')
-    if (!canDeleteUser(user)) throw new MockError('Administradores não podem ser removidos.')
+    if (!canDeleteUser(user)) throw new MockError('Pessoas da staff não podem ser removidas.')
     db.set((state) => ({
       ...state,
       users: state.users.filter((u) => u.id !== userId),

@@ -2,11 +2,12 @@ import { PageHeader } from '@/components/page-header'
 import { Card } from '@/components/ui/card'
 import { useDebugActions } from '@/debug/use-debug-actions'
 import { db, useDb } from '@/mocks/db'
+import { isStaff } from '@/mocks/squads'
 import './dashboard.css'
 
 export default function Dashboard() {
   const users = useDb((state) => state.users)
-  const admins = users.filter((user) => user.role === 'admin').length
+  const admins = users.filter(isStaff).length
 
   useDebugActions('Visão geral', [
     {
@@ -30,7 +31,7 @@ export default function Dashboard() {
           <strong>{users.length}</strong>
         </Card>
         <Card>
-          <span>Administradores</span>
+          <span>Staff</span>
           <strong>{admins}</strong>
         </Card>
         <Card>

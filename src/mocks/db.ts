@@ -1,5 +1,6 @@
 import { createStore, useStore } from '@/lib/store'
 import { withCompleteness } from './profile-completeness'
+import { squadsSeed } from './squads-seed'
 
 /** Providers that sign a member in. */
 export type SocialProvider = 'discord' | 'github' | 'google'
@@ -49,7 +50,8 @@ export type User = {
   email: string
   /** Null until the member confirms the e-mail; a provider that confirms it counts. */
   emailVerifiedAt: string | null
-  role: 'admin' | 'member'
+  /** Staff are `admin` and `super-admin`; captain and validator are not roles but per-squad and per-enablement. */
+  role: UserRole
   origin: AccountOrigin
   linkedAccounts: LinkedAccount[]
   /** Public profile handle. */
@@ -98,6 +100,226 @@ export type PendingSocialSignUp = {
 
 /** Social login that matched an account without a confirmed e-mail: linked after a password login. */
 export type PendingSocialLink = { provider: SocialProvider; email: string; handle: string }
+
+export type UserRole = 'member' | 'admin' | 'super-admin'
+
+/** A project team in the He4rt organization on GitHub. Never deleted, only inactive. */
+export type SquadTeam = {
+  id: string
+  slug: string
+  name: string
+  description: string
+  /** Null is a vacancy: a squad without a captain. */
+  captainId: string | null
+  status: 'active' | 'inactive'
+  createdAt: string
+}
+
+export type AcceptanceCriterion = { id: string; text: string }
+export type EvaluationCriterion = { id: string; competency: string; description: string }
+export type ApplicationQuestion = { id: string; text: string; required: boolean }
+
+/** A project is born in the Hub with its goal and criteria; the GitHub App creates the repository and board. */
+export type TeamProject = {
+  id: string
+  squadId: string
+  slug: string
+  name: string
+  goal: string
+  acceptanceCriteria: AcceptanceCriterion[]
+  evaluationCriteria: EvaluationCriterion[]
+  stack: string[]
+  expectedLevel: StartingPoint[]
+  /** Counts every active member, the captain included. */
+  seats: number
+  applicationQuestions: ApplicationQuestion[]
+  repository: { fullName: string; url: string } | null
+  board: { number: number; url: string } | null
+  status: 'provisioning' | 'active' | 'ended'
+  startedAt: string | null
+  endedAt: string | null
+}
+
+export type SquadMembership = {
+  id: string
+  squadId: string
+  projectId: string
+  userId: string
+  /** What this member answered for, as the captain registered it. */
+  responsibilities: string
+  joinedAt: string
+  leftAt: string | null
+  leftReason: string | null
+}
+
+/** One per member: a pull request to a He4rt repository, merged by someone from the staff. */
+export type EntryTest = {
+  userId: string
+  pullRequest: { repository: string; number: number; url: string; title: string }
+  status: 'open' | 'approved' | 'closed'
+  /** GitHub handle of the staff member who merged it. */
+  reviewer: string | null
+  openedAt: string
+  approvedAt: string | null
+}
+
+export type ApplicationNotes = { strengths: string; improvements: string; authorId: string; updatedAt: string }
+
+export type SquadApplication = {
+  id: string
+  projectId: string
+  userId: string
+  answers: { questionId: string; answer: string }[]
+  status: 'pending' | 'accepted' | 'declined' | 'withdrawn'
+  /** Seen by the member, the captain and the staff. */
+  notes: ApplicationNotes | null
+  decision: { reason: string; nextSteps: string; decidedBy: string; decidedAt: string } | null
+  githubInvite: 'not-needed' | 'pending' | 'accepted'
+  createdAt: string
+}
+
+export type BoardStatus = 'backlog' | 'ready' | 'in-progress' | 'in-review' | 'done'
+export type WorkKind = 'technical' | 'non-technical'
+
+/** Read-only copy of an item on the project's GitHub board. */
+export type BoardItem = {
+  id: string
+  projectId: string
+  issue: { number: number; title: string; url: string }
+  status: BoardStatus
+  kind: WorkKind
+  criterionId: string | null
+  assigneeIds: string[]
+  pullRequests: { number: number; url: string; merged: boolean; authorId: string; coAuthorIds: string[] }[]
+  updatedAt: string
+}
+
+export type Evidence = { kind: 'commit' | 'pull-request' | 'review'; ref: string; url: string; authorId: string }
+
+/** A board item the captain checks against the acceptance criteria and credits to who did it. */
+export type SquadDelivery = {
+  id: string
+  projectId: string
+  boardItemId: string
+  title: string
+  kind: WorkKind
+  criterionId: string | null
+  status: 'pending' | 'accepted' | 'returned'
+  collaboration: 'individual' | 'pair' | 'group'
+  credits: { userId: string; part: string }[]
+  /** The captain's note; the validator reads it. */
+  context: string
+  evidence: Evidence[]
+  returnedReason: string | null
+  decidedBy: string | null
+  decidedAt: string | null
+  createdAt: string
+}
+
+export type SquadLogKind =
+  | 'project-started'
+  | 'project-ended'
+  | 'member-joined'
+  | 'member-left'
+  | 'member-removed'
+  | 'member-reassigned'
+  | 'captain-changed'
+  | 'delivery-accepted'
+
+/** Permanent record of what the squad did, project by project. */
+export type SquadLogEntry = {
+  id: string
+  squadId: string
+  projectId: string | null
+  kind: SquadLogKind
+  actorId: string
+  subjectId: string | null
+  /** Reference to what the entry is about, such as a delivery title. */
+  detail: string | null
+  reason: string | null
+  at: string
+}
+
+export type GithubSync = {
+  lastWebhookAt: string | null
+  lastSweepAt: string | null
+  divergences: { id: string; description: string; detectedAt: string }[]
+}
+
+export type ValidatorApplication = {
+  id: string
+  userId: string
+  summary: string
+  links: string[]
+  jobTitle: string
+  company: string
+  showEmployer: boolean
+  status: 'pending' | 'approved' | 'declined'
+  decision: { reason: string; decidedBy: string; decidedAt: string } | null
+  createdAt: string
+}
+
+export type Validator = {
+  userId: string
+  approvedAt: string
+  jobTitle: string
+  company: string
+  /** The validator agreed to show job title and company on validations. */
+  showEmployer: boolean
+  suspension: { reason: string; by: string; at: string } | null
+  lastAssignedAt: string | null
+}
+
+export type ValidationRequest = {
+  id: string
+  memberId: string
+  projectId: string
+  deliveryIds: string[]
+  /** Id of one of the project's evaluation criteria. */
+  criterionId: string
+  status: 'queued' | 'assigned' | 'recorded' | 'cancelled'
+  validatorId: string | null
+  assignedAt: string | null
+  conflicts: { validatorId: string; description: string; at: string }[]
+  createdAt: string
+}
+
+export type ValidationPoint = { text: string; evidenceRef: string }
+export type ImprovementPoint = ValidationPoint & { suggestion: string }
+
+/** Record of what a validator saw. Immutable once recorded; a correction is a new record. */
+export type Validation = {
+  id: string
+  requestId: string
+  memberId: string
+  validatorId: string
+  /** Snapshot at record time; job title and company only when the validator allowed it. */
+  validator: { name: string; jobTitle: string | null; company: string | null }
+  projectId: string
+  competency: string
+  context: string
+  contribution: string
+  strengths: ValidationPoint[]
+  improvements: ImprovementPoint[]
+  conflictOfInterest: { declared: boolean; description: string }
+  insufficientEvidence: boolean
+  status: 'draft' | 'in-review' | 'recorded'
+  review: { reviewerId: string; decision: 'approved' | 'returned'; note: string; at: string } | null
+  recordedAt: string | null
+  published: boolean
+  publishedAt: string | null
+  supersedesId: string | null
+}
+
+export type Contestation = {
+  id: string
+  validationId: string
+  openedBy: string
+  reason: string
+  status: 'open' | 'upheld' | 'corrected'
+  decision: { by: string; note: string; at: string } | null
+  createdAt: string
+}
 
 export type AnalyticsEvent = { event: string; props: Record<string, unknown>; at: string }
 
@@ -383,6 +605,20 @@ export type MockDb = {
   squads: Squad[]
   projects: SquadProject[]
   discussions: Discussion[]
+  squadTeams: SquadTeam[]
+  teamProjects: TeamProject[]
+  memberships: SquadMembership[]
+  entryTests: EntryTest[]
+  applications: SquadApplication[]
+  boardItems: BoardItem[]
+  deliveries: SquadDelivery[]
+  squadLog: SquadLogEntry[]
+  githubSync: GithubSync
+  validatorApplications: ValidatorApplication[]
+  validators: Validator[]
+  validationRequests: ValidationRequest[]
+  validations: Validation[]
+  contestations: Contestation[]
 }
 
 export const DEMO_PASSWORD = 'password'
@@ -455,6 +691,23 @@ const post = (
 
 const reacted = (userId: string, type: ReactionType, createdAt: string): PostReaction => ({ userId, type, createdAt })
 
+/** Onboarded member with a published profile and the GitHub linked under the same handle. */
+function member({
+  since,
+  ...fields
+}: Pick<User, 'id' | 'name' | 'username' | 'bio' | 'areas' | 'languages'> &
+  Partial<User> & { since: string }): User {
+  return makeUser({
+    email: `${fields.username}@he4rt.dev`,
+    birthDate: '1997-05-20',
+    ...joined(since),
+    linkedAccounts: [linked('github', fields.username, since)],
+    objective: 'grow',
+    published: true,
+    ...fields,
+  })
+}
+
 const seed: MockDb = {
   users: [
     makeUser({
@@ -463,7 +716,7 @@ const seed: MockDb = {
       email: 'daniel@he4rt.dev',
       username: 'daniel',
       birthDate: '1996-04-12',
-      role: 'admin',
+      role: 'super-admin',
       ...joined('2025-01-10T12:00:00Z'),
       linkedAccounts: [
         linked('discord', 'danielhe4rt', '2025-01-10T12:00:00Z'),
@@ -532,6 +785,48 @@ const seed: MockDb = {
       // Answered in the Job Finder, which shares the identity.
       objective: 'get-job',
       areas: ['back-end'],
+      linkedAccounts: [linked('github', 'pedro-alves', '2025-09-01T12:00:00Z')],
+    }),
+    member({
+      id: 'u8',
+      name: 'Marina Duarte',
+      username: 'marina-duarte',
+      since: '2025-01-15T12:00:00Z',
+      role: 'admin',
+      startingPoint: 'senior',
+      areas: ['devops'],
+      languages: ['Python'],
+      bio: 'Staff da He4rt. Cuida dos repositórios da organização.',
+    }),
+    member({
+      id: 'u9',
+      name: 'Diego Ramos',
+      username: 'diego-ramos',
+      since: '2025-05-02T12:00:00Z',
+      startingPoint: 'senior',
+      areas: ['back-end'],
+      languages: ['PHP', 'TypeScript'],
+      bio: 'Engenheiro de software. Valida trabalho de squads.',
+    }),
+    member({
+      id: 'u10',
+      name: 'Letícia Prado',
+      username: 'leticia-prado',
+      since: '2025-07-09T12:00:00Z',
+      startingPoint: 'mid',
+      areas: ['front-end'],
+      languages: ['TypeScript'],
+      bio: 'Front-end, acessibilidade e testes.',
+    }),
+    member({
+      id: 'u11',
+      name: 'Gustavo Nogueira',
+      username: 'gustavo-nogueira',
+      since: '2026-02-11T12:00:00Z',
+      startingPoint: 'beginner',
+      areas: ['back-end'],
+      languages: ['PHP'],
+      bio: 'Estudando Laravel e procurando o primeiro projeto em time.',
     }),
     makeUser({
       id: 'u6',
@@ -547,6 +842,7 @@ const seed: MockDb = {
       situation: 'working',
       bio: 'Capitão do squad Loja Comunitária.',
       published: true,
+      linkedAccounts: [linked('github', 'rafael-costa', '2025-02-03T12:00:00Z')],
     }),
     makeUser({
       id: 'u7',
@@ -560,17 +856,10 @@ const seed: MockDb = {
       startingPoint: 'junior',
       languages: ['TypeScript'],
       situation: 'studying',
+      linkedAccounts: [linked('github', 'julia-martins', '2025-11-20T12:00:00Z')],
     }),
   ],
-  passwords: {
-    u1: DEMO_PASSWORD,
-    u2: DEMO_PASSWORD,
-    u3: DEMO_PASSWORD,
-    u4: DEMO_PASSWORD,
-    u5: DEMO_PASSWORD,
-    u6: DEMO_PASSWORD,
-    u7: DEMO_PASSWORD,
-  },
+  passwords: Object.fromEntries(Array.from({ length: 11 }, (_, i) => [`u${i + 1}`, DEMO_PASSWORD])),
   passwordResets: [],
   pendingSocialSignUp: null,
   pendingSocialLink: null,
@@ -1296,6 +1585,7 @@ const seed: MockDb = {
       solvedReplyId: null,
     },
   ],
+  ...squadsSeed,
 }
 
 /** Seed helper: `[key, unlockedAt, isPublic, originPublic = true]` per achievement. */
@@ -1314,7 +1604,7 @@ function achievementSeed(userId: string, rows: [string, string, boolean, boolean
 }
 
 /** The fake backend. Persisted in localStorage; reset it from the debug sidebar. */
-export const db = createStore(seed, { persist: 'he4rt:mock-db:v12' })
+export const db = createStore(seed, { persist: 'he4rt:mock-db:v13' })
 
 export function useDb<S>(selector: (db: MockDb) => S): S {
   return useStore(db, selector)

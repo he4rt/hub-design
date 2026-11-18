@@ -31,7 +31,7 @@ export default function Users() {
     {
       label: 'Remover um admin (erro esperado)',
       description: 'Chama a ação direto, ignorando a UI que esconde o botão.',
-      run: () => run(() => deleteUser(users.find((u) => u.role === 'admin')?.id ?? 'missing')),
+      run: () => run(() => deleteUser(users.find((u) => u.role !== 'member')?.id ?? 'missing')),
     },
   ])
 
