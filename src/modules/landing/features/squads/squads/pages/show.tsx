@@ -22,7 +22,7 @@ export default function Show() {
     { label: 'Abrir squad inativo', run: () => navigate('/squads/agenda-he4rt') },
     { label: 'Abrir vacancy', run: () => navigate('/squads/bot-do-discord') },
     { label: 'Ver como visitante', run: () => db.set((s) => ({ ...s, session: null })) },
-    { label: 'Entrar como Pedro (teste aprovado)', run: () => db.set((s) => ({ ...s, session: { userId: 'u5' } })) },
+    { label: 'Entrar como Letícia (teste aprovado)', run: () => db.set((s) => ({ ...s, session: { userId: 'u10' } })) },
     { label: 'Entrar como Gustavo (teste aberto)', run: () => db.set((s) => ({ ...s, session: { userId: 'u11' } })) },
   ])
 

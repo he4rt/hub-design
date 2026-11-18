@@ -16,6 +16,9 @@ import DiscussionsIndex from './features/community/discussions/pages/index'
 import DiscussionShow from './features/community/discussions/pages/show'
 import SquadShow from './features/development/squads/pages/show'
 import ProjectShow from './features/development/squads/projects/pages/show'
+import MyApplications from './features/squads/applications/pages/index'
+import EntryTest from './features/squads/entry-test/pages/show'
+import ApplicationCreate from './features/squads/squads/applications/pages/create'
 import { AppLayout } from './layouts/app-layout'
 import { PublicLayout } from './layouts/public-layout'
 
@@ -61,6 +64,9 @@ export const panelAppRoutes: RouteObject = {
         { path: 'feed/new', Component: FeedCreate },
         { path: 'feed/:postId/edit', Component: FeedEdit },
         { path: 'settings/profile', Component: Profile },
+        { path: 'squads/entry-test', Component: EntryTest },
+        { path: 'squads/applications', Component: MyApplications },
+        { path: 'squads/:squad/projects/:project/applications/create', Component: ApplicationCreate },
       ],
     },
   ],
