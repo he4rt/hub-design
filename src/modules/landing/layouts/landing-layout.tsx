@@ -13,6 +13,9 @@ export function LandingLayout() {
           He4rt Hub
         </Link>
         <nav>
+          <Button asChild variant="ghost">
+            <Link to="/squads">Squads</Link>
+          </Button>
           {signedIn ? (
             <Button asChild>
               <Link to="/app">Ir para o Hub</Link>

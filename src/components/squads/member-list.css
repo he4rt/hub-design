@@ -1,0 +1,42 @@
+.member-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.member-list__item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.member-list__text {
+  min-width: 0;
+}
+
+.member-list__name {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  font-weight: 500;
+
+  a,
+  span {
+    min-width: 0;
+    overflow: hidden;
+    color: var(--color-text-strong);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.member-list__role,
+.member-list__empty {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}

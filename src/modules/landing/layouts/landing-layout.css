@@ -47,7 +47,12 @@
 
 @media (max-width: 767px) {
   .landing-layout__header {
+    flex-wrap: wrap;
     padding: var(--space-3) var(--space-4);
+
+    nav {
+      gap: var(--space-1);
+    }
   }
 
   .landing-layout__footer {
