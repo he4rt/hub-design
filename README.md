@@ -15,4 +15,4 @@ bun run dev
 A sidebar de debug (Alt+D) mostra as ações da tela atual, simula latência e falhas, reseta os dados
 e lista o log de ações.
 
-As convenções do projeto estão em [CLAUDE.md](./CLAUDE.md).
+As convenções do projeto estão em [AGENTS.md](./AGENTS.md).

@@ -1,5 +1,8 @@
 # He4rt Hub (protótipo mockado)
 
+**Antes de qualquer tarefa, leia `PRODUCT.md` e `PRODUCT_METRICS.md` na raiz.** Eles dizem o que o produto
+é e como o sucesso é medido; use-os para decidir o que construir e como cada tela deve se comportar.
+
 SPA em Vite + React 19 (React Compiler) + TypeScript + React Router, servida em três ambientes:
 
 | Rota       | Módulo                     | Equivalente no Laravel                |
@@ -150,9 +153,10 @@ O CSS será trocado por um novo design system, então mantenha-o isolado e subst
 Nada pisca, pula, corta ou se reorganiza no primeiro carregamento, na navegação nem depois de uma ação.
 
 - Um controle tem o mesmo tamanho desabilitado, carregando ou habilitado. Mantenha o rótulo fixo e
-  coloque um spinner ao lado, em vez de trocar o texto.
+  coloque um spinner ao lado, em vez de trocar o texto: use `<Button loading>`.
 - UI condicional (banner, erro, confirmação inline) reserva seu espaço ou sobrepõe o conteúdo. Uma
-  confirmação inline cabe no espaço do controle que ela substitui.
+  confirmação inline cabe no espaço do controle que ela substitui. O resultado de um formulário ou
+  ação usa `<FormMessage>`, que reserva a linha mesmo vazio.
 - Logo depois de uma ação, o controle sob o ponteiro não vira um controle destrutivo.
 - Números, contagens e contadores usam `font-variant-numeric: tabular-nums`.
 - Texto longo (nome, e-mail, URL) usa `min-width: 0` com `text-overflow: ellipsis` ou `line-clamp`, e o
