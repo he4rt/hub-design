@@ -1,0 +1,39 @@
+.feed {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-width: 720px;
+}
+
+.feed__toolbar {
+  display: flex;
+  overflow-x: auto;
+}
+
+.feed__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.feed__empty {
+  align-items: flex-start;
+  color: var(--color-text-muted);
+}
+
+.feed__more {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  text-align: center;
+}
+
+.feed__end {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  text-align: center;
+}

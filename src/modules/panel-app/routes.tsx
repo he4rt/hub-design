@@ -2,6 +2,8 @@ import type { RouteObject } from 'react-router'
 import { AuthLayout } from '@/components/auth-layout'
 import PublicProfile from './features/account/public-profile/pages/show'
 import Profile from './features/account/settings/pages/profile'
+import FeedCreate from './features/community/feed/pages/create'
+import FeedIndex from './features/community/feed/pages/index'
 import ForgotPassword from './features/auth/pages/forgot-password'
 import Login from './features/auth/pages/login'
 import Onboarding from './features/auth/pages/onboarding'
@@ -54,6 +56,8 @@ export const panelAppRoutes: RouteObject = {
       Component: AppLayout,
       children: [
         { index: true, Component: Dashboard },
+        { path: 'feed', Component: FeedIndex },
+        { path: 'feed/new', Component: FeedCreate },
         { path: 'settings/profile', Component: Profile },
       ],
     },

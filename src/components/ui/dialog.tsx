@@ -14,7 +14,7 @@ type DialogContentProps = ComponentProps<typeof DialogPrimitive.Content> & {
   footer?: ReactNode
 }
 
-/** Modal limited to the viewport: the body scrolls, the header and footer stay put. */
+/** Modal limited to the viewport: the body scrolls, the header and footer stay put. A confirmation can omit the body. */
 export function DialogContent({ title, description, footer, className, children, ...props }: DialogContentProps) {
   return (
     <DialogPrimitive.Portal>
@@ -24,7 +24,7 @@ export function DialogContent({ title, description, footer, className, children,
           <DialogPrimitive.Title className="ui-dialog__title">{title}</DialogPrimitive.Title>
           <DialogPrimitive.Description className="ui-dialog__description">{description}</DialogPrimitive.Description>
         </header>
-        <div className="ui-dialog__body">{children}</div>
+        {children && <div className="ui-dialog__body">{children}</div>}
         {footer && <footer className="ui-dialog__footer">{footer}</footer>}
       </DialogPrimitive.Content>
     </DialogPrimitive.Portal>

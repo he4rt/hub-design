@@ -14,6 +14,11 @@ export type AnalyticsEventName =
   | 'signup_blocked_underage'
   | 'discussion_created'
   | 'discussion_replied'
+  | 'trajectory_record_added'
+  | 'feed_post_created'
+  | 'feed_post_blocked'
+  | 'feed_post_visibility_changed'
+  | 'feed_post_deleted'
 
 const EVENTS_KEPT = 200
 

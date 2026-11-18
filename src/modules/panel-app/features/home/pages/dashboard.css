@@ -5,7 +5,8 @@
 }
 
 .dashboard__next h2,
-.dashboard__identity h2 {
+.dashboard__identity h2,
+.dashboard__title {
   font-size: var(--text-md);
 }
 

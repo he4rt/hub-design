@@ -79,6 +79,7 @@ Laravel (`src/Features/<Group>/<Feature>/`):
 | `panel-admin` | `system`  | `activity`, `mails`, `settings`, `docs`    |
 | `panel-admin` | `account` | `profile`                                  |
 | `panel-app`   | `account` | `settings`, `two-factor-setup`             |
+| `panel-app`   | `community` | `feed`, `discussions`                    |
 
 - Ao planejar uma feature nova, sugira o grupo e diga por quê. Quando nenhum grupo serve, sugira um novo
   e pergunte antes de criar.

@@ -65,3 +65,8 @@
     padding-inline: var(--space-4);
   }
 }
+
+/* Without a body the header's border already separates the footer. */
+.ui-dialog__header + .ui-dialog__footer {
+  border-top: none;
+}

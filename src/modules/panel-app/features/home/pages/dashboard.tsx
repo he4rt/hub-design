@@ -73,6 +73,18 @@ export default function Dashboard() {
             <Link to="/app/settings/profile">Editar perfil</Link>
           </p>
         </Card>
+        <Card>
+          <h2 className="dashboard__title">Feed</h2>
+          <p className="dashboard__hint">O que você aprendeu, como aplicou e quanto isso aproximou você do objetivo.</p>
+          <div className="dashboard__actions">
+            <Button asChild>
+              <Link to="/app/feed/new">Nova publicação</Link>
+            </Button>
+            <Button asChild variant="secondary">
+              <Link to="/app/feed">Abrir o Feed</Link>
+            </Button>
+          </div>
+        </Card>
       </div>
     </>
   )

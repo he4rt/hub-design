@@ -276,6 +276,29 @@ export type Discussion = {
   solvedReplyId: string | null
 }
 
+/** How much a learning got the member closer to the objective. A label, never a score. */
+export type ObjectiveProgress = 'none' | 'little' | 'a-lot' | 'very-much'
+
+/**
+ * Publication of the learning diary. It is a record of its author's trajectory:
+ * it always exists for the author, and goes to the community Feed or the public
+ * profile only when the author chooses. The text is never edited.
+ */
+export type FeedPost = {
+  id: string
+  userId: string
+  learned: string
+  applied: string
+  objectiveProgress: ObjectiveProgress
+  /** Members see it in the Feed. On by default in the form. */
+  sharedOnFeed: boolean
+  /** Visitors see it in the public profile, when the profile is published. Off by default. */
+  shownOnProfile: boolean
+  createdAt: string
+  /** Deleted by the author: gone for every member, kept for moderation and audit. */
+  deletedAt: string | null
+}
+
 export type MockDb = {
   users: User[]
   /** Server-side only: passwords by user id. Accounts created by social login have none. */
@@ -287,6 +310,8 @@ export type MockDb = {
   session: { userId: string } | null
   /** Signed-in admin of /admin; a separate entry from the member session. */
   adminSession: { userId: string } | null
+  /** Newest last; read through the Feed, which sorts them. */
+  feedPosts: FeedPost[]
   /** What PostHog would receive, newest first. */
   events: AnalyticsEvent[]
   profiles: MemberProfile[]
@@ -342,6 +367,13 @@ const linked = (provider: LinkedProvider, handle: string, linkedAt: string): Lin
   handle,
   linkedAt,
 })
+
+const post = (
+  id: string,
+  userId: string,
+  createdAt: string,
+  fields: Pick<FeedPost, 'learned' | 'applied' | 'objectiveProgress'> & Partial<FeedPost>,
+): FeedPost => ({ id, userId, createdAt, sharedOnFeed: true, shownOnProfile: false, deletedAt: null, ...fields })
 
 const seed: MockDb = {
   users: [
@@ -464,6 +496,40 @@ const seed: MockDb = {
   pendingSocialLink: null,
   session: null,
   adminSession: null,
+  feedPosts: [
+    post('p1', 'u1', '2026-10-02T13:10:00Z', {
+      learned: 'Filas no Laravel com retry e backoff: um job que falha não precisa derrubar o resto.',
+      applied: 'Mudei o envio de e-mails do Hub para uma fila com 3 tentativas e espera crescente.',
+      objectiveProgress: 'a-lot',
+    }),
+    post('p2', 'u2', '2026-10-20T18:42:00Z', {
+      learned: 'Como o leitor de tela anuncia mudanças com aria-live, e quando polite basta.',
+      applied: 'Coloquei a mensagem de erro do meu formulário de contato numa região aria-live.',
+      objectiveProgress: 'very-much',
+      shownOnProfile: true,
+    }),
+    post('p3', 'u3', '2026-10-28T22:05:00Z', {
+      learned: 'A diferença entre interface e classe abstrata em Java, na prática.',
+      applied: 'Refiz o exercício de pagamentos com uma interface e duas implementações.',
+      objectiveProgress: 'little',
+    }),
+    post('p4', 'u2', '2026-11-04T11:30:00Z', {
+      learned: 'Ainda não entendi bem quando usar useEffect. Li a página "You might not need an effect".',
+      applied: 'Tirei dois efeitos que só copiavam props para state no meu projeto de estudo.',
+      objectiveProgress: 'little',
+      sharedOnFeed: false,
+    }),
+    post('p5', 'u1', '2026-11-12T09:15:00Z', {
+      learned: 'Índices compostos no MySQL: a ordem das colunas muda quais consultas o índice atende.',
+      applied: 'Inverti a ordem de um índice e a consulta de membros caiu de 900ms para 12ms.',
+      objectiveProgress: 'a-lot',
+    }),
+    post('p6', 'u2', '2026-11-16T20:00:00Z', {
+      learned: 'Testes de componente com Testing Library: buscar pelo papel e não pela classe.',
+      applied: 'Reescrevi os testes do meu formulário para usar getByRole.',
+      objectiveProgress: 'none',
+    }),
+  ],
   events: [],
   profiles: [
     {
@@ -1032,7 +1098,7 @@ const seed: MockDb = {
 }
 
 /** The fake backend. Persisted in localStorage; reset it from the debug sidebar. */
-export const db = createStore(seed, { persist: 'he4rt:mock-db:v5' })
+export const db = createStore(seed, { persist: 'he4rt:mock-db:v6' })
 
 export function useDb<S>(selector: (db: MockDb) => S): S {
   return useStore(db, selector)

@@ -4,6 +4,7 @@ import { Avatar } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { useDebugActions } from '@/debug/use-debug-actions'
+import { formatPostDate, OBJECTIVE_PROGRESS } from '@/lib/feed-post'
 import { areaLabels, labelOf, SITUATIONS } from '@/lib/member-profile'
 import { db, useDb } from '@/mocks/db'
 import './show.css'
@@ -20,6 +21,7 @@ export default function Show() {
   const navigate = useNavigate()
   const member = useDb((state) => state.users.find((u) => u.username === username && u.onboardedAt) ?? null)
   const viewerId = useDb((state) => state.session?.userId ?? null)
+  const feedPosts = useDb((state) => state.feedPosts)
 
   useDebugActions('Perfil público', [
     { label: 'Abrir perfil inexistente', run: () => navigate('/members/nao-existe') },
@@ -58,6 +60,10 @@ export default function Show() {
     linkedin && { label: 'LinkedIn', href: `https://www.linkedin.com/in/${linkedin.handle}` },
     member.portfolioUrl && { label: 'Portfólio', href: member.portfolioUrl },
   ].filter((link) => !!link)
+  // Only the diary publications the member chose to show here.
+  const posts = feedPosts
+    .filter((p) => p.userId === member.id && p.shownOnProfile && p.deletedAt === null)
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
   const meta = [areaLabels(member.areas), member.city && `${member.city.name} — ${member.city.uf}`].filter(Boolean)
 
   return (
@@ -107,7 +113,20 @@ export default function Show() {
 
       <Card>
         <h2>Trajetória</h2>
-        <p className="public-profile__muted">Nenhum registro público ainda.</p>
+        {posts.length === 0 ? (
+          <p className="public-profile__muted">Nenhum registro público ainda.</p>
+        ) : (
+          <ol className="public-profile__records">
+            {posts.map((post) => (
+              <li key={post.id}>
+                <time dateTime={post.createdAt}>{formatPostDate(post.createdAt)} · Diário de aprendizado</time>
+                <p>{post.learned}</p>
+                <p className="public-profile__muted">Como aplicou: {post.applied}</p>
+                <p className="public-profile__muted">{labelOf(OBJECTIVE_PROGRESS, post.objectiveProgress)} do objetivo</p>
+              </li>
+            ))}
+          </ol>
+        )}
       </Card>
 
       {isOwner ? (
