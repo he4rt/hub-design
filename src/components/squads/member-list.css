@@ -1,7 +1,7 @@
+/* A list is text with a border line between items. */
 .member-list {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -12,9 +12,23 @@
   align-items: flex-start;
   gap: var(--space-3);
   min-width: 0;
+  padding: var(--space-3) 0;
+  border-top: 1px solid var(--border);
+
+  &:first-child {
+    padding-top: 0;
+    border-top: none;
+  }
+
+  &:last-child {
+    padding-bottom: 0;
+  }
 }
 
 .member-list__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
   min-width: 0;
 }
 
@@ -23,10 +37,11 @@
   align-items: center;
   gap: var(--space-2);
   min-width: 0;
-  font-weight: 500;
+  min-height: 24px;
+  font: var(--text-body-strong);
 
   a,
-  span {
+  span:not(.ui-badge) {
     min-width: 0;
     overflow: hidden;
     color: var(--text);
@@ -35,8 +50,12 @@
   }
 }
 
-.member-list__role,
+.member-list__role {
+  color: var(--text-muted);
+  font: var(--text-caption);
+}
+
 .member-list__empty {
   color: var(--text-muted);
-  font-size: var(--size-body);
+  font: var(--text-body);
 }

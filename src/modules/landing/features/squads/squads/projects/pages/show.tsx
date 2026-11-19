@@ -3,13 +3,13 @@ import { NotFound } from '@/components/not-found'
 import { MemberList } from '@/components/squads/member-list'
 import { ProjectSummary } from '@/components/squads/project-summary'
 import { StateChip } from '@/components/state-chip'
-import { Card } from '@/components/ui/card'
+import { Card, CardHeader } from '@/components/ui/card'
 import { useDebugActions } from '@/debug/use-debug-actions'
 import { useDb } from '@/mocks/db'
 import { findSquadBySlug, formatDate } from '@/mocks/squads'
 import '../../pages/show.css'
 
-const COLLABORATION = { individual: 'individual', pair: 'em dupla', group: 'em grupo' } as const
+const COLLABORATION = { individual: 'individualmente', pair: 'em dupla', group: 'em grupo' } as const
 
 /** Public page of a project: what the squad did and what each member did, kept for good. */
 export default function Show() {
@@ -41,50 +41,58 @@ export default function Show() {
           <StateChip entity="project" state={project.status} />
         </div>
         <p className="squad-show__muted">
-          {formatDate(project.startedAt)} a {project.endedAt ? formatDate(project.endedAt) : 'hoje'}
+          De {formatDate(project.startedAt)} a {project.endedAt ? formatDate(project.endedAt) : 'hoje'}.
         </p>
       </header>
 
       <Card>
+        <CardHeader>
+          <h2>Objetivo e critérios</h2>
+        </CardHeader>
         <ProjectSummary project={project} />
       </Card>
 
       <Card>
-        <h2>Quem fez</h2>
+        <CardHeader>
+          <h2>Quem fez</h2>
+        </CardHeader>
         <MemberList memberships={memberships} users={state.users} captainId={squad.captainId} />
       </Card>
 
       <Card>
-        <h2>Entregas aceitas</h2>
+        <CardHeader>
+          <h2>Entregas aceitas ({deliveries.length})</h2>
+        </CardHeader>
         {deliveries.length === 0 ? (
           <p className="squad-show__muted">Nenhuma entrega aceita ainda.</p>
         ) : (
           <ul className="squad-show__deliveries">
             {deliveries.map((d) => (
               <li key={d.id}>
-                <p>
-                  <strong>{d.title}</strong>{' '}
-                  <span className="squad-show__muted">
-                    · {COLLABORATION[d.collaboration]} · {formatDate(d.decidedAt)}
-                  </span>
+                <p className="squad-show__delivery-title">{d.title}</p>
+                <p className="squad-show__muted">
+                  Feita {COLLABORATION[d.collaboration]}, aceita em {formatDate(d.decidedAt)}.
                 </p>
-                <ul>
+                <ul className="squad-show__credits">
                   {d.credits.map((c) => (
-                    <li key={c.userId} className="squad-show__muted">
-                      {name(c.userId)}: {c.part}
+                    <li key={c.userId}>
+                      <strong>{name(c.userId)}:</strong> {c.part}
                     </li>
                   ))}
                 </ul>
-                <p className="squad-show__muted">
-                  {d.evidence.map((e, i) => (
-                    <span key={e.ref}>
-                      {i > 0 && ' · '}
-                      <a href={e.url} target="_blank" rel="noreferrer">
-                        {e.ref}
-                      </a>
-                    </span>
-                  ))}
-                </p>
+                {d.evidence.length > 0 && (
+                  <Card variant="inset">
+                    <ul className="squad-show__evidence" aria-label="Evidência no GitHub">
+                      {d.evidence.map((e) => (
+                        <li key={e.ref}>
+                          <a href={e.url} target="_blank" rel="noreferrer" title={e.ref}>
+                            {e.ref}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  </Card>
+                )}
               </li>
             ))}
           </ul>

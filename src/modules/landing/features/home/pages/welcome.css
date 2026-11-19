@@ -1,88 +1,146 @@
 .welcome {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-10);
-  max-width: 960px;
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  gap: var(--space-6) var(--space-8);
+  align-items: start;
+  max-width: 1040px;
   margin: 0 auto;
-  padding: var(--space-10) var(--space-8);
+  padding: var(--space-8) var(--space-8) var(--space-10);
 }
 
-.welcome__hero {
+/* The design system's Cover: the name on the left, the color blocks bleeding off the right. */
+.welcome__cover {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  min-height: 300px;
+  overflow: hidden;
+}
+
+.welcome__name {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding-bottom: var(--space-8);
+
+  h1 {
+    font-family: var(--font-display);
+    font-size: clamp(64px, 11vw, 120px);
+    font-weight: 700;
+    line-height: 0.92;
+    letter-spacing: -0.03em;
+  }
+
+  p {
+    color: var(--text-muted);
+    font: var(--text-body);
+  }
+}
+
+.welcome__art {
+  display: block;
+  width: 480px;
+  height: 300px;
+
+  rect {
+    rx: var(--radius-lg);
+  }
+}
+
+.welcome__art-ink {
+  fill: var(--ink-3);
+}
+
+.welcome__art-brand {
+  fill: var(--brand);
+}
+
+.welcome__art-bright {
+  fill: var(--brand-bright);
+}
+
+.welcome__art-soft {
+  fill: var(--brand-soft);
+}
+
+.welcome__art-dot {
+  fill: var(--on-ink);
+}
+
+.welcome__art-success {
+  fill: var(--success-text);
+}
+
+.welcome__art-rail {
+  stroke: var(--on-ink);
+  stroke-width: 2;
+}
+
+.welcome__intro {
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
 
-  h1 {
-    max-width: 16em;
-    font-size: var(--size-display);
-    letter-spacing: -0.02em;
-  }
-
-  > p {
-    max-width: 36em;
-    color: var(--text-muted);
-    font-size: var(--size-heading);
+  > p:first-child {
+    max-width: 720px;
+    color: var(--text);
+    font: 400 var(--size-heading) / 1.5 var(--font-sans);
   }
 }
 
 .welcome__cta {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--space-3);
-  margin-top: var(--space-2);
 }
 
-.welcome .welcome__note {
-  font-size: var(--size-body);
+.welcome__note {
+  color: var(--text-muted);
+  font: var(--text-caption);
 }
 
-.welcome__section {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-
-  h2 {
-    font-size: var(--size-heading);
-  }
+.welcome__steps h2 {
+  font: var(--text-subheading);
 }
 
-.welcome__steps {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: var(--space-4);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-
-  li,
-  .ui-card {
-    height: 100%;
-  }
-
-  .ui-card {
-    gap: var(--space-2);
-  }
-
-  h3 {
-    font-size: var(--size-body);
-  }
-
-  p {
-    color: var(--text-muted);
-    font-size: var(--size-body);
-  }
-}
-
-@media (max-width: 767px) {
+@media (max-width: 899px) {
   .welcome {
-    gap: var(--space-8);
-    padding: var(--space-8) var(--space-4);
+    grid-template-columns: minmax(0, 1fr);
   }
 
-  .welcome__hero h1 {
-    font-size: var(--size-display);
+  .welcome__art {
+    width: 360px;
+    height: 225px;
   }
 
-  .welcome__cta {
-    flex-wrap: wrap;
+  .welcome__cover {
+    min-height: 225px;
+  }
+}
+
+/* On a phone the art shrinks to a band above the name. */
+@media (max-width: 599px) {
+  .welcome {
+    padding: var(--space-6) var(--space-4) var(--space-8);
+  }
+
+  .welcome__cover {
+    grid-template-columns: minmax(0, 1fr);
+    min-height: 0;
+  }
+
+  .welcome__art {
+    order: -1;
+    width: 100%;
+    height: 150px;
+  }
+
+  .welcome__name {
+    padding: var(--space-5) 0 0;
+
+    h1 {
+      font-size: clamp(56px, 17vw, 80px);
+    }
   }
 }

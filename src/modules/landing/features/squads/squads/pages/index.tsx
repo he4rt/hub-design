@@ -55,7 +55,7 @@ export default function Index() {
       <header className="squads-index__header">
         <div>
           <h1>Squads</h1>
-          <p>Times de projeto em repositórios da He4rt, conduzidos por um capitão.</p>
+          <p>Squads ativos recebem candidaturas. Os inativos guardam o log de tudo que foi feito.</p>
         </div>
         <ToggleGroup
           type="single"
@@ -88,19 +88,18 @@ export default function Index() {
                   <div className="squads-index__title">
                     <h2 title={squad.name}>{squad.name}</h2>
                     <StateChip entity="squad" state={squad.status} />
+                    {!captain && <StateChip entity="squad" state="vacancy" />}
                   </div>
                   <p className="squads-index__goal">{project?.goal ?? squad.description}</p>
-                  <p className="squads-index__meta">
-                    {captain ? `Capitão: ${captain.name}` : 'Vacancy: sem capitão'}
+                  <div className="squads-index__meta">
+                    <p>{captain ? `Capitão: ${captain.name}.` : 'Sem capitão no momento.'}</p>
                     {project && (
-                      <>
-                        {' · '}
-                        {project.stack.join(', ')}
-                        {' · '}
-                        <span className="squads-index__num">{free}</span> {free === 1 ? 'lugar livre' : 'lugares livres'}
-                      </>
+                      <p>
+                        {project.name}, em {project.stack.join(', ')}, com{' '}
+                        <span className="squads-index__num">{free}</span> {free === 1 ? 'lugar livre' : 'lugares livres'}.
+                      </p>
                     )}
-                  </p>
+                  </div>
                 </Link>
               </li>
             )

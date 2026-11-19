@@ -1,13 +1,19 @@
+/* Shared by the squad page and the project page. */
 .squad-show {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: var(--space-6);
   max-width: 880px;
   margin: 0 auto;
-  padding: var(--space-10) var(--space-8);
+  padding: var(--space-8) var(--space-8) var(--space-10);
 
-  h2 {
-    font-size: var(--size-body);
+  .ui-card__header h2 a {
+    color: var(--brand-text);
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
   }
 }
 
@@ -15,24 +21,53 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
-  margin-bottom: var(--space-2);
+  min-width: 0;
 }
 
 .squad-show__back {
+  align-self: flex-start;
+  max-width: 100%;
+  overflow: hidden;
   color: var(--text-muted);
-  font-size: var(--size-body);
+  font: var(--text-caption);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .squad-show__title {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--space-2) var(--space-3);
   min-width: 0;
 
   h1 {
     min-width: 0;
+    max-width: 100%;
     overflow: hidden;
-    font-size: var(--size-display);
+    font: var(--text-display);
+    letter-spacing: -0.02em;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.squad-show__description {
+  max-width: 720px;
+  font: var(--text-body);
+}
+
+.squad-show__captain {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  color: var(--text-muted);
+  font: var(--text-caption);
+
+  span {
+    min-width: 0;
+    overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
@@ -40,56 +75,92 @@
 
 .squad-show__muted {
   color: var(--text-muted);
-  font-size: var(--size-body);
+  font: var(--text-caption);
 }
 
-.squad-show__projects {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-
-  li {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    gap: var(--space-2);
-  }
-}
-
+/* A list is text with a border line between items. */
+.squad-show__projects,
 .squad-show__deliveries {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
   margin: 0;
   padding: 0;
   list-style: none;
 
   > li {
-    padding-bottom: var(--space-3);
-    border-bottom: 1px solid var(--border);
+    padding: var(--space-3) 0;
+    border-top: 1px solid var(--border);
+
+    &:first-child {
+      padding-top: 0;
+      border-top: none;
+    }
 
     &:last-child {
       padding-bottom: 0;
-      border-bottom: none;
     }
   }
+}
+
+.squad-show__projects > li {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-1) var(--space-3);
+  font: var(--text-body);
+}
+
+.squad-show__dates {
+  color: var(--text-muted);
+  font: var(--text-caption);
+  font-variant-numeric: tabular-nums;
+}
+
+.squad-show__deliveries > li {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4) 0;
+}
+
+.squad-show__delivery-title {
+  font: var(--text-body-strong);
+}
+
+.squad-show__credits {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: 0;
+  padding-left: var(--space-5);
+  font: var(--text-body);
 
   strong {
-    color: var(--text);
-    font-weight: 500;
+    font-weight: 600;
   }
+}
 
-  ul {
-    margin: var(--space-1) 0;
-    padding-left: var(--space-4);
+/* GitHub references, in mono: the font says where the data came from. */
+.squad-show__evidence {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font: var(--text-mono);
+
+  li {
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 }
 
 @media (max-width: 767px) {
   .squad-show {
-    padding: var(--space-6) var(--space-4);
+    padding: var(--space-6) var(--space-4) var(--space-8);
   }
 }

@@ -4,7 +4,9 @@ import { MemberList } from '@/components/squads/member-list'
 import { ProjectSummary } from '@/components/squads/project-summary'
 import { SquadLog } from '@/components/squads/squad-log'
 import { StateChip } from '@/components/state-chip'
-import { Card } from '@/components/ui/card'
+import { Avatar } from '@/components/ui/avatar'
+import { Callout } from '@/components/ui/callout'
+import { Card, CardHeader } from '@/components/ui/card'
 import { useDebugActions } from '@/debug/use-debug-actions'
 import { db, useDb } from '@/mocks/db'
 import { activeMemberships, activeProject, findSquadBySlug, formatDate } from '@/mocks/squads'
@@ -43,22 +45,36 @@ export default function Show() {
         <div className="squad-show__title">
           <h1 title={squad.name}>{squad.name}</h1>
           <StateChip entity="squad" state={squad.status} />
+          {!captain && <StateChip entity="squad" state="vacancy" />}
         </div>
-        <p>{squad.description}</p>
-        <p className="squad-show__muted">{captain ? `Capitão: ${captain.name}` : 'Vacancy: este squad está sem capitão.'}</p>
+        <p className="squad-show__description">{squad.description}</p>
+        {captain ? (
+          <p className="squad-show__captain">
+            <Avatar name={captain.name} src={captain.photoUrl} size="xs" />
+            <span>Capitão: {captain.name}</span>
+          </p>
+        ) : (
+          <p className="squad-show__muted">Este squad está sem capitão.</p>
+        )}
       </header>
 
       {project ? (
         <>
           <Card>
-            <h2>
-              Projeto atual: <Link to={`/squads/${squad.slug}/projects/${project.slug}`}>{project.name}</Link>
-            </h2>
+            <CardHeader>
+              <h2>
+                <Link to={`/squads/${squad.slug}/projects/${project.slug}`}>{project.name}</Link>
+              </h2>
+              <StateChip entity="project" state={project.status} />
+            </CardHeader>
+            <p className="squad-show__muted">Projeto atual, desde {formatDate(project.startedAt)}.</p>
             <ProjectSummary project={project} />
           </Card>
           <ApplyCall squad={squad} project={project} />
           <Card>
-            <h2>Membros</h2>
+            <CardHeader>
+              <h2>Membros</h2>
+            </CardHeader>
             <MemberList
               memberships={activeMemberships(state, project.id)}
               users={state.users}
@@ -67,21 +83,22 @@ export default function Show() {
           </Card>
         </>
       ) : (
-        <Card>
-          <p className="squad-show__muted">
-            Este squad está inativo: não há projeto encaminhado agora. O log e o histórico dos membros continuam aqui.
-          </p>
-        </Card>
+        <Callout>
+          Este squad está inativo: não há projeto encaminhado agora. Um squad nunca é encerrado, e o log e o histórico
+          dos membros continuam aqui.
+        </Callout>
       )}
 
       {pastProjects.length > 0 && (
         <Card>
-          <h2>Projetos anteriores</h2>
+          <CardHeader>
+            <h2>Projetos anteriores</h2>
+          </CardHeader>
           <ul className="squad-show__projects">
             {pastProjects.map((p) => (
               <li key={p.id}>
                 <Link to={`/squads/${squad.slug}/projects/${p.slug}`}>{p.name}</Link>
-                <span className="squad-show__muted">
+                <span className="squad-show__dates">
                   {formatDate(p.startedAt)} a {formatDate(p.endedAt)}
                 </span>
               </li>
@@ -91,7 +108,9 @@ export default function Show() {
       )}
 
       <Card>
-        <h2>Log do squad</h2>
+        <CardHeader>
+          <h2>Log do squad</h2>
+        </CardHeader>
         <SquadLog
           entries={state.squadLog.filter((e) => e.squadId === squad.id)}
           projects={state.projects}
