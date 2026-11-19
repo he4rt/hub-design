@@ -153,12 +153,22 @@ seguem `docs/squads.md` e `docs/validation.md`; conquistas e jornada são calcul
 
 ## Estilo
 
-O CSS será trocado por um novo design system, então mantenha-o isolado e substituível:
+A base visual é o **He4rt Hub Design System**, em `docs/design-system/`: leia o `README.md` (princípios,
+cor, tipografia, layout, sidebar, anti-padrões, vocabulário) e o `estados.md` antes de criar ou mudar
+uma tela, e o `.md` e o `.preview.html` de cada componente em `docs/design-system/components/`.
 
-- Cores, espaçamentos, raios, fontes e sombras vêm só de `src/styles/tokens.css` (`var(--…)`).
-  Nada de cor, fonte ou raio soltos fora dele.
-- Profundidade vem dos tokens de superfície (`--color-surface`, `--color-surface-raised`), não de
-  sombra nova nem de fundo tingido.
+- Cores, espaçamentos, raios, fontes e sombras vêm só de `src/styles/tokens.css` (`var(--…)`), com os
+  nomes do design system (`--bg`, `--surface`, `--brand`, `--text-muted`…). Nada de cor, fonte ou raio
+  soltos fora dele. Texto usa os estilos (`font: var(--text-body)`, `var(--text-caption)`…).
+- Bordas, não sombras: a única sombra é `--shadow-tab`. Página em `--bg`, cards em `--surface`, bloco
+  rebaixado em `--surface-2`.
+- `--brand` só na ação principal da tela e no item ativo da navegação. Estado de domínio usa
+  `<StateChip>` (`src/components/state-chip.tsx`), que segue o `estados.md`; roxo em chip é só
+  competência (`<Badge variant="comp">`).
+- `--font-mono` só para referência ao GitHub (repositório, PR, commit, time).
+- Siga a lista "O que o Hub não faz" do `README.md`: sem placar de números, sem metadado encadeado com
+  `·`, sem rótulo em caixa alta com tracking, sem seta em botão, sem ícone em caixinha colorida, sem
+  borda esquerda colorida, sem gradiente.
 - CSS puro, um arquivo ao lado do componente (`button.tsx` + `button.css`), importado pelo componente.
 - Classes prefixadas pelo nome do componente, no estilo BEM: `.users-table`, `.users-table__empty`.
   Componentes de `ui/` usam o prefixo `ui-`.

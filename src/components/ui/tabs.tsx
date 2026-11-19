@@ -9,7 +9,7 @@ export function Tabs({ className, ...props }: ComponentProps<typeof TabsPrimitiv
 
 /**
  * `line` (2px brand underline) for the sections of an entity, such as Meu squad; `segmented` for list
- * filters. A count goes in the label: "Entregas · 2".
+ * filters. A count goes in the label, in parentheses: "Entregas (2)".
  */
 export function TabsList({
   variant = 'line',

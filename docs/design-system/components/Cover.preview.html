@@ -1,0 +1,45 @@
+<!-- @dsCard height=300 -->
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-sans)}
+.cover{position:relative;width:960px;height:300px;overflow:hidden}
+.name{position:absolute;left:40px;bottom:58px;margin:0;font-family:var(--font-display);font-size:120px;line-height:.92;font-weight:700;letter-spacing:-0.03em;color:var(--text);max-width:440px}
+.tag{position:absolute;left:42px;bottom:32px;margin:0;font-size:14px;color:var(--text-muted);max-width:440px}
+.brand{fill:var(--brand)}.ink{fill:var(--ink-3)}.bright{fill:var(--brand-bright)}.soft{fill:var(--brand-soft)}
+.dot{fill:var(--on-ink)}.rail{stroke:var(--on-ink);stroke-width:2}.okdot{fill:var(--success-text)}
+.r-lg{rx:14px}.r-md{rx:10px}
+</style>
+</head>
+<body>
+<div class="cover">
+<!--
+blocks: ink-3 slab 200×300 (space-10×5 wide), brand 240×180, brand-bright 120×100, brand-soft 120×80 — sides múltiplos de space-5 e space-10
+arrangement: slab colado à direita sangrando o topo e a base; brand encostado no slab; bright e soft empilhados à esquerda do brand, escalonados
+pattern: trilha (literal motif) — dots de 10px (space-2 + 2) ligados por rail de 2px, descendo o slab em ink-3; o Hub é trajetória, e o log do squad é uma trilha de pontos
+scales: radius-lg nos blocos, radius-pill nos dots, pitch space-10 entre dots
+-->
+<svg width="960" height="300" viewBox="0 0 960 300" role="img" aria-label="He4rt Hub">
+  <rect class="ink" x="760" y="-20" width="220" height="340" rx="14"/>
+  <rect class="brand r-lg" x="500" y="100" width="240" height="180"/>
+  <rect class="bright r-lg" x="600" y="20" width="140" height="60"/>
+  <rect class="soft r-lg" x="500" y="20" width="80" height="60"/>
+  <line class="rail" x1="870" y1="40" x2="870" y2="280"/>
+  <circle class="dot" cx="870" cy="40" r="7"/>
+  <circle class="dot" cx="870" cy="100" r="7"/>
+  <circle class="okdot" cx="870" cy="160" r="7"/>
+  <circle class="dot" cx="870" cy="220" r="7"/>
+  <circle class="bright" cx="870" cy="280" r="7"/>
+  <line class="rail" x1="870" y1="160" x2="820" y2="160"/>
+  <circle class="okdot" cx="820" cy="160" r="5"/>
+  <line class="rail" x1="870" y1="220" x2="920" y2="220"/>
+  <circle class="dot" cx="920" cy="220" r="5"/>
+</svg>
+<h1 class="name">He4rt Hub</h1>
+<p class="tag">da comunidade para a comunidade</p>
+</div>
+</body>
+</html>
