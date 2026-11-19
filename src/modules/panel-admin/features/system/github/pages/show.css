@@ -2,10 +2,13 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-6);
-  max-width: 720px;
 
   .page-header {
     margin-bottom: 0;
+  }
+
+  > .ui-card {
+    max-width: 720px;
   }
 }
 
