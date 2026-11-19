@@ -2,8 +2,9 @@ import { FormMessage } from '@/components/form-message'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { useActionRunner } from '@/hooks/use-action-runner'
 import type { Visibility } from '@/mocks/db'
-import { updateRecordVisibility, type RecordCollection } from '../actions'
-import { visibilityOptions } from '../lib/visibility'
+import type { RecordCollection } from '@/lib/trajectory/graph'
+import { visibilityOptions } from '@/lib/trajectory/visibility'
+import { updateRecordVisibility } from '../actions'
 import './record-visibility.css'
 
 /** Shown only to the owner, inside a record: who sees it. Changes save right away. */

@@ -1,6 +1,6 @@
 import { Eye } from 'lucide-react'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
-import { viewerOptions, type Viewer } from '../lib/visibility'
+import { viewerOptions, type Viewer } from '@/lib/trajectory/visibility'
 import './owner-notice.css'
 
 const READING: Record<Viewer, string> = {

@@ -1,8 +1,25 @@
 import type { FeedPost, MemberProfile, Visibility, Project, Squad, SquadDelivery, SquadMembership, TechnicalEvidence, Validation } from '@/mocks/db'
 import { formatMonth, formatPeriod } from '@/lib/dates'
 import { evidenceRef } from '@/lib/evidence'
-import type { RecordCollection } from '../actions'
 import { canSee, type Viewer } from './visibility'
+
+/** The member's records that carry their own visibility. */
+export type RecordCollection = keyof Pick<MemberProfile, 'knowledge' | 'learnings' | 'experiences' | 'articles' | 'evidences'>
+
+/** A member who has not registered any trajectory record yet. */
+export function emptyProfile(userId: string): MemberProfile {
+  return {
+    userId,
+    readme: null,
+    currentFocus: null,
+    knowledge: [],
+    learnings: [],
+    experiences: [],
+    articles: [],
+    evidences: [],
+    journey: { stage: 'member', publicStage: 'member', contributor: false },
+  }
+}
 
 /**
  * The five kinds of trajectory record in PRODUCT.md, from the weakest to the strongest proof.
@@ -196,6 +213,21 @@ export function trajectoryGraph(
         .filter(readable)
         .toSorted((a, b) => a.createdAt.localeCompare(b.createdAt)),
     })),
+    // A diary publication is a learning record too. One tied to a learning the viewer sees shows inside it;
+    // the rest stand on the line by themselves.
+    ...posts
+      .filter((post) => post.userId === profile.userId && readable(post))
+      .filter((post) => !learnings.some((l) => l.id === post.learningId))
+      .map((post) => ({
+        id: `post-${post.id}`,
+        type: 'learning' as const,
+        lane: 0,
+        date: post.createdAt,
+        title: post.learned,
+        badge: { text: 'diário', mono: false },
+        detail: `Como aplicou: ${post.applied}`,
+        origin: post.editedAt ? `Publicação do diário, editada em ${formatMonth(post.editedAt)}` : 'Publicação do diário',
+      })),
     ...articles.map((a) => ({
       id: a.id,
       record: { collection: 'articles' as const, id: a.id, visibility: a.visibility },

@@ -1,7 +1,7 @@
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import type { MemberProfile } from '@/mocks/db'
-import { canSee, type Viewer } from '../lib/visibility'
+import { canSee, type Viewer } from '@/lib/trajectory/visibility'
 import { LearningNow } from './learning-now'
 import './profile-sidebar.css'
 

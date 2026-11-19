@@ -3,6 +3,7 @@ import { Link } from 'react-router'
 import { Card } from '@/components/ui/card'
 import { useNow } from '@/hooks/use-now'
 import { formatShortDate } from '@/lib/feed-post'
+import { emptyProfile, recordTypeLabels, trajectoryGraph } from '@/lib/trajectory/graph'
 import { useDb, type User } from '@/mocks/db'
 import { isProfileReminderVisible } from '../reminders/actions'
 import { EmailReminder } from '../reminders/components/email-reminder'
@@ -13,7 +14,8 @@ const DAY_MS = 24 * 60 * 60 * 1000
 /** Blocks of the member's moment under the trajectory, so the column stays shorter than the Feed. */
 const MAX_BLOCKS = 2
 const LEARNING_ITEMS = 3
-const RECENT_POSTS = 3
+/** Latest records of the trajectory shown beside the Feed; the rest is on the profile. */
+const RECENT_RECORDS = 3
 
 /**
  * Right column of the home: the member's latest trajectory records, then the
@@ -23,6 +25,12 @@ const RECENT_POSTS = 3
 export function HomeAside({ account }: { account: User }) {
   const posts = useDb((state) => state.feedPosts)
   const users = useDb((state) => state.users)
+  const profile = useDb((state) => state.profiles.find((p) => p.userId === account.id))
+  const squads = useDb((state) => state.squads)
+  const projects = useDb((state) => state.projects)
+  const memberships = useDb((state) => state.memberships)
+  const deliveries = useDb((state) => state.deliveries)
+  const validations = useDb((state) => state.validations)
   const now = useNow()
 
   const alive = posts.filter((p) => p.deletedAt === null && p.sharedOnFeed)
@@ -34,9 +42,16 @@ export function HomeAside({ account }: { account: User }) {
     )
     .sort((a, b) => b.at.localeCompare(a.at))
     .filter((item, i, all) => all.findIndex((other) => other.post.id === item.post.id) === i)
-  const own = posts
-    .filter((p) => p.userId === account.id && p.deletedAt === null)
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+  // The same trajectory as the profile, as its owner reads it: every kind of record, not only publications.
+  const own = trajectoryGraph(profile ?? emptyProfile(account.id), {
+    squads,
+    projects,
+    memberships,
+    deliveries,
+    validations,
+    posts,
+    viewer: 'owner',
+  }).entries.filter((entry) => entry.type !== null)
   const today = alive.filter((p) => now - Date.parse(p.createdAt) < DAY_MS)
   const authorsToday = new Set(today.map((p) => p.userId)).size
 
@@ -94,18 +109,20 @@ export function HomeAside({ account }: { account: User }) {
       <Card className="home-aside__block">
         <h2>Sua trajetória</h2>
         {own.length === 0 ? (
-          <p className="home-aside__hint">Seu primeiro aprendizado aparece aqui.</p>
+          <p className="home-aside__hint">Seu primeiro registro aparece aqui: um aprendizado, um curso ou uma entrega.</p>
         ) : (
           <ol className="home-aside__trajectory">
-            {own.slice(0, RECENT_POSTS).map((post) => (
-              <li key={post.id}>
-                <time dateTime={post.createdAt}>{formatShortDate(post.createdAt, now)}</time>
-                <p title={post.learned}>{post.learned}</p>
+            {own.slice(0, RECENT_RECORDS).map((entry) => (
+              <li key={entry.id}>
+                <time dateTime={entry.date} title={entry.type ? recordTypeLabels[entry.type] : undefined}>
+                  {formatShortDate(entry.date, now)}
+                </time>
+                <p title={entry.title}>{entry.title}</p>
               </li>
             ))}
           </ol>
         )}
-        {own.length > RECENT_POSTS && <Link to={`/members/${account.username}?aba=trajetoria`}>Ver toda a trajetória</Link>}
+        {own.length > RECENT_RECORDS && <Link to={`/members/${account.username}?aba=trajetoria`}>Ver toda a trajetória</Link>}
       </Card>
       {blocks.slice(0, MAX_BLOCKS).map((block) => (
         <div key={block.key}>{block.node}</div>

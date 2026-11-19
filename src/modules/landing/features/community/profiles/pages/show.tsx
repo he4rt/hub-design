@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useDebugActions } from '@/debug/use-debug-actions'
 import { areaLabels } from '@/lib/member-profile'
-import { db, useDb, type MemberProfile } from '@/mocks/db'
+import { db, useDb } from '@/mocks/db'
 import { AchievementList } from '../components/achievement-list'
 import { AchievementsBox } from '../components/achievements-box'
 import { ActivityList } from '../components/activity-list'
@@ -22,27 +22,12 @@ import { ValidationsCard } from '../components/validations-card'
 import { achievementsModels, parseAchievementsModel, shownAchievements } from '../lib/achievements'
 import { activityGroupLabels, memberActivity, type ActivityGroup } from '../lib/activity'
 import { missingProfileItems } from '../lib/completeness'
-import { trajectoryGraph } from '../lib/trajectory'
-import { viewerOptions, type Viewer } from '../lib/visibility'
+import { emptyProfile, trajectoryGraph } from '@/lib/trajectory/graph'
+import { viewerOptions, type Viewer } from '@/lib/trajectory/visibility'
 import './show.css'
 
 const TABS = { 'visao-geral': 'Visão geral', atividade: 'Atividade', trajetoria: 'Trajetória', conquistas: 'Conquistas', salvos: 'Salvos' } as const
 type Tab = keyof typeof TABS
-
-/** A member who has not registered any trajectory record yet. */
-function emptyProfile(userId: string): MemberProfile {
-  return {
-    userId,
-    readme: null,
-    currentFocus: null,
-    knowledge: [],
-    learnings: [],
-    experiences: [],
-    articles: [],
-    evidences: [],
-    journey: { stage: 'member', publicStage: 'member', contributor: false },
-  }
-}
 
 /**
  * The single public profile of a member, at /members/:username: who they are (from the He4rt

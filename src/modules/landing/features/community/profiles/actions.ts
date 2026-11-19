@@ -1,5 +1,6 @@
 import { track } from '@/mocks/analytics'
-import { db, type MemberProfile, type Visibility } from '@/mocks/db'
+import type { RecordCollection } from '@/lib/trajectory/graph'
+import { db, type Visibility } from '@/mocks/db'
 import { MockError, mockAction } from '@/mocks/mock-action'
 
 export const LEARNING_NOW_MAX = 80
@@ -20,7 +21,6 @@ export function updateLearningNow(userId: string, text: string) {
   })
 }
 
-export type RecordCollection = keyof Pick<MemberProfile, 'knowledge' | 'learnings' | 'experiences' | 'articles' | 'evidences'>
 
 /** The member chooses who sees one trajectory record: only them, the community, or anyone. */
 export function updateRecordVisibility(userId: string, collection: RecordCollection, recordId: string, visibility: Visibility) {

@@ -7,7 +7,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import type { Discussion } from '@/mocks/db'
 import { formatDay } from '@/lib/dates'
 import { evidenceIcons } from '@/lib/evidence'
-import { recordTypeLabels, recordTypes, type BranchTone, type RecordType, type TrajectoryEntry, type TrajectoryGraph as Graph } from '../lib/trajectory'
+import { recordTypeLabels, recordTypes, type BranchTone, type RecordType, type TrajectoryEntry, type TrajectoryGraph as Graph } from '@/lib/trajectory/graph'
 import { RecordVisibility } from './record-visibility'
 import './trajectory-graph.css'
 
