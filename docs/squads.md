@@ -54,8 +54,8 @@ aqui depende de backend real: no protótipo, o GitHub é simulado pelo banco fak
 O `PRODUCT.md` já traz estas decisões: GitHub obrigatório para todos, staff e super admin entre os
 papéis, projeto com objetivo e critérios, e a entrada em duas camadas. Ficam fora desta spec:
 
-- O onboarding ainda não exige vincular o GitHub. Por enquanto, a página Teste de entrada pede o
-  vínculo antes de começar.
+- O onboarding exige vincular o GitHub na primeira pergunta; quem entrou pelo GitHub já a tem
+  respondida, e uma conta antiga sem GitHub volta a essa pergunta ao entrar no app.
 - A identidade é compartilhada com a Basement e o Job Finder, e quem cuida dela precisa saber da
   nova exigência.
 

@@ -76,13 +76,25 @@ Laravel (`src/Features/<Group>/<Feature>/`):
 | Módulo        | Grupo     | Features                                   |
 | ------------- | --------- | ------------------------------------------ |
 | `panel-admin` | `setup`   | `users`, `teams`, `roles`                  |
-| `panel-admin` | `system`  | `activity`, `mails`, `settings`, `docs`    |
+| `panel-admin` | `system`  | `activity`, `mails`, `settings`, `docs`, `github` |
+| `panel-admin` | `squads`  | `squads` (com `projects`), `entry-tests`   |
+| `panel-admin` | `validation` | `validators`, `queue`, `reviews`, `contestations` |
 | `panel-admin` | `account` | `profile`                                  |
 | `panel-app`   | `account` | `settings`, `two-factor-setup`             |
 | `panel-app`   | `community` | `feed`, `discussions`                    |
+| `panel-app`   | `squads`  | `squads` (com `applications`, `deliveries`, `members`, `projects`), `applications`, `entry-test` |
+| `panel-app`   | `validation` | `validations`, `requests`, `queue`, `validator-application` |
+| `landing`     | `community` | `profiles` (o perfil público único, `/members/:username`) |
+| `landing`     | `squads`  | `squads` (com `projects`), as páginas públicas de squad e projeto |
 
 No `panel-app`, a home (`/app`) é o Feed (`community/feed`), com o perfil e os blocos do momento do
 membro nas laterais; não há feature `home`.
+
+O perfil público é um só, em `/members/:username` (`landing/community/profiles`): lê a identidade do
+`User` e os registros da trajetória, com recorte por quem lê (dono, membro, visitante). O que o perfil e
+a home dividem (trajetória, visibilidade, datas, evidências) fica em `src/lib`. Squads e validação
+seguem `docs/squads.md` e `docs/validation.md`; conquistas e jornada são calculadas em
+`src/mocks/achievements.ts`, nunca semeadas.
 
 - Ao planejar uma feature nova, sugira o grupo e diga por quê. Quando nenhum grupo serve, sugira um novo
   e pergunte antes de criar.
