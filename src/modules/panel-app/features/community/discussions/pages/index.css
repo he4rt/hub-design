@@ -1,7 +1,7 @@
 .discussions-index {
   max-width: 960px;
   margin: 0 auto;
-  padding: var(--space-8) var(--space-6) var(--space-12);
+  padding: var(--space-8) var(--space-6) var(--space-10);
 }
 
 .discussions-index__filters {
@@ -17,8 +17,8 @@
   justify-content: center;
   gap: var(--space-4);
   margin-top: var(--space-4);
-  color: var(--color-text-muted);
-  font-size: var(--text-sm);
+  color: var(--text-muted);
+  font-size: var(--size-body);
   font-variant-numeric: tabular-nums;
 }
 

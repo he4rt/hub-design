@@ -5,7 +5,7 @@
 .login__link-notice {
   padding: var(--space-3);
   border-radius: var(--radius-md);
-  background: var(--color-primary-soft);
-  color: var(--color-text-strong);
-  font-size: var(--text-sm);
+  background: var(--brand-soft);
+  color: var(--text);
+  font-size: var(--size-body);
 }

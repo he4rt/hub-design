@@ -8,13 +8,13 @@
   }
 
   span {
-    color: var(--color-text-muted);
-    font-size: var(--text-sm);
+    color: var(--text-muted);
+    font-size: var(--size-body);
   }
 
   strong {
-    color: var(--color-text-strong);
-    font-size: var(--text-xl);
+    color: var(--text);
+    font-size: var(--size-display);
     font-variant-numeric: tabular-nums;
   }
 }

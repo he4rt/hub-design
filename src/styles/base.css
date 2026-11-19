@@ -8,19 +8,25 @@
 
 body {
   margin: 0;
-  font: var(--text-md) / 1.5 var(--font-sans);
-  color: var(--color-text);
-  background: var(--color-bg);
+  font: var(--text-body);
+  color: var(--text);
+  background: var(--bg);
   -webkit-font-smoothing: antialiased;
 }
 
+/* Titles are Space Grotesk; each page sets its size with the type styles. */
 h1,
 h2,
 h3 {
   margin: 0;
-  color: var(--color-text-strong);
+  color: var(--text);
+  font-family: var(--font-display);
   font-weight: 600;
-  line-height: 1.2;
+  line-height: 1.25;
+}
+
+h1 {
+  letter-spacing: -0.02em;
 }
 
 p {
@@ -28,10 +34,21 @@ p {
 }
 
 a {
-  color: var(--color-primary);
+  color: var(--brand-text);
 }
 
 code,
-pre {
+pre,
+kbd {
   font-family: var(--font-mono);
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* Stroke icons of the design system: 1.75 on a 24 viewBox. */
+.lucide {
+  stroke-width: 1.75;
 }

@@ -2,7 +2,7 @@ import { useActionState, useState } from 'react'
 import { Field } from '@/components/field'
 import { FormMessage } from '@/components/form-message'
 import { PageHeader } from '@/components/page-header'
-import { Badge } from '@/components/ui/badge'
+import { StateChip } from '@/components/state-chip'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -71,9 +71,7 @@ export default function Show() {
               <li key={a.id}>
                 <div className="stack-page__row">
                   <span className="stack-page__muted">Enviado em {formatDate(a.createdAt)}</span>
-                  <Badge variant={a.status === 'approved' ? 'success' : a.status === 'pending' ? 'warning' : 'outline'}>
-                    {a.status === 'approved' ? 'Aprovado' : a.status === 'pending' ? 'Com a staff' : 'Recusado com retorno'}
-                  </Badge>
+                  <StateChip entity="validator-application" state={a.status} />
                 </div>
                 {a.decision && a.status === 'declined' && <p className="stack-page__quote">{a.decision.reason}</p>}
               </li>

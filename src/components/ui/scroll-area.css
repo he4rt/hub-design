@@ -19,5 +19,5 @@
 .ui-scroll-area__thumb {
   flex: 1;
   border-radius: 999px;
-  background: var(--color-border);
+  background: var(--border);
 }

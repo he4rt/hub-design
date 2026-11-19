@@ -35,7 +35,7 @@ export function DeliveryReview({ state, delivery, actorId }: { state: MockDb; de
     <form action={submit} className="delivery-review">
       <div className="stack-page__row">
         <span className="stack-page__title">{delivery.title}</span>
-        <Badge variant={delivery.kind === 'technical' ? 'outline' : 'soft'}>
+        <Badge variant={delivery.kind === 'technical' ? 'comp' : 'neutral'}>
           {delivery.kind === 'technical' ? 'Técnica' : 'Não técnica'}
         </Badge>
       </div>

@@ -9,8 +9,8 @@
 
   legend {
     margin-bottom: var(--space-2);
-    color: var(--color-text-strong);
-    font-size: var(--text-sm);
+    color: var(--text);
+    font-size: var(--size-body);
     font-weight: 500;
   }
 }
@@ -20,11 +20,11 @@
   align-items: center;
   gap: var(--space-2);
   min-width: 0;
-  font-size: var(--text-sm);
+  font-size: var(--size-body);
   cursor: pointer;
 
   &[data-disabled] {
-    color: var(--color-text-muted);
+    color: var(--text-muted);
     cursor: not-allowed;
   }
 }

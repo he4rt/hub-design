@@ -2,7 +2,7 @@ import { useState, useTransition } from 'react'
 import { Link } from 'react-router'
 import { FormMessage } from '@/components/form-message'
 import { PageHeader } from '@/components/page-header'
-import { Badge } from '@/components/ui/badge'
+import { StateChip } from '@/components/state-chip'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { useDebugActions } from '@/debug/use-debug-actions'
@@ -12,12 +12,6 @@ import { errorMessage } from '@/mocks/mock-action'
 import { formatDate, githubHandle } from '@/mocks/squads'
 import { useAccount } from '@/modules/panel-app/hooks/use-account'
 import '@/components/stack-page.css'
-
-const STATUS = {
-  open: { label: 'Esperando revisão da staff', variant: 'warning' },
-  approved: { label: 'Aprovado', variant: 'success' },
-  closed: { label: 'Fechado sem merge', variant: 'danger' },
-} as const
 
 /**
  * Entry test: a pull request merged into a He4rt repository by someone from
@@ -97,7 +91,7 @@ export default function Show() {
                 {test.status === 'closed' && ' · leia os comentários no PR e abra outro quando quiser'}
               </p>
             </div>
-            <Badge variant={STATUS[test.status].variant}>{STATUS[test.status].label}</Badge>
+            <StateChip entity="entry-test" state={test.status} />
           </div>
         )}
         {test?.status === 'approved' && (

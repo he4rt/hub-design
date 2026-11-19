@@ -1,5 +1,5 @@
 .ui-label {
-  color: var(--color-text-strong);
-  font-size: var(--text-sm);
-  font-weight: 500;
+  color: var(--text);
+  font: var(--text-body-strong);
+  font-size: 13px;
 }

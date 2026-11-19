@@ -14,13 +14,13 @@
 }
 
 .validation-record__competency {
-  color: var(--color-text-strong);
+  color: var(--text);
   font-weight: 500;
 }
 
 .validation-record__muted {
-  color: var(--color-text-muted);
-  font-size: var(--text-sm);
+  color: var(--text-muted);
+  font-size: var(--size-body);
 }
 
 .validation-record__body {
@@ -28,10 +28,10 @@
   grid-template-columns: 180px minmax(0, 1fr);
   gap: var(--space-2) var(--space-4);
   margin: 0;
-  font-size: var(--text-sm);
+  font-size: var(--size-body);
 
   dt {
-    color: var(--color-text-muted);
+    color: var(--text-muted);
   }
 
   dd {

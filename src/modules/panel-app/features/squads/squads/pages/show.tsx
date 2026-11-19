@@ -4,7 +4,7 @@ import { NotFound } from '@/components/not-found'
 import { PageHeader } from '@/components/page-header'
 import { ProjectSummary } from '@/components/squads/project-summary'
 import { SquadLog } from '@/components/squads/squad-log'
-import { Badge } from '@/components/ui/badge'
+import { StateChip } from '@/components/state-chip'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { useDebugActions } from '@/debug/use-debug-actions'
@@ -25,12 +25,6 @@ const COLUMNS: { status: BoardStatus; label: string }[] = [
   { status: 'in-review', label: 'Em revisão' },
   { status: 'done', label: 'Feito' },
 ]
-
-const DELIVERY = {
-  pending: { label: 'Esperando o capitão', variant: 'warning' },
-  accepted: { label: 'Aceita', variant: 'success' },
-  returned: { label: 'Devolvida', variant: 'danger' },
-} as const
 
 /** "Meu squad": the board mirrored from GitHub, my deliveries and my history next to the team's. */
 export default function Show() {
@@ -141,7 +135,7 @@ export default function Show() {
               <li key={d.id}>
                 <div className="stack-page__row">
                   <span className="stack-page__title">{d.title}</span>
-                  <Badge variant={DELIVERY[d.status].variant}>{DELIVERY[d.status].label}</Badge>
+                  <StateChip entity="delivery" state={d.status} />
                 </div>
                 {d.status === 'accepted' && (
                   <p className="stack-page__muted">Sua parte: {d.credits.find((c) => c.userId === userId)?.part}</p>

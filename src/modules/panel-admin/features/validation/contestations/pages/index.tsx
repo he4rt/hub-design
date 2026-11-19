@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Field } from '@/components/field'
 import { FormMessage } from '@/components/form-message'
 import { PageHeader } from '@/components/page-header'
-import { Badge } from '@/components/ui/badge'
+import { StateChip } from '@/components/state-chip'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -14,8 +14,6 @@ import { formatDate, isSuperAdmin } from '@/mocks/squads'
 import { useAdmin } from '@/modules/panel-admin/hooks/use-admin'
 import { decideContestation, openContestation } from '../../actions'
 import '@/components/stack-page.css'
-
-const OUTCOME = { open: 'Aberta', upheld: 'Mantida', corrected: 'Corrigida' } as const
 
 /** Contestations opened by the member or the staff, decided by a super admin from outside the case. */
 export default function Index() {
@@ -58,7 +56,7 @@ export default function Index() {
                   <span className="stack-page__title">
                     {state.users.find((u) => u.id === c.openedBy)?.name} · {formatDate(c.createdAt)}
                   </span>
-                  <Badge variant={c.status === 'open' ? 'warning' : 'outline'}>{OUTCOME[c.status]}</Badge>
+                  <StateChip entity="contestation" state={c.status} />
                 </div>
                 <p className="stack-page__quote">{c.reason}</p>
                 {c.decision && <p className="stack-page__muted">Decisão: {c.decision.note}</p>}

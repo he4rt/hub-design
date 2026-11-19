@@ -1,15 +1,15 @@
 .announcement-card {
   gap: var(--space-3);
-  border-color: var(--color-primary-soft);
+  border-color: var(--brand-soft);
 
   &[data-pinned] {
-    border-color: var(--color-primary);
+    border-color: var(--brand);
   }
 }
 
 .announcement-card__pinned {
-  color: var(--color-primary);
-  font-size: var(--text-xs);
+  color: var(--brand-text);
+  font-size: var(--size-caption);
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -36,38 +36,38 @@
   gap: var(--space-2);
 
   strong {
-    color: var(--color-text-strong);
+    color: var(--text);
   }
 }
 
 .announcement-card__badge {
   min-height: 20px;
   border-color: transparent;
-  background: var(--color-primary);
-  color: var(--color-primary-fg);
+  background: var(--brand);
+  color: var(--on-brand);
   font-weight: 600;
   letter-spacing: 0.02em;
   text-transform: uppercase;
 }
 
 .announcement-card__headline {
-  color: var(--color-text);
-  font-size: var(--text-sm);
+  color: var(--text);
+  font-size: var(--size-body);
 }
 
 .announcement-card__meta {
-  color: var(--color-text-muted);
-  font-size: var(--text-xs);
+  color: var(--text-muted);
+  font-size: var(--size-caption);
   font-variant-numeric: tabular-nums;
 }
 
 .announcement-card__title {
-  color: var(--color-text-strong);
-  font-size: var(--text-md);
+  color: var(--text);
+  font-size: var(--size-body);
 }
 
 .announcement-card__body {
-  color: var(--color-text-strong);
+  color: var(--text);
   overflow-wrap: anywhere;
   white-space: pre-line;
 }

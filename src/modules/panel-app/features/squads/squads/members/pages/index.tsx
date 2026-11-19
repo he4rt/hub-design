@@ -49,7 +49,7 @@ export default function Index() {
                   <div className="stack-page__row">
                     <span className="stack-page__title">{user?.name}</span>
                     <span className="stack-page__actions">
-                      {m.userId === squad.captainId && <Badge variant="soft">Capitão</Badge>}
+                      {m.userId === squad.captainId && <Badge>Capitão</Badge>}
                       <span className="stack-page__muted stack-page__num">desde {formatDate(m.joinedAt)}</span>
                     </span>
                   </div>

@@ -13,8 +13,8 @@
 }
 
 .collection-picker__hint {
-  color: var(--color-text-muted);
-  font-size: var(--text-sm);
+  color: var(--text-muted);
+  font-size: var(--size-body);
 }
 
 .collection-picker__new {

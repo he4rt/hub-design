@@ -20,11 +20,11 @@
   flex-direction: column;
   gap: var(--space-3);
   padding-top: var(--space-3);
-  border-top: 1px solid var(--color-border);
-  font-size: var(--text-sm);
+  border-top: 1px solid var(--border);
+  font-size: var(--size-body);
 
   summary {
-    color: var(--color-text-muted);
+    color: var(--text-muted);
     cursor: pointer;
   }
 

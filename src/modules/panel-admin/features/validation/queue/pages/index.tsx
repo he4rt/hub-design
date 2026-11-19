@@ -77,7 +77,7 @@ export default function Index() {
           <span>Na fila</span>
           <span className="stack-page__actions stack-page__num">
             {queued.length}
-            {capacity > 0 && queued.length > capacity * 2 && <Badge variant="danger">Acima de 2× a capacidade</Badge>}
+            {capacity > 0 && queued.length > capacity * 2 && <Badge variant="warning">Acima de 2× a capacidade</Badge>}
           </span>
         </div>
       </Card>

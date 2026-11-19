@@ -6,6 +6,6 @@
 }
 
 .record-visibility__label {
-  color: var(--color-text-muted);
-  font-size: var(--text-sm);
+  color: var(--text-muted);
+  font-size: var(--size-body);
 }

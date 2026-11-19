@@ -3,24 +3,40 @@
   place-items: center;
   flex-shrink: 0;
   overflow: hidden;
-  width: 40px;
-  height: 40px;
-  border-radius: 999px;
-  background: var(--color-primary-soft);
-  color: var(--color-primary);
-  font-size: var(--text-md);
-  font-weight: 700;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-pill);
+  background: var(--brand-soft);
+  color: var(--brand-soft-text);
+  font: 700 13px/1 var(--font-display);
+
+  &[data-tone='ink'] {
+    background: var(--nav-active);
+    color: var(--on-ink);
+  }
+
+  &[data-size='xs'] {
+    width: 24px;
+    height: 24px;
+    font-size: 11px;
+  }
 
   &[data-size='sm'] {
     width: 32px;
     height: 32px;
-    font-size: var(--text-sm);
+    font-size: 12px;
   }
 
   &[data-size='lg'] {
+    width: 48px;
+    height: 48px;
+    font-size: 18px;
+  }
+
+  &[data-size='xl'] {
     width: 72px;
     height: 72px;
-    font-size: var(--text-xl);
+    font-size: 26px;
   }
 }
 

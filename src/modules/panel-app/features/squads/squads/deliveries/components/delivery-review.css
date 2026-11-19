@@ -16,8 +16,8 @@
 
   legend {
     margin-bottom: var(--space-1);
-    color: var(--color-text-strong);
-    font-size: var(--text-sm);
+    color: var(--text);
+    font-size: var(--size-body);
     font-weight: 500;
   }
 }

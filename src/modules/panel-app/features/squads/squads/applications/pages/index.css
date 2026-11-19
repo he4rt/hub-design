@@ -32,11 +32,11 @@
     cursor: pointer;
 
     &:hover {
-      background: var(--color-surface);
+      background: var(--surface-2);
     }
 
     &[aria-current] {
-      background: var(--color-primary-soft);
+      background: var(--brand-soft);
     }
 
     &:focus-visible {

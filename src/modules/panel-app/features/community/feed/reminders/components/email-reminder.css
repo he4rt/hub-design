@@ -1,18 +1,18 @@
 .email-reminder {
   align-items: flex-start;
-  font-size: var(--text-sm);
+  font-size: var(--size-body);
 
   h2 {
-    font-size: var(--text-md);
+    font-size: var(--size-body);
   }
 
   p {
     min-width: 0;
-    color: var(--color-text-muted);
+    color: var(--text-muted);
   }
 
   strong {
-    color: var(--color-text-strong);
+    color: var(--text);
     overflow-wrap: anywhere;
   }
 }

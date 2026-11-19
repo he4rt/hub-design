@@ -10,7 +10,7 @@
   justify-content: space-between;
   gap: var(--space-3);
   padding: var(--space-4) var(--space-8);
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--border);
 
   nav {
     display: flex;
@@ -19,9 +19,9 @@
 }
 
 .landing-layout__brand {
-  color: var(--color-text-strong);
+  color: var(--text);
   font-weight: 700;
-  font-size: var(--text-lg);
+  font-size: var(--size-heading);
   text-decoration: none;
   white-space: nowrap;
 }
@@ -36,12 +36,12 @@
   justify-content: space-between;
   gap: var(--space-2);
   padding: var(--space-6) var(--space-8);
-  border-top: 1px solid var(--color-border);
-  color: var(--color-text-muted);
-  font-size: var(--text-sm);
+  border-top: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: var(--size-body);
 
   a {
-    color: var(--color-text-muted);
+    color: var(--text-muted);
   }
 }
 

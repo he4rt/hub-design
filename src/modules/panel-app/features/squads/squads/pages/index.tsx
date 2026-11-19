@@ -59,8 +59,8 @@ export default function Index() {
                     {squad.name}
                   </Link>
                   <span className="stack-page__actions">
-                    {squad.captainId === userId && <Badge variant="soft">Capitão</Badge>}
-                    <Badge variant={active.includes(squad.id) ? 'success' : 'outline'}>
+                    {squad.captainId === userId && <Badge>Capitão</Badge>}
+                    <Badge variant={active.includes(squad.id) ? 'success' : 'neutral'}>
                       {active.includes(squad.id) ? 'Participando' : 'Participou'}
                     </Badge>
                   </span>

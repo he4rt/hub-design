@@ -121,7 +121,7 @@ export function MemberProfileForm({ account }: { account: User }) {
         <h2 className="member-profile__title">Sobre você</h2>
 
         <div className="member-profile__photo">
-          <Avatar src={draft.photoUrl} name={account.name} size="lg" />
+          <Avatar src={draft.photoUrl} name={account.name} size="xl" />
           <div className="member-profile__photo-actions">
             <Button type="button" variant="secondary" size="sm" onClick={() => fileInput.current?.click()}>
               Enviar foto

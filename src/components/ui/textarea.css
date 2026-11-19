@@ -1,7 +1,6 @@
 .ui-textarea {
   height: auto;
   min-height: 88px;
-  padding: var(--space-2) var(--space-3);
-  line-height: 1.5;
+  padding: 10px var(--space-3);
   resize: vertical;
 }

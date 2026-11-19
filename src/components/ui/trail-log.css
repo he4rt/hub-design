@@ -1,0 +1,75 @@
+.ui-trail-log {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ui-trail-log__item {
+  display: flex;
+  gap: 14px;
+  min-width: 0;
+}
+
+/* The line runs from the dot to the next item; the last item has none. */
+.ui-trail-log__rail {
+  position: relative;
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: center;
+  width: 14px;
+
+  .ui-trail-log__item:not(:last-child) > &::after {
+    content: '';
+    flex: 1;
+    width: 2px;
+    margin: var(--space-1) 0 -5px;
+    background: var(--border);
+  }
+}
+
+.ui-trail-log__dot {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  margin-top: 5px;
+  border-radius: var(--radius-pill);
+  background: var(--text-faint);
+  box-shadow: 0 0 0 3px var(--surface);
+
+  [data-tone='success'] > .ui-trail-log__rail > & {
+    background: var(--success-text);
+  }
+
+  [data-tone='move'] > .ui-trail-log__rail > & {
+    background: var(--brand-bright);
+  }
+
+  [data-tone='warning'] > .ui-trail-log__rail > & {
+    background: var(--warning-text);
+  }
+}
+
+.ui-trail-log__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding-bottom: 14px;
+
+  .ui-trail-log__item:last-child > & {
+    padding-bottom: 0;
+  }
+}
+
+.ui-trail-log__title {
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.ui-trail-log__meta {
+  color: var(--text-muted);
+  font: var(--text-caption);
+}

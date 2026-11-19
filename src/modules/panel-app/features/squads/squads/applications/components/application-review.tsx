@@ -2,7 +2,7 @@ import { useActionState, useState } from 'react'
 import { Link } from 'react-router'
 import { Field } from '@/components/field'
 import { FormMessage } from '@/components/form-message'
-import { Badge } from '@/components/ui/badge'
+import { StateChip } from '@/components/state-chip'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { LEVEL_LABELS, formatDate } from '@/mocks/squads'
@@ -119,9 +119,7 @@ export function ApplicationReview({ state, application, actorId }: { state: Mock
 
       {decided ? (
         <p className="stack-page__muted">
-          <Badge variant={application.status === 'accepted' ? 'success' : 'outline'}>
-            {application.status === 'accepted' ? 'Aceita' : application.status === 'declined' ? 'Recusada' : 'Retirada'}
-          </Badge>{' '}
+          <StateChip entity="application" state={application.status} />{' '}
           {application.status === 'accepted' &&
             (application.githubInvite === 'pending' ? 'Convite do GitHub pendente.' : 'Já está no squad.')}
           {application.decision && ` Retorno enviado em ${formatDate(application.decision.decidedAt)}.`}

@@ -34,7 +34,7 @@ export function MemberList({
                 ) : (
                   <span title={user?.name}>{user?.name ?? 'Membro removido'}</span>
                 )}
-                {m.userId === captainId && <Badge variant="soft">Capitão</Badge>}
+                {m.userId === captainId && <Badge>Capitão</Badge>}
               </p>
               <p className="member-list__role">{m.responsibilities || 'Responsabilidades a definir pelo capitão.'}</p>
             </div>

@@ -6,7 +6,7 @@
 
   h3 {
     margin-bottom: var(--space-2);
-    font-size: var(--text-sm);
+    font-size: var(--size-body);
   }
 
   ul {
@@ -25,7 +25,7 @@
   align-items: stretch;
   gap: var(--space-3);
   padding-top: var(--space-4);
-  border-top: 1px solid var(--color-border);
+  border-top: 1px solid var(--border);
 
   > .ui-button {
     align-self: flex-start;

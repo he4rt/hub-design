@@ -1,10 +1,22 @@
 .ui-tabs__list {
   display: flex;
-  gap: var(--space-6);
+  gap: 2px;
   /* Labels stay on one line; a narrow screen scrolls the list sideways instead. */
   overflow-x: auto;
   scrollbar-width: none;
-  border-bottom: 1px solid var(--color-border);
+
+  &[data-variant='line'] {
+    border-bottom: 1px solid var(--border);
+  }
+
+  &[data-variant='segmented'] {
+    display: inline-flex;
+    gap: var(--space-1);
+    max-width: 100%;
+    padding: var(--space-1);
+    border-radius: 12px;
+    background: var(--surface-2);
+  }
 }
 
 .ui-tabs__trigger {
@@ -12,25 +24,41 @@
   align-items: center;
   gap: var(--space-2);
   flex: none;
-  min-height: 44px;
-  padding: 0;
   white-space: nowrap;
   border: none;
   background: none;
-  color: var(--color-text-muted);
-  font: 500 var(--text-sm) / 1 var(--font-sans);
+  color: var(--text-muted);
+  font: var(--text-body-strong);
+  font-variant-numeric: tabular-nums;
   cursor: pointer;
 
-  /* The active line sits on the list's border, so switching tabs moves nothing. */
-  box-shadow: inset 0 -2px transparent;
-
   &:hover {
-    color: var(--color-text-strong);
+    color: var(--text);
   }
 
-  &[data-state='active'] {
-    color: var(--color-text-strong);
-    box-shadow: inset 0 -2px var(--color-primary);
+  [data-variant='line'] > & {
+    height: 42px;
+    padding: 0 14px;
+    /* The active line sits on the list's border, so switching tabs moves nothing. */
+    box-shadow: inset 0 -2px transparent;
+
+    &[data-state='active'] {
+      color: var(--text);
+      box-shadow: inset 0 -2px var(--brand);
+    }
+  }
+
+  [data-variant='segmented'] > & {
+    height: 34px;
+    padding: 0 14px;
+    border-radius: 9px;
+    font-size: 13.5px;
+
+    &[data-state='active'] {
+      background: var(--surface);
+      color: var(--text);
+      box-shadow: var(--shadow-tab);
+    }
   }
 
   &:focus-visible {

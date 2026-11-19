@@ -4,7 +4,11 @@ import { Slot } from 'radix-ui'
 import './button.css'
 
 type ButtonProps = ComponentProps<'button'> & {
-  variant?: 'primary' | 'secondary' | 'ghost' | 'danger'
+  /**
+   * `primary` is the one solid colored button of a screen; `secondary` the alternative; `ghost` a text
+   * action in a card header; `danger` declines or returns (never a red fill); `dark` only on an ink banner.
+   */
+  variant?: 'primary' | 'secondary' | 'ghost' | 'danger' | 'dark'
   size?: 'sm' | 'md'
   /** Disables the button and shows a spinner without changing its size or label. */
   loading?: boolean

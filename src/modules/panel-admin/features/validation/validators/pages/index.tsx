@@ -98,7 +98,7 @@ export default function Index() {
                     <span className="stack-page__num">
                       {openCount(state, v.userId)}/{VALIDATOR_WINDOW} abertas
                     </span>
-                    {v.suspension && <Badge variant="danger">Suspenso</Badge>}
+                    {v.suspension && <Badge variant="neutral">Suspenso</Badge>}
                   </span>
                 </div>
                 <p className="stack-page__muted">

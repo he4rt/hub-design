@@ -10,9 +10,9 @@
   flex-direction: column;
   gap: var(--space-2);
   padding-bottom: var(--space-3);
-  border-bottom: 1px solid var(--color-border);
-  color: var(--color-text-muted);
-  font-size: var(--text-xs);
+  border-bottom: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: var(--size-caption);
   line-height: 1.4;
 
   ul {
@@ -37,7 +37,7 @@
   }
 
   strong {
-    color: var(--color-text-strong);
+    color: var(--text);
     font-weight: 500;
   }
 }
@@ -71,9 +71,9 @@
 }
 
 .trajectory-graph__date {
-  color: var(--color-text-muted);
+  color: var(--text-muted);
   font-family: var(--font-mono);
-  font-size: var(--text-xs);
+  font-size: var(--size-caption);
   font-variant-numeric: tabular-nums;
   line-height: 48px;
   white-space: nowrap;
@@ -129,7 +129,7 @@
 .trajectory-graph__marker {
   stroke: var(--lane);
   stroke-width: 2;
-  fill: var(--color-surface-raised);
+  fill: var(--surface);
 
   &[data-type='declared'] {
     stroke-width: 1.5;
@@ -148,14 +148,14 @@
 }
 
 .trajectory-graph__ring {
-  fill: var(--color-validator-soft);
+  fill: var(--info-bg);
   stroke: var(--lane);
   stroke-width: 1;
 }
 
 /* A validation stands apart with a thin bar in the validator's color, never louder than the rest. */
 .trajectory-graph__row[data-type='validated'] .trajectory-graph__trigger {
-  box-shadow: inset 2px 0 var(--color-validator);
+  box-shadow: inset 2px 0 var(--info-text);
 
   &:focus-visible {
     box-shadow: var(--focus-ring);
@@ -176,14 +176,14 @@
   border: none;
   border-radius: var(--radius-md);
   background: none;
-  color: var(--color-text-strong);
-  font: var(--text-sm) / 1.4 var(--font-sans);
+  color: var(--text);
+  font: var(--size-body) / 1.4 var(--font-sans);
   text-align: left;
   cursor: pointer;
 
   &:hover,
   &[data-state='open'] {
-    background: var(--color-surface);
+    background: var(--surface-2);
   }
 
   &:focus-visible {
@@ -201,16 +201,16 @@
 
 /* The kind of record, named under the title. */
 .trajectory-graph__type {
-  color: var(--color-text-muted);
-  font-size: var(--text-xs);
+  color: var(--text-muted);
+  font-size: var(--size-caption);
 
   &[data-type='validated'] {
-    color: var(--color-validator);
+    color: var(--info-text);
     font-weight: 600;
   }
 
   &[data-type='demonstrated'] {
-    color: var(--color-text-strong);
+    color: var(--text);
   }
 }
 
@@ -223,7 +223,7 @@
 
 .trajectory-graph__note-icon {
   margin-left: var(--space-2);
-  color: var(--color-primary);
+  color: var(--brand-text);
   vertical-align: -2px;
 }
 
@@ -236,7 +236,7 @@
 
 .trajectory-graph__chevron {
   flex-shrink: 0;
-  color: var(--color-text-muted);
+  color: var(--text-muted);
   transition: transform 150ms ease-out;
 
   [data-state='open'] > & {
@@ -249,7 +249,7 @@
   flex-direction: column;
   gap: var(--space-2);
   padding: var(--space-2) var(--space-2) var(--space-4);
-  font-size: var(--text-sm);
+  font-size: var(--size-body);
   overflow-wrap: anywhere;
 
   a {
@@ -263,24 +263,24 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  color: var(--color-text-strong);
+  color: var(--text);
 
   code {
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    font-size: var(--text-xs);
+    font-size: var(--size-caption);
   }
 }
 
 .trajectory-graph__muted,
 .trajectory-graph__origin {
-  color: var(--color-text-muted);
+  color: var(--text-muted);
 }
 
 .trajectory-graph__origin {
-  font-size: var(--text-xs);
+  font-size: var(--size-caption);
 }
 
 /* Links from a diary note to the forum: quiet, with no reply count. */
@@ -290,16 +290,16 @@
   gap: var(--space-1);
   margin: 0;
   padding: var(--space-2) 0 0;
-  border-top: 1px solid var(--color-border);
+  border-top: 1px solid var(--border);
   list-style: none;
-  font-size: var(--text-xs);
+  font-size: var(--size-caption);
 
   li {
     display: flex;
     align-items: center;
     gap: var(--space-1);
     min-width: 0;
-    color: var(--color-text-muted);
+    color: var(--text-muted);
   }
 
   svg {
@@ -322,12 +322,12 @@
   gap: var(--space-2);
   padding: var(--space-3) var(--space-4);
   border-radius: var(--radius-md);
-  background: var(--color-surface);
+  background: var(--surface-2);
 
   h4 {
     margin: 0;
-    color: var(--color-text-strong);
-    font-size: var(--text-sm);
+    color: var(--text);
+    font-size: var(--size-body);
     font-weight: 600;
   }
 
@@ -338,8 +338,8 @@
   }
 
   dt {
-    color: var(--color-text-muted);
-    font-size: var(--text-xs);
+    color: var(--text-muted);
+    font-size: var(--size-caption);
     font-weight: 500;
   }
 
@@ -352,8 +352,8 @@
   display: flex;
   align-items: center;
   gap: var(--space-1);
-  color: var(--color-text-muted);
-  font-size: var(--text-xs);
+  color: var(--text-muted);
+  font-size: var(--size-caption);
 }
 
 .trajectory-graph__more {

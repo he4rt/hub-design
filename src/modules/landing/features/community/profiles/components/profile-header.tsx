@@ -42,7 +42,7 @@ export function ProfileHeader({
   return (
     <Card className="profile-header" data-validator={validator ? '' : undefined}>
       <div className="profile-header__banner" aria-hidden />
-      <Avatar src={photoUrl} name={name} size="lg" className="profile-header__avatar" />
+      <Avatar src={photoUrl} name={name} size="xl" className="profile-header__avatar" />
       <div className="profile-header__actions">
         <ShareProfileButton handle={username} />
         {isOwner && (

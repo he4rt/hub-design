@@ -20,8 +20,8 @@
 }
 
 .member-link__name {
-  color: var(--color-text-strong);
-  font-size: var(--text-sm);
+  color: var(--text);
+  font-size: var(--size-body);
   font-weight: 500;
 }
 
@@ -29,7 +29,7 @@ a.member-link__name {
   text-decoration: none;
 
   &:hover {
-    color: var(--color-primary);
+    color: var(--brand-text);
     text-decoration: underline;
     text-underline-offset: 3px;
   }
@@ -42,6 +42,6 @@ a.member-link__name {
 }
 
 .member-link__caption {
-  color: var(--color-text-muted);
-  font-size: var(--text-xs);
+  color: var(--text-muted);
+  font-size: var(--size-caption);
 }

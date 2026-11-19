@@ -2,8 +2,8 @@
   gap: var(--space-3);
 
   h2 {
-    color: var(--color-text-strong);
-    font-size: var(--text-md);
+    color: var(--text);
+    font-size: var(--size-body);
   }
 }
 
@@ -24,20 +24,20 @@
   }
 
   time {
-    color: var(--color-text-muted);
-    font-size: var(--text-xs);
+    color: var(--text-muted);
+    font-size: var(--size-caption);
     font-variant-numeric: tabular-nums;
   }
 }
 
 .diary-card__muted {
-  color: var(--color-text-muted);
-  font-size: var(--text-sm);
+  color: var(--text-muted);
+  font-size: var(--size-body);
 }
 
 .diary-card__count {
   margin-left: var(--space-1);
-  color: var(--color-text-muted);
+  color: var(--text-muted);
   font-variant-numeric: tabular-nums;
 }
 

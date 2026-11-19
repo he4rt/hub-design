@@ -9,13 +9,13 @@
   }
 
   h2 {
-    font-size: var(--text-md);
+    font-size: var(--size-body);
   }
 }
 
 .stack-page__muted {
-  color: var(--color-text-muted);
-  font-size: var(--text-sm);
+  color: var(--text-muted);
+  font-size: var(--size-body);
 }
 
 .stack-page__row {
@@ -45,7 +45,7 @@
     flex-direction: column;
     gap: var(--space-2);
     padding: var(--space-4) 0;
-    border-bottom: 1px solid var(--color-border);
+    border-bottom: 1px solid var(--border);
 
     &:first-child {
       padding-top: 0;
@@ -61,7 +61,7 @@
 .stack-page__title {
   min-width: 0;
   overflow: hidden;
-  color: var(--color-text-strong);
+  color: var(--text);
   font-weight: 500;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -69,8 +69,8 @@
 
 .stack-page__quote {
   padding-left: var(--space-3);
-  border-left: 2px solid var(--color-border);
-  font-size: var(--text-sm);
+  border-left: 2px solid var(--border);
+  font-size: var(--size-body);
   overflow-wrap: anywhere;
   white-space: pre-line;
 }

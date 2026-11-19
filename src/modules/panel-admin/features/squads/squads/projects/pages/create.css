@@ -9,7 +9,7 @@
   .project-create__evaluation {
     grid-template-columns: minmax(0, 1fr);
     padding-left: var(--space-3);
-    border-left: 2px solid var(--color-border);
+    border-left: 2px solid var(--border);
 
     .ui-button {
       justify-self: start;

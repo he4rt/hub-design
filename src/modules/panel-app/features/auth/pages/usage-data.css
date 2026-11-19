@@ -1,8 +1,8 @@
 .usage-data {
-  font-size: var(--text-sm);
+  font-size: var(--size-body);
 
   h2 {
-    font-size: var(--text-md);
+    font-size: var(--size-body);
   }
 
   ul {
@@ -14,6 +14,6 @@
   }
 
   strong {
-    color: var(--color-text-strong);
+    color: var(--text);
   }
 }

@@ -2,6 +2,7 @@ import { Link } from 'react-router'
 import { FormMessage } from '@/components/form-message'
 import { PageHeader } from '@/components/page-header'
 import { Badge } from '@/components/ui/badge'
+import { StateChip } from '@/components/state-chip'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Switch } from '@/components/ui/switch'
@@ -14,11 +15,6 @@ import { useAccount } from '@/modules/panel-app/hooks/use-account'
 import { cancelValidationRequest } from '../../requests/actions'
 import { canPublish, hasOpenContestation, setValidationPublished } from '../actions'
 import '@/components/stack-page.css'
-
-const REQUEST = {
-  queued: { label: 'Na fila', variant: 'warning' },
-  assigned: { label: 'Com um validador', variant: 'soft' },
-} as const
 
 function fakeValidation(memberId: string, insufficient: boolean, i = 0): Validation {
   return {
@@ -106,7 +102,7 @@ export default function Index() {
                   <span className="stack-page__title">
                     {evaluationCriterion(state, r)?.competency} · {state.projects.find((p) => p.id === r.projectId)?.name}
                   </span>
-                  <Badge variant={REQUEST[r.status as 'queued' | 'assigned'].variant}>{REQUEST[r.status as 'queued' | 'assigned'].label}</Badge>
+                  <StateChip entity="validation-request" state={r.status} />
                 </div>
                 <div className="stack-page__row">
                   <p className="stack-page__muted">

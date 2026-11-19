@@ -1,92 +1,113 @@
 /*
- * Design tokens. Every color, radius, spacing, and font in the app comes from
- * here, so the design system can be swapped by replacing this file and the
- * component styles in src/components/ui.
+ * He4rt Hub design tokens, from the He4rt Hub Design System (tokens.css).
+ * Every color, radius, spacing, and font in the app comes from here.
+ * The dark theme follows the system setting, or `data-theme` on <html>.
  */
 :root {
-  --color-bg: #ffffff;
-  --color-surface: #f7f7f8;
-  --color-surface-raised: #ffffff;
-  --color-border: #e4e4e7;
-  --color-text: #3f3f46;
-  --color-text-strong: #09090b;
-  --color-text-muted: #71717a;
-  --color-primary: #7c3aed;
-  --color-primary-hover: #6d28d9;
-  --color-primary-fg: #ffffff;
-  --color-primary-soft: rgba(124, 58, 237, 0.1);
-  --color-danger: #dc2626;
-  --color-danger-soft: rgba(220, 38, 38, 0.1);
-  --color-success: #16a34a;
-  --color-success-soft: rgba(22, 163, 74, 0.12);
-  --color-warning: #d97706;
-  /* Validators enabled by the administration: set apart from members and from the primary color. */
-  --color-validator: #b45309;
-  --color-validator-soft: rgba(180, 83, 9, 0.12);
-  /* Trajectory branches: the main line is primary, each experience or squad one of these. */
-  --color-lane-1: #0d9488;
-  --color-lane-2: #c2410c;
-  --color-lane-3: #2563eb;
-  --color-lane-4: #c026d3;
-  --color-thumb: #ffffff;
-  --color-overlay: rgba(9, 9, 11, 0.45);
-  /* Banner behind the public profile's identity card. */
-  --color-banner: #2e1065;
+  --bg: light-dark(#f7f6fb, #120826); /* Page background. Slightly purple; never pure white. */
+  --surface: light-dark(#ffffff, #1a0a3f); /* Cards, topbar, inputs. */
+  --surface-2: light-dark(#eeedf3, #24114f); /* Recessed: tablist, inset blocks inside a card. */
+  --border: light-dark(#e6e2f0, #2e1763); /* Cards and dividers. Borders, not shadows. */
+  --border-strong: light-dark(#d9d4e6, #3b2378); /* Inputs and secondary buttons. */
+  --text: light-dark(#17122b, #f3eeff);
+  --text-muted: light-dark(#6b6480, #b4a5d9); /* Supporting text and metadata; still 4.5:1 on surface. */
+  --text-faint: light-dark(#8e87a3, #8f7fbf); /* Decorative icons and separators only; never running text. */
+  --brand: light-dark(#6a2fe0, #7f45f5); /* The one primary action per screen, toggles on, active tab. */
+  --brand-hover: light-dark(#5623bd, #6a2fe0);
+  --on-brand: #ffffff;
+  --brand-text: light-dark(#5623bd, #b79aff); /* Links and text actions. */
+  --brand-bright: light-dark(#7f45f5, #9a6bff); /* The 4 square, notification dot, trail dots, occupancy bar. */
+  --brand-soft: light-dark(#f5f0ff, #24114f); /* Competency chips and the selected item in a list. */
+  --brand-soft-text: light-dark(#421a94, #d6c6ff);
+  --brand-soft-border: light-dark(#d6c6ff, #5623bd);
+  --ink: light-dark(#1a0a3f, #0c0519); /* Sidebar background. */
+  --ink-2: light-dark(#24114f, #150a2e); /* Cards and hover inside the sidebar. */
+  --ink-3: #2e1763; /* Borders and dividers inside the sidebar. */
+  --nav-active: #5623bd;
+  --on-ink: #ffffff;
+  --on-ink-text: #d6c6ff;
+  --on-ink-muted: #b4a5d9;
+  --on-ink-label: #8f7fbf;
+  --success-bg: light-dark(#e7f6ee, #0f2e1f); /* Approved, accepted, merged, recorded. */
+  --success-text: light-dark(#166534, #86efac);
+  --warning-bg: light-dark(#fef3c7, #3a2a08); /* Pending, returned, vacancy, required. */
+  --warning-text: light-dark(#92400e, #fcd34d);
+  --info-bg: light-dark(#dbeafe, #0f1f4a); /* In progress: awaiting review, assigned. */
+  --info-text: light-dark(#1e40af, #93c5fd);
+  --neutral-bg: light-dark(#eeedf3, #24114f); /* Inactive, non-technical, draft. */
+  --neutral-text: light-dark(#5b5570, #b4a5d9);
+  --danger-text: light-dark(#b91c1c, #fca5a5); /* Actions that decline or return. Never a solid background. */
+  --focus: light-dark(#7f45f5, #9a6bff);
+  --shadow-tab: 0 1px 2px rgba(23, 18, 43, 0.08); /* The only shadow: the active segmented tab. */
 
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-6: 24px;
-  --space-8: 32px;
-  --space-12: 48px;
-
-  --font-sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --font-mono: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
-  --text-xs: 12px;
-  --text-sm: 14px;
-  --text-md: 16px;
-  --text-lg: 20px;
-  --text-xl: 28px;
-  --text-2xl: 44px;
-
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
-  /* A solid ring, visible on every surface. */
-  --focus-ring: 0 0 0 2px var(--color-bg), 0 0 0 4px var(--color-primary);
+  /* App extensions, built from the palette above. */
+  --overlay: light-dark(rgba(23, 18, 43, 0.5), rgba(0, 0, 0, 0.6)); /* Behind dialogs. */
 
   color-scheme: light dark;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-bg: #111114;
-    --color-surface: #18181c;
-    --color-surface-raised: #1f1f24;
-    --color-border: #2e2e35;
-    --color-text: #c4c4cc;
-    --color-text-strong: #fafafa;
-    --color-text-muted: #8b8b95;
-    --color-primary: #a78bfa;
-    --color-primary-hover: #c4b5fd;
-    --color-primary-fg: #111114;
-    --color-primary-soft: rgba(167, 139, 250, 0.15);
-    --color-danger: #f87171;
-    --color-danger-soft: rgba(248, 113, 113, 0.15);
-    --color-success: #4ade80;
-    --color-success-soft: rgba(74, 222, 128, 0.15);
-    --color-warning: #fbbf24;
-    --color-validator: #fbbf24;
-    --color-validator-soft: rgba(251, 191, 36, 0.15);
-    --color-lane-1: #2dd4bf;
-    --color-lane-2: #fb923c;
-    --color-lane-3: #60a5fa;
-    --color-lane-4: #e879f9;
-    --color-overlay: rgba(0, 0, 0, 0.6);
-    --color-banner: #2e1065;
-    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
-  }
+[data-theme='light'] {
+  color-scheme: light;
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+:root {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px; /* Card padding; gap between columns. */
+  --space-6: 24px; /* Gap between page sections. */
+  --space-8: 32px; /* Horizontal padding of the content and the topbar. */
+  --space-10: 40px; /* Bottom padding of the page. */
+
+  --radius-sm: 6px; /* Tags, mono references, kbd. */
+  --radius-md: 10px; /* Buttons, inputs, nav items, notes. */
+  --radius-lg: 14px; /* Cards and panels. */
+  --radius-pill: 999px; /* Chips, avatars, counts, toggles. */
+
+  --sidebar-w: 272px;
+  --topbar-h: 64px;
+  --control-h: 40px; /* Button, input and nav item. */
+  --control-h-sm: 36px; /* Small button in a card header. */
+  --content-max: 1240px;
+
+  --font-display: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Type styles: use with `font:`; the display styles also take letter-spacing -0.02em. */
+  --text-display: 700 28px/34px var(--font-display); /* Page title, once per screen. */
+  --text-stat: 700 26px/30px var(--font-display); /* A number that is content, never a scoreboard. */
+  --text-title: 600 22px/28px var(--font-display); /* A featured item (delivery, project). */
+  --text-heading: 600 18px/24px var(--font-display); /* Project card and topbar title. */
+  --text-subheading: 600 17px/22px var(--font-display); /* Section title inside a card. */
+  --text-body: 400 14px/21px var(--font-sans);
+  --text-body-strong: 600 14px/21px var(--font-sans); /* Names, list item titles, buttons. */
+  --text-caption: 400 12.5px/18px var(--font-sans); /* Metadata and captions, in text-muted. */
+  --text-label: 600 12px/16px var(--font-sans); /* Chips and field labels. */
+  --text-group-label: 600 12.5px/16px var(--font-sans); /* Sidebar group label. Normal case, no tracking. */
+  --text-mono: 400 13px/18px var(--font-mono); /* GitHub references only. */
+  --text-kbd: 500 11px/14px var(--font-mono);
+
+  /* Sizes of the styles above, for a `font-size` next to other font properties. */
+  --size-label: 12px;
+  --size-caption: 12.5px;
+  --size-body: 14px;
+  --size-subheading: 17px;
+  --size-heading: 18px;
+  --size-title: 22px;
+  --size-display: 28px;
+  --size-input-touch: 16px; /* Inputs under 768px, so iOS does not zoom. */
+
+  /* App extensions. Focus: a 2px ring with a 2px gap, on every control. */
+  --focus-ring: 0 0 0 2px var(--surface), 0 0 0 4px var(--focus);
+  /* Trajectory branches: one color per squad, from the trail palette. */
+  --lane-1: var(--brand-bright);
+  --lane-2: var(--success-text);
+  --lane-3: var(--info-text);
+  --lane-4: var(--warning-text);
 }

@@ -7,8 +7,16 @@ export function Tabs({ className, ...props }: ComponentProps<typeof TabsPrimitiv
   return <TabsPrimitive.Root className={cn('ui-tabs', className)} {...props} />
 }
 
-export function TabsList({ className, ...props }: ComponentProps<typeof TabsPrimitive.List>) {
-  return <TabsPrimitive.List className={cn('ui-tabs__list', className)} {...props} />
+/**
+ * `line` (2px brand underline) for the sections of an entity, such as Meu squad; `segmented` for list
+ * filters. A count goes in the label: "Entregas · 2".
+ */
+export function TabsList({
+  variant = 'line',
+  className,
+  ...props
+}: ComponentProps<typeof TabsPrimitive.List> & { variant?: 'line' | 'segmented' }) {
+  return <TabsPrimitive.List data-variant={variant} className={cn('ui-tabs__list', className)} {...props} />
 }
 
 export function TabsTrigger({ className, ...props }: ComponentProps<typeof TabsPrimitive.Trigger>) {

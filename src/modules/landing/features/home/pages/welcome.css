@@ -1,10 +1,10 @@
 .welcome {
   display: flex;
   flex-direction: column;
-  gap: var(--space-12);
+  gap: var(--space-10);
   max-width: 960px;
   margin: 0 auto;
-  padding: var(--space-12) var(--space-8);
+  padding: var(--space-10) var(--space-8);
 }
 
 .welcome__hero {
@@ -14,14 +14,14 @@
 
   h1 {
     max-width: 16em;
-    font-size: var(--text-2xl);
+    font-size: var(--size-display);
     letter-spacing: -0.02em;
   }
 
   > p {
     max-width: 36em;
-    color: var(--color-text-muted);
-    font-size: var(--text-lg);
+    color: var(--text-muted);
+    font-size: var(--size-heading);
   }
 }
 
@@ -32,7 +32,7 @@
 }
 
 .welcome .welcome__note {
-  font-size: var(--text-sm);
+  font-size: var(--size-body);
 }
 
 .welcome__section {
@@ -41,7 +41,7 @@
   gap: var(--space-4);
 
   h2 {
-    font-size: var(--text-lg);
+    font-size: var(--size-heading);
   }
 }
 
@@ -63,12 +63,12 @@
   }
 
   h3 {
-    font-size: var(--text-md);
+    font-size: var(--size-body);
   }
 
   p {
-    color: var(--color-text-muted);
-    font-size: var(--text-sm);
+    color: var(--text-muted);
+    font-size: var(--size-body);
   }
 }
 
@@ -79,7 +79,7 @@
   }
 
   .welcome__hero h1 {
-    font-size: var(--text-xl);
+    font-size: var(--size-display);
   }
 
   .welcome__cta {

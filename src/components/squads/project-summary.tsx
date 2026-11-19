@@ -16,7 +16,7 @@ export function ProjectSummary({ project }: { project: Project }) {
         ))}
         {project.expectedLevel.map((level) => (
           <li key={level}>
-            <Badge variant="soft">{LEVEL_LABELS[level]}</Badge>
+            <Badge>{LEVEL_LABELS[level]}</Badge>
           </li>
         ))}
       </ul>

@@ -11,8 +11,8 @@
   min-height: 32px;
 
   h2 {
-    color: var(--color-text-muted);
-    font-size: var(--text-xs);
+    color: var(--text-muted);
+    font-size: var(--size-caption);
     font-weight: 500;
   }
 }
@@ -22,15 +22,15 @@
   flex-wrap: wrap;
   align-items: baseline;
   gap: var(--space-1) var(--space-2);
-  font-size: var(--text-sm);
+  font-size: var(--size-body);
 
   span {
-    color: var(--color-text-muted);
-    font-size: var(--text-xs);
+    color: var(--text-muted);
+    font-size: var(--size-caption);
   }
 
   strong {
-    color: var(--color-text-strong);
+    color: var(--text);
   }
 }
 
@@ -46,8 +46,8 @@
 }
 
 .achievements-box__empty {
-  color: var(--color-text-muted);
-  font-size: var(--text-sm);
+  color: var(--text-muted);
+  font-size: var(--size-body);
 }
 
 @media (max-width: 899px) {

@@ -32,7 +32,7 @@
   > strong {
     max-width: 100%;
     overflow: hidden;
-    color: var(--color-text-strong);
+    color: var(--text);
     font-weight: 700;
     text-decoration: none;
     text-overflow: ellipsis;
@@ -40,7 +40,7 @@
   }
 
   > a:hover {
-    color: var(--color-primary);
+    color: var(--brand-text);
     text-decoration: underline;
   }
 }
@@ -54,34 +54,34 @@
 
   &[data-badge='staff'] {
     border-color: transparent;
-    background: var(--color-danger-soft);
-    color: var(--color-danger);
+    background: var(--surface-2);
+    color: var(--danger-text);
   }
 
   &[data-badge='captain'],
   &[data-badge='verified'] {
     border-color: transparent;
-    background: var(--color-primary-soft);
-    color: var(--color-primary);
+    background: var(--brand-soft);
+    color: var(--brand-text);
   }
 
   &[data-badge='validator'] {
-    border-color: var(--color-warning);
-    color: var(--color-warning);
+    border-color: var(--warning-text);
+    color: var(--warning-text);
   }
 }
 
 .post-card__headline {
   overflow: hidden;
-  color: var(--color-text);
-  font-size: var(--text-sm);
+  color: var(--text);
+  font-size: var(--size-body);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .post-card__meta {
-  color: var(--color-text-muted);
-  font-size: var(--text-xs);
+  color: var(--text-muted);
+  font-size: var(--size-caption);
   font-variant-numeric: tabular-nums;
 }
 
@@ -93,19 +93,19 @@
 
   div {
     padding-left: var(--space-3);
-    border-left: 3px solid var(--color-primary-soft);
+    border-left: 3px solid var(--brand-soft);
   }
 
   dt {
-    color: var(--color-primary);
-    font-size: var(--text-sm);
+    color: var(--brand-text);
+    font-size: var(--size-body);
     font-weight: 700;
     letter-spacing: 0.01em;
   }
 
   dd {
     margin: var(--space-1) 0 0;
-    color: var(--color-text-strong);
+    color: var(--text);
     overflow-wrap: anywhere;
     white-space: pre-line;
   }
@@ -121,7 +121,7 @@
     overflow: hidden;
     padding: var(--space-1) var(--space-3);
     border-radius: 999px;
-    font-size: var(--text-xs);
+    font-size: var(--size-caption);
     text-overflow: ellipsis;
     white-space: nowrap;
   }
@@ -129,33 +129,33 @@
 
 /* One color for every answer: the progress is a label, never a color scale. */
 .post-card__progress {
-  background: var(--color-primary-soft);
-  color: var(--color-primary);
+  background: var(--brand-soft);
+  color: var(--brand-text);
   font-weight: 600;
 }
 
 .post-card__track {
-  border: 1px solid var(--color-border);
-  color: var(--color-text);
+  border: 1px solid var(--border);
+  color: var(--text);
 }
 
 .post-card__footer {
   padding-top: var(--space-3);
-  border-top: 1px solid var(--color-border);
+  border-top: 1px solid var(--border);
 }
 
 .post-card__save {
   min-width: 10ch;
 
   &[aria-pressed='true'] {
-    color: var(--color-primary);
+    color: var(--brand-text);
   }
 }
 
 .post-card__quote {
   display: -webkit-box;
   overflow: hidden;
-  color: var(--color-text-muted);
+  color: var(--text-muted);
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 3;
   overflow-wrap: anywhere;

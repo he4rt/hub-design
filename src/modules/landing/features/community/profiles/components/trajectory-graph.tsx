@@ -19,10 +19,10 @@ const laneX = (lane: number) => 10 + lane * 16
 /** The main line in the primary color; each branch in its own color, like the branches of `git log --graph`. */
 const laneColor = (lane: number, tone: BranchTone) =>
   tone === 'validation'
-    ? 'var(--color-validator)'
+    ? 'var(--info-text)'
     : lane === 0
-      ? 'var(--color-primary)'
-      : `var(--color-lane-${((lane - 1) % 4) + 1})`
+      ? 'var(--brand)'
+      : `var(--lane-${((lane - 1) % 4) + 1})`
 const laneStyle = (lane: number, tone: BranchTone) => ({ '--lane': laneColor(lane, tone) }) as CSSProperties
 
 /** The marker's shape tells the kind of record: dashed, hollow, filled, filled with a ring. */

@@ -1,7 +1,7 @@
 import { useSearchParams } from 'react-router'
 import { NotFound } from '@/components/not-found'
 import { PageHeader } from '@/components/page-header'
-import { Badge } from '@/components/ui/badge'
+import { StateChip } from '@/components/state-chip'
 import { Card } from '@/components/ui/card'
 import { useDebugActions } from '@/debug/use-debug-actions'
 import { db, newId } from '@/mocks/db'
@@ -11,13 +11,6 @@ import { useSquadPage } from '../../hooks/use-squad-page'
 import { ApplicationReview } from '../components/application-review'
 import './index.css'
 import '@/components/stack-page.css'
-
-const STATUS = {
-  pending: { label: 'Aguardando', variant: 'warning' },
-  accepted: { label: 'Aceita', variant: 'success' },
-  declined: { label: 'Recusada', variant: 'outline' },
-  withdrawn: { label: 'Retirada', variant: 'outline' },
-} as const
 
 /** Captain's tab: pick applicants by hand, reading each one's profile and answers. */
 export default function Index() {
@@ -82,7 +75,7 @@ export default function Index() {
                     <span className="stack-page__title">{state.users.find((u) => u.id === a.userId)?.name}</span>
                     <span className="captain-applications__meta">
                       <span className="stack-page__muted stack-page__num">{formatDate(a.createdAt)}</span>
-                      <Badge variant={STATUS[a.status].variant}>{STATUS[a.status].label}</Badge>
+                      <StateChip entity="application" state={a.status} />
                     </span>
                   </button>
                 </li>

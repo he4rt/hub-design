@@ -3,7 +3,7 @@ import { NotFound } from '@/components/not-found'
 import { MemberList } from '@/components/squads/member-list'
 import { ProjectSummary } from '@/components/squads/project-summary'
 import { SquadLog } from '@/components/squads/squad-log'
-import { Badge } from '@/components/ui/badge'
+import { StateChip } from '@/components/state-chip'
 import { Card } from '@/components/ui/card'
 import { useDebugActions } from '@/debug/use-debug-actions'
 import { db, useDb } from '@/mocks/db'
@@ -42,9 +42,7 @@ export default function Show() {
         </Link>
         <div className="squad-show__title">
           <h1 title={squad.name}>{squad.name}</h1>
-          <Badge variant={squad.status === 'active' ? 'success' : 'outline'}>
-            {squad.status === 'active' ? 'Ativo' : 'Inativo'}
-          </Badge>
+          <StateChip entity="squad" state={squad.status} />
         </div>
         <p>{squad.description}</p>
         <p className="squad-show__muted">{captain ? `Capitão: ${captain.name}` : 'Vacancy: este squad está sem capitão.'}</p>

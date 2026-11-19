@@ -2,7 +2,7 @@ import { useState, useTransition } from 'react'
 import { Link } from 'react-router'
 import { FormMessage } from '@/components/form-message'
 import { PageHeader } from '@/components/page-header'
-import { Badge } from '@/components/ui/badge'
+import { StateChip } from '@/components/state-chip'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { useDebugActions } from '@/debug/use-debug-actions'
@@ -13,13 +13,6 @@ import { formatDate } from '@/mocks/squads'
 import { useAccount } from '@/modules/panel-app/hooks/use-account'
 import { canWithdraw, withdrawApplication } from '../actions'
 import '@/components/stack-page.css'
-
-const STATUS = {
-  pending: { label: 'Aguardando o capitão', variant: 'warning' },
-  accepted: { label: 'Aceita', variant: 'success' },
-  declined: { label: 'Recusada com retorno', variant: 'outline' },
-  withdrawn: { label: 'Você desistiu', variant: 'outline' },
-} as const
 
 /** The member's applications, the captain's notes and the feedback of a decline. */
 export default function Index() {
@@ -77,7 +70,7 @@ export default function Index() {
                     <Link to={`/squads/${squad?.slug}`} className="stack-page__title">
                       {squad?.name} · {project?.name}
                     </Link>
-                    <Badge variant={STATUS[app.status].variant}>{STATUS[app.status].label}</Badge>
+                    <StateChip entity="application" state={app.status} />
                   </div>
                   <p className="stack-page__muted">Enviada em {formatDate(app.createdAt)}</p>
                   {app.status === 'accepted' && app.githubInvite === 'pending' && (

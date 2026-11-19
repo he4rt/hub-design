@@ -6,11 +6,11 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  color: var(--color-text-strong);
-  font-size: var(--text-md);
+  color: var(--text);
+  font-size: var(--size-body);
 
   svg {
-    color: var(--color-text-muted);
+    color: var(--text-muted);
   }
 }
 
@@ -19,13 +19,13 @@
   flex-direction: column;
   gap: var(--space-3);
   max-width: 68ch;
-  color: var(--color-text-strong);
-  font-size: var(--text-md);
+  color: var(--text);
+  font-size: var(--size-body);
   line-height: 1.65;
   text-wrap: pretty;
 }
 
 .readme-card__empty {
-  color: var(--color-text-muted);
-  font-size: var(--text-sm);
+  color: var(--text-muted);
+  font-size: var(--size-body);
 }

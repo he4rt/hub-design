@@ -6,7 +6,7 @@ import { NotFound } from '@/components/not-found'
 import { PageHeader } from '@/components/page-header'
 import { ProjectSummary } from '@/components/squads/project-summary'
 import { SquadLog } from '@/components/squads/squad-log'
-import { Badge } from '@/components/ui/badge'
+import { StateChip } from '@/components/state-chip'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Combobox } from '@/components/ui/combobox'
@@ -80,9 +80,7 @@ export default function Show() {
         <div className="stack-page__row">
           <h2>{project ? `Projeto: ${project.name}` : 'Sem projeto ativo'}</h2>
           {project && (
-            <Badge variant={project.status === 'active' ? 'success' : 'warning'}>
-              {project.status === 'active' ? 'Ativo' : 'Criando no GitHub'}
-            </Badge>
+            <StateChip entity="project" state={project.status} />
           )}
         </div>
         {project ? (

@@ -1,5 +1,5 @@
 import { Link, useSearchParams } from 'react-router'
-import { Badge } from '@/components/ui/badge'
+import { StateChip } from '@/components/state-chip'
 import { Card } from '@/components/ui/card'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { useDebugActions } from '@/debug/use-debug-actions'
@@ -87,9 +87,7 @@ export default function Index() {
                 <Link to={`/squads/${squad.slug}`} className="squads-index__item">
                   <div className="squads-index__title">
                     <h2 title={squad.name}>{squad.name}</h2>
-                    <Badge variant={squad.status === 'active' ? 'success' : 'outline'}>
-                      {squad.status === 'active' ? 'Ativo' : 'Inativo'}
-                    </Badge>
+                    <StateChip entity="squad" state={squad.status} />
                   </div>
                   <p className="squads-index__goal">{project?.goal ?? squad.description}</p>
                   <p className="squads-index__meta">

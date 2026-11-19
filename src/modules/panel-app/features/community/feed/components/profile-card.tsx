@@ -31,7 +31,7 @@ export function ProfileCard({ account }: { account: User }) {
       <div className="profile-card__cover" aria-hidden />
       <div className="profile-card__identity">
         <Link to={`/members/${account.username}`} aria-hidden tabIndex={-1}>
-          <Avatar src={account.photoUrl} name={account.name} size="lg" />
+          <Avatar src={account.photoUrl} name={account.name} size="xl" />
         </Link>
         <h2 title={account.name}>
           <Link to={`/members/${account.username}`} title="Ver meu perfil">

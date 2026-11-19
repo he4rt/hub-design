@@ -14,12 +14,12 @@
   border: none;
   border-radius: var(--radius-sm);
   background: none;
-  color: var(--color-text-muted);
+  color: var(--text-muted);
   cursor: pointer;
 
   &:hover {
-    color: var(--color-text-strong);
-    background: var(--color-surface);
+    color: var(--text);
+    background: var(--surface-2);
   }
 
   &:focus-visible {
@@ -29,14 +29,14 @@
 }
 
 .learning-now__text {
-  color: var(--color-text-strong);
-  font-size: var(--text-sm);
+  color: var(--text);
+  font-size: var(--size-body);
   text-wrap: pretty;
 }
 
 .learning-now__empty {
-  color: var(--color-text-muted);
-  font-size: var(--text-sm);
+  color: var(--text-muted);
+  font-size: var(--size-body);
 }
 
 .learning-now__form {
@@ -46,8 +46,8 @@
 }
 
 .learning-now__label {
-  color: var(--color-text-strong);
-  font-size: var(--text-sm);
+  color: var(--text);
+  font-size: var(--size-body);
   font-weight: 600;
 }
 
@@ -55,8 +55,8 @@
   display: flex;
   justify-content: space-between;
   gap: var(--space-3);
-  color: var(--color-text-muted);
-  font-size: var(--text-xs);
+  color: var(--text-muted);
+  font-size: var(--size-caption);
 
   span {
     flex: none;

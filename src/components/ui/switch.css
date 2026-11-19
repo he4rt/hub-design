@@ -6,11 +6,11 @@
   padding: 0;
   border: none;
   border-radius: 999px;
-  background: var(--color-border);
+  background: var(--border-strong);
   cursor: pointer;
 
   &[data-state='checked'] {
-    background: var(--color-primary);
+    background: var(--brand);
   }
 
   &:focus-visible {
@@ -24,7 +24,7 @@
   width: 16px;
   height: 16px;
   border-radius: 999px;
-  background: var(--color-thumb);
+  background: var(--on-brand);
   transform: translateX(2px);
   transition: transform 120ms;
 

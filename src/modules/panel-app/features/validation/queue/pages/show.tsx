@@ -5,7 +5,7 @@ import { FormMessage } from '@/components/form-message'
 import { NotFound } from '@/components/not-found'
 import { PageHeader } from '@/components/page-header'
 import { ProjectSummary } from '@/components/squads/project-summary'
-import { Badge } from '@/components/ui/badge'
+import { StateChip } from '@/components/state-chip'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -147,7 +147,7 @@ export default function Show() {
         </div>
 
         <Card>
-          {inReview && <Badge variant="soft">Em revisão da staff</Badge>}
+          {inReview && <StateChip entity="validation" state="in-review" />}
           {draft?.review?.decision === 'returned' && <p className="stack-page__quote">Devolvida pela revisão: {draft.review.note}</p>}
           <form action={submit} className="stack-page">
             <datalist id="validation-evidence">

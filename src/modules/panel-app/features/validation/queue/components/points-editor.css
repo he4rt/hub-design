@@ -9,8 +9,8 @@
 
   legend {
     margin-bottom: var(--space-2);
-    color: var(--color-text-strong);
-    font-size: var(--text-sm);
+    color: var(--text);
+    font-size: var(--size-body);
     font-weight: 500;
   }
 }
@@ -21,7 +21,7 @@
   align-items: stretch;
   gap: var(--space-2);
   padding-left: var(--space-3);
-  border-left: 2px solid var(--color-border);
+  border-left: 2px solid var(--border);
 
   > .ui-button {
     align-self: flex-start;

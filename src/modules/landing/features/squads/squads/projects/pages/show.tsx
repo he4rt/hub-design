@@ -2,7 +2,7 @@ import { Link, useNavigate, useParams } from 'react-router'
 import { NotFound } from '@/components/not-found'
 import { MemberList } from '@/components/squads/member-list'
 import { ProjectSummary } from '@/components/squads/project-summary'
-import { Badge } from '@/components/ui/badge'
+import { StateChip } from '@/components/state-chip'
 import { Card } from '@/components/ui/card'
 import { useDebugActions } from '@/debug/use-debug-actions'
 import { useDb } from '@/mocks/db'
@@ -38,9 +38,7 @@ export default function Show() {
         </Link>
         <div className="squad-show__title">
           <h1 title={project.name}>{project.name}</h1>
-          <Badge variant={project.status === 'active' ? 'success' : 'outline'}>
-            {project.status === 'ended' ? 'Encerrado' : project.status === 'active' ? 'Em andamento' : 'Criando'}
-          </Badge>
+          <StateChip entity="project" state={project.status} />
         </div>
         <p className="squad-show__muted">
           {formatDate(project.startedAt)} a {project.endedAt ? formatDate(project.endedAt) : 'hoje'}

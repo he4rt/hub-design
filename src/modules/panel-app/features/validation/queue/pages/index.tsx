@@ -1,7 +1,7 @@
 import { Link } from 'react-router'
 import { NotFound } from '@/components/not-found'
 import { PageHeader } from '@/components/page-header'
-import { Badge } from '@/components/ui/badge'
+import { StateChip } from '@/components/state-chip'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { useDebugActions } from '@/debug/use-debug-actions'
@@ -81,7 +81,7 @@ export default function Index() {
                     <span className="stack-page__title">
                       {state.users.find((u) => u.id === r.memberId)?.name} · {evaluationCriterion(state, r)?.competency}
                     </span>
-                    {draft && <Badge variant={draft.status === 'in-review' ? 'soft' : 'outline'}>{draft.status === 'in-review' ? 'Em revisão' : 'Rascunho'}</Badge>}
+                    {draft && <StateChip entity="validation" state={draft.status} />}
                   </div>
                   <div className="stack-page__row">
                     <span className="stack-page__muted">
