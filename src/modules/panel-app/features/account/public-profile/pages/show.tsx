@@ -17,7 +17,7 @@ import { TrajectoryGraph } from '../components/trajectory-graph'
 import { achievementsModels, parseAchievementsModel, shownAchievements } from '../lib/achievements'
 import { activityGroupLabels, memberActivity, type ActivityGroup } from '../lib/activity'
 import { missingProfileItems } from '../lib/completeness'
-import { trajectoryEntries } from '../lib/trajectory'
+import { trajectoryGraph } from '../lib/trajectory'
 import './show.css'
 
 const TABS = { 'visao-geral': 'Visão geral', atividade: 'Atividade', trajetoria: 'Trajetória', conquistas: 'Conquistas' } as const
@@ -39,6 +39,7 @@ export default function PublicProfile() {
   const memberships = useDb((db) => db.memberships)
   const deliveries = useDb((db) => db.deliveries)
   const posts = useDb((db) => db.feedPosts)
+  const validations = useDb((db) => db.validations)
   const discussions = useDb((db) => db.discussions)
   const allAchievements = useDb((db) => db.memberAchievements)
 
@@ -73,7 +74,8 @@ export default function PublicProfile() {
   // A missing profile and a profile turned off look the same, so the link never reveals an account.
   if (!profile || !user) return <NotFound />
 
-  const entries = trajectoryEntries(profile, { squads, projects, memberships, posts })
+  const graph = trajectoryGraph(profile, { squads, projects, memberships, deliveries, validations, posts })
+  const entries = graph.entries
   const isOwner = sessionUserId === profile.userId
   // The Conquistas tab exists only in the "aba" achievements model.
   const tabs = (Object.keys(TABS) as Tab[]).filter((value) => value !== 'conquistas' || model === 'aba')
@@ -85,6 +87,7 @@ export default function PublicProfile() {
     deliveries,
     discussions,
     posts,
+    validations,
     signedIn: Boolean(sessionUserId),
   })
   const firstName = user.name.split(' ')[0]
@@ -96,7 +99,7 @@ export default function PublicProfile() {
 
   const trajectory =
     entries.length > 0 ? (
-      <TrajectoryGraph entries={entries} forum={{ discussions, isOwner }} />
+      <TrajectoryGraph graph={graph} forum={{ discussions, isOwner }} />
     ) : isOwner ? (
       <div className="public-profile-page__empty">
         <code>fatal: sua trajetória ainda não tem registros publicados</code>
@@ -118,6 +121,7 @@ export default function PublicProfile() {
         achievements={model === 'cabecalho' ? achievements : []}
       />
       {model === 'jornada' && <JourneyBand {...achievementProps} />}
+      {activity.facts.length > 0 && <ContributionFacts facts={activity.facts} />}
       {isOwner && <OwnerNotice missing={missingProfileItems(profile, entries.length > 0)} />}
 
       <Tabs value={activeTab} onValueChange={(value) =>
@@ -143,7 +147,6 @@ export default function PublicProfile() {
 
           <div className="public-profile-page__main">
             <TabsContent value="visao-geral" className="public-profile-page__tab">
-              {activity.facts.length > 0 && <ContributionFacts facts={activity.facts} />}
               <ReadmeCard
                 readme={profile.readme}
                 empty={isOwner ? 'Conte quem você é no texto "Sobre", em Editar perfil.' : `${firstName} ainda não escreveu o texto "Sobre".`}

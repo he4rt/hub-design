@@ -1,4 +1,4 @@
-import type { Discussion, FeedPost, MemberProfile, Project, Squad, SquadDelivery, SquadMembership } from '@/mocks/db'
+import type { Discussion, FeedPost, MemberProfile, Project, Squad, SquadDelivery, SquadMembership, Validation } from '@/mocks/db'
 import { formatMonth } from '@/modules/panel-app/lib/dates'
 
 export type ActivityGroup = 'squads' | 'forum' | 'learning'
@@ -38,6 +38,7 @@ export function memberActivity(
     deliveries,
     discussions,
     posts,
+    validations,
     signedIn,
   }: {
     squads: Squad[]
@@ -46,6 +47,7 @@ export function memberActivity(
     deliveries: SquadDelivery[]
     discussions: Discussion[]
     posts: FeedPost[]
+    validations: Validation[]
     signedIn: boolean
   },
 ): { items: ActivityItem[]; facts: ContributionFact[] } {
@@ -59,6 +61,7 @@ export function memberActivity(
   let projectCount = 0
   let acceptedCount = 0
   let pullRequestCount = 0
+  let commitCount = profile.evidences.filter((e) => e.isPublic && e.kind === 'commit' && e.projectId === null).length
   // A participation the member hid stays in the squad log, but not on the profile or in its counts.
   for (const membership of memberships.filter((m) => m.userId === userId && m.shownOnProfile)) {
     const project = projects.find((candidate) => candidate.id === membership.projectId)
@@ -93,6 +96,7 @@ export function memberActivity(
       })
       for (const evidence of delivery.evidence.filter((e) => e.authorId === userId)) {
         if (evidence.kind === 'pull-request') pullRequestCount += 1
+        if (evidence.kind === 'commit') commitCount += 1
         items.push({
           id: `${delivery.id}-${evidence.ref}`,
           group: 'squads',
@@ -107,8 +111,9 @@ export function memberActivity(
     }
   }
 
-  let answerCount = 0
-  let solvedCount = 0
+  // Forum help counts only people whose question this member solved, as the question's author marked it.
+  // Like all forum activity, it shows only to signed-in members: it is for the community, not for visitors.
+  const helped = new Set<string>()
   if (signedIn) {
     for (const discussion of discussions) {
       if (discussion.authorId === userId) {
@@ -125,8 +130,7 @@ export function memberActivity(
       }
       for (const reply of discussion.replies.filter((r) => r.authorId === userId && discussion.authorId !== userId)) {
         const solved = discussion.solvedReplyId === reply.id
-        answerCount += 1
-        if (solved) solvedCount += 1
+        if (solved) helped.add(discussion.authorId)
         items.push({
           id: reply.id,
           group: 'forum',
@@ -159,8 +163,20 @@ export function memberActivity(
     { id: 'projects', value: projectCount, label: projectCount === 1 ? 'projeto de squad' : 'projetos de squad', group: 'squads' as const },
     { id: 'accepted', value: acceptedCount, label: acceptedCount === 1 ? 'entrega aceita' : 'entregas aceitas', group: 'squads' as const },
     { id: 'prs', value: pullRequestCount, label: pullRequestCount === 1 ? 'pull request em squad' : 'pull requests em squads', group: 'squads' as const },
-    { id: 'answers', value: answerCount, label: answerCount === 1 ? 'resposta no fórum' : 'respostas no fórum', group: 'forum' as const },
-    { id: 'solved', value: solvedCount, label: solvedCount === 1 ? 'resposta marcada como solução' : 'respostas marcadas como solução', group: 'forum' as const },
+    { id: 'commits', value: commitCount, label: commitCount === 1 ? 'commit' : 'commits', group: 'squads' as const },
+    {
+      id: 'validated',
+      value: validations.filter((v) => v.memberId === userId && v.status === 'recorded' && v.published).length,
+      label: 'validações recebidas',
+      group: 'squads' as const,
+    },
+    {
+      id: 'reviews',
+      value: validations.filter((v) => v.validatorId === userId && v.status === 'recorded').length,
+      label: 'validações feitas',
+      group: 'squads' as const,
+    },
+    { id: 'helped', value: helped.size, label: helped.size === 1 ? 'pessoa ajudada no fórum' : 'pessoas ajudadas no fórum', group: 'forum' as const },
   ].filter((fact) => fact.value > 0)
 
   return {

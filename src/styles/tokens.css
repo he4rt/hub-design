@@ -23,6 +23,11 @@
   /* Validators enabled by the administration: set apart from members and from the primary color. */
   --color-validator: #b45309;
   --color-validator-soft: rgba(180, 83, 9, 0.12);
+  /* Trajectory branches: the main line is primary, each experience or squad one of these. */
+  --color-lane-1: #0d9488;
+  --color-lane-2: #c2410c;
+  --color-lane-3: #2563eb;
+  --color-lane-4: #c026d3;
   --color-thumb: #ffffff;
   --color-overlay: rgba(9, 9, 11, 0.45);
   /* Banner behind the public profile's identity card. */
@@ -76,6 +81,10 @@
     --color-warning: #fbbf24;
     --color-validator: #fbbf24;
     --color-validator-soft: rgba(251, 191, 36, 0.15);
+    --color-lane-1: #2dd4bf;
+    --color-lane-2: #fb923c;
+    --color-lane-3: #60a5fa;
+    --color-lane-4: #e879f9;
     --color-overlay: rgba(0, 0, 0, 0.6);
     --color-banner: #2e1065;
     --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);

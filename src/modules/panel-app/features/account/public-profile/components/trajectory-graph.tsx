@@ -1,4 +1,4 @@
-import { useId, useState } from 'react'
+import { useId, useState, type CSSProperties } from 'react'
 import { Link } from 'react-router'
 import { ArrowRight, ChevronDown, ExternalLink, MessageSquareText, MessagesSquare } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
@@ -7,49 +7,86 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import type { Discussion } from '@/mocks/db'
 import { formatDay } from '@/modules/panel-app/lib/dates'
 import { evidenceIcons } from '@/modules/panel-app/lib/evidence'
-import { kindLabels, type EvidenceStrength, type TrajectoryEntry } from '../lib/trajectory'
+import { recordTypeLabels, recordTypes, type BranchTone, type RecordType, type TrajectoryEntry, type TrajectoryGraph as Graph } from '../lib/trajectory'
 import './trajectory-graph.css'
 
 /** Records shown before "Ver trajetória completa". */
-const INITIAL = 6
-const RAIL = 20
+const INITIAL = 8
+const ROW = 48
+const MID = ROW / 2
+const laneX = (lane: number) => 10 + lane * 16
+/** The main line in the primary color; each branch in its own color, like the branches of `git log --graph`. */
+const laneColor = (lane: number, tone: BranchTone) =>
+  tone === 'validation'
+    ? 'var(--color-validator)'
+    : lane === 0
+      ? 'var(--color-primary)'
+      : `var(--color-lane-${((lane - 1) % 4) + 1})`
+const laneStyle = (lane: number, tone: BranchTone) => ({ '--lane': laneColor(lane, tone) }) as CSSProperties
 
-/** Which part of the rail a row draws; `more` fades out where hidden records continue. */
-type RailPart = 'full' | 'top' | 'bottom' | 'more'
-
-function Marker({ strength, x, y }: { strength: EvidenceStrength; x: number; y: number }) {
-  return <circle className="trajectory-graph__marker" data-strength={strength} cx={x} cy={y} r={4.5} />
-}
-
-/** What each marker means, in plain words: the strength of the record's evidence, never an amount. */
-function Legend() {
-  const strengths: [EvidenceStrength, string, string][] = [
-    ['declared', 'Declarado', 'informado pelo membro'],
-    ['registered', 'Registrado', 'estudo, artigo, experiência ou squad'],
-    ['evidence', 'Com evidência', 'commit, PR ou repositório'],
-  ]
+/** The marker's shape tells the kind of record: dashed, hollow, filled, filled with a ring. */
+function Marker({ type, x, y, lane, tone }: { type: RecordType | null; x: number; y: number; lane: number; tone: BranchTone }) {
   return (
-    <ul className="trajectory-graph__legend" aria-label="Como ler a trajetória">
-      {strengths.map(([strength, label, meaning]) => (
-        <li key={strength}>
-          <svg width={12} height={12} aria-hidden>
-            <Marker strength={strength} x={6} y={6} />
-          </svg>
-          <span>
-            <strong>{label}</strong>: {meaning}
-          </span>
-        </li>
-      ))}
-    </ul>
+    <>
+      {type === 'validated' && <circle className="trajectory-graph__ring" cx={x} cy={y} r={7.5} style={laneStyle(lane, 'validation')} />}
+      <circle className="trajectory-graph__marker" data-type={type ?? 'branch'} cx={x} cy={y} r={4.5} style={laneStyle(lane, tone)} />
+    </>
   )
 }
 
-function Rail({ strength, part }: { strength: EvidenceStrength; part: RailPart | null }) {
+/** The five kinds of record, then one line per branch with its color. */
+function Legend({ types, lanes }: { types: RecordType[]; lanes: Graph['lanes'] }) {
   return (
-    <span className="trajectory-graph__rail" aria-hidden>
-      {part && <i className="trajectory-graph__line" data-part={part} />}
-      <svg width={RAIL} height={40} className="trajectory-graph__svg">
-        <Marker strength={strength} x={RAIL / 2} y={20} />
+    <div className="trajectory-graph__legend">
+      <ul aria-label="Tipos de registro">
+        {recordTypes
+          .filter((t) => types.includes(t.value))
+          .map((t) => (
+            <li key={t.value}>
+              <svg width={18} height={18} aria-hidden>
+                <Marker type={t.value} x={9} y={9} lane={0} tone={t.value === 'validated' ? 'validation' : 'main'} />
+              </svg>
+              <span>
+                <strong>{t.label}</strong>: {t.meaning}
+              </span>
+            </li>
+          ))}
+      </ul>
+      {lanes.length > 0 && (
+        <ul aria-label="Ramos">
+          {lanes.map(({ lane, label, tone }) => (
+            <li key={`${lane}-${label}`} title={label}>
+              <i className="trajectory-graph__swatch" style={laneStyle(lane, tone)} aria-hidden />
+              <span className="trajectory-graph__legend-label">Ramo: {label}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
+}
+
+function Rail({ entry, width, cut }: { entry: TrajectoryEntry; width: number; cut: boolean }) {
+  const x = laneX(entry.lane)
+  const main = laneX(0)
+  return (
+    <span className="trajectory-graph__rail" style={{ width }} data-cut={cut || undefined} aria-hidden>
+      {entry.lines.map((line) => (
+        <i
+          key={line.lane}
+          className="trajectory-graph__line"
+          data-part={line.part}
+          style={{ ...laneStyle(line.lane, line.tone), left: laneX(line.lane) - 1.5 }}
+        />
+      ))}
+      <svg width={width} height={ROW} className="trajectory-graph__svg">
+        {entry.fork && (
+          <path className="trajectory-graph__curve" style={laneStyle(entry.lane, entry.tone)} d={`M${x} ${MID} C${x} ${MID + 12} ${main} ${MID + 8} ${main} ${ROW}`} />
+        )}
+        {entry.merge && (
+          <path className="trajectory-graph__curve" style={laneStyle(entry.lane, entry.tone)} d={`M${x} ${MID} C${x} ${MID - 12} ${main} ${MID - 8} ${main} 0`} />
+        )}
+        <Marker type={entry.type} x={x} y={MID} lane={entry.lane} tone={entry.tone} />
       </svg>
     </span>
   )
@@ -69,7 +106,7 @@ function EntryDetail({ entry, forum }: { entry: TrajectoryEntry; forum: NoteForu
         </p>
       )}
       {entry.detail && <p>{entry.detail}</p>}
-      {entry.kind === 'evidence' && entry.project && (
+      {entry.type !== null && entry.project && (
         <p className="trajectory-graph__muted">
           Ligado a: <Link to={entry.project.path}>{entry.project.label}</Link>
         </p>
@@ -91,8 +128,9 @@ function EntryDetail({ entry, forum }: { entry: TrajectoryEntry; forum: NoteForu
         </article>
       ))}
       <p className="trajectory-graph__origin">
-        {kindLabels[entry.kind]} · {entry.origin}
-        {entry.kind === 'project' && entry.project && (
+        {entry.type ? `${recordTypeLabels[entry.type]} · ` : ''}
+        {entry.origin}
+        {entry.type === null && entry.project && (
           <>
             {' · '}
             <Link to={entry.project.path}>
@@ -105,7 +143,7 @@ function EntryDetail({ entry, forum }: { entry: TrajectoryEntry; forum: NoteForu
           <>
             {' · '}
             <a href={entry.url} target="_blank" rel="noreferrer">
-              {entry.kind === 'article' ? 'Ler o artigo' : 'Abrir no GitHub'}
+              {entry.evidenceKind ? 'Abrir no GitHub' : 'Abrir o link'}
               <ExternalLink size={12} aria-hidden />
             </a>
           </>
@@ -150,45 +188,52 @@ function NoteDiscussions({ noteId, forum }: { noteId: string; forum: NoteForum }
   )
 }
 
-export function TrajectoryGraph({ entries, forum }: { entries: TrajectoryEntry[]; forum: NoteForum }) {
+/**
+ * The trajectory as a `git log --graph`: the member is the main line, each squad and each
+ * validated competency is a branch that starts and ends in its own color, and each marker's shape tells the kind
+ * of record. It opens with the newest records and never shows counts, streaks, or activity density.
+ */
+export function TrajectoryGraph({ graph, forum }: { graph: Graph; forum: NoteForum }) {
   const listId = useId()
   const [expanded, setExpanded] = useState(false)
+  const { entries } = graph
   const visible = expanded ? entries : entries.slice(0, INITIAL)
   const hasMore = entries.length > INITIAL
-  const last = visible.length - 1
-
-  // The line starts at the newest record and ends at the oldest, like `git log --graph`.
-  const railPart = (i: number): RailPart | null => {
-    if (i === last && !expanded && hasMore) return i === 0 ? null : 'more'
-    if (last === 0) return null
-    return i === 0 ? 'bottom' : i === last ? 'top' : 'full'
-  }
+  const width = laneX(graph.laneCount) + 10
+  const types = [...new Set(entries.flatMap((entry) => (entry.type ? [entry.type] : [])))]
 
   return (
     <div className="trajectory-graph">
-      <Legend />
+      <Legend types={types} lanes={graph.lanes} />
       <ol className="trajectory-graph__list" id={listId}>
         {visible.map((entry, i) => {
           const EvidenceIcon = entry.evidenceKind ? evidenceIcons[entry.evidenceKind] : null
           return (
-            <li key={entry.id} className="trajectory-graph__row">
+            <li key={entry.id} className="trajectory-graph__row" data-type={entry.type ?? undefined}>
               <time dateTime={entry.date} className="trajectory-graph__date">
                 {entry.dateLabel}
               </time>
-              <Rail strength={entry.strength} part={railPart(i)} />
+              {/* Older records are hidden below: the lines fade out instead of ending. */}
+              <Rail entry={entry} width={width} cut={!expanded && hasMore && i === visible.length - 1} />
               <Collapsible className="trajectory-graph__body">
                 <CollapsibleTrigger className="trajectory-graph__trigger">
-                  <span className="trajectory-graph__title">
-                    <span className="trajectory-graph__sr">{kindLabels[entry.kind]}: </span>
-                    {entry.title}
-                    {entry.notes.length > 0 && (
-                      <MessageSquareText size={14} className="trajectory-graph__note-icon" aria-label="Tem nota do diário" />
-                    )}
+                  <span className="trajectory-graph__text">
+                    <span className="trajectory-graph__title">
+                      {entry.title}
+                      {entry.notes.length > 0 && (
+                        <MessageSquareText size={14} className="trajectory-graph__note-icon" aria-label="Tem nota do diário" />
+                      )}
+                    </span>
+                    <span className="trajectory-graph__type" data-type={entry.type ?? 'branch'}>
+                      {entry.type ? recordTypeLabels[entry.type] : 'Squad'}
+                    </span>
                   </span>
-                  <Badge mono={entry.badge.mono} className="trajectory-graph__badge" title={entry.badge.text}>
-                    {EvidenceIcon && <EvidenceIcon size={12} aria-hidden />}
-                    {entry.badge.text}
-                  </Badge>
+                  {entry.badge && (
+                    <Badge mono={entry.badge.mono} className="trajectory-graph__badge" title={entry.badge.text}>
+                      {EvidenceIcon && <EvidenceIcon size={12} aria-hidden />}
+                      {entry.badge.text}
+                    </Badge>
+                  )}
                   <ChevronDown size={16} className="trajectory-graph__chevron" aria-hidden />
                 </CollapsibleTrigger>
                 <CollapsibleContent>
