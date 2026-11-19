@@ -36,6 +36,8 @@ function makeCommunityPosts(count: number, authorIds: string[]): FeedPost[] {
     showReactionCounts: false,
     createdAt: new Date(now - (i + 1) * 3_600_000).toISOString(),
     deletedAt: null,
+    editedAt: null,
+    revisions: [],
   }))
 }
 

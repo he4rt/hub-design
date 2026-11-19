@@ -23,6 +23,7 @@ export type AnalyticsEventName =
   | 'feed_collection_created'
   | 'feed_post_collected'
   | 'feed_post_saved'
+  | 'feed_post_edited'
 
 const EVENTS_KEPT = 200
 

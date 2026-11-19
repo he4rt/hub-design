@@ -46,23 +46,28 @@ export function canManagePost(post: FeedPost, userId: string): boolean {
   return post.userId === userId && post.deletedAt === null
 }
 
+/** Same validation and automatic moderation for a new publication and an edit. */
+function checkPost(input: PostInput) {
+  const errors = validatePost(input)
+  const [field] = Object.keys(errors) as PostField[]
+  if (field) throw new MockError(errors[field]!, field)
+
+  for (const field of ['learned', 'applied'] as const) {
+    const term = findBlockedTerm(input[field])
+    if (term) {
+      track('feed_post_blocked', { field })
+      throw new MockError(
+        `Barrado pela moderação automática: linguagem ofensiva ("${term}").`,
+        field,
+      )
+    }
+  }
+}
+
 /** Publishes in the learning diary. Every publication passes the automatic moderation. */
 export function createPost(userId: string, input: PostInput) {
   return mockAction('panel-app.feed.posts.store', { userId, ...input }, () => {
-    const errors = validatePost(input)
-    const [field] = Object.keys(errors) as PostField[]
-    if (field) throw new MockError(errors[field]!, field)
-
-    for (const field of ['learned', 'applied'] as const) {
-      const term = findBlockedTerm(input[field])
-      if (term) {
-        track('feed_post_blocked', { field })
-        throw new MockError(
-          `Barrado pela moderação automática: linguagem ofensiva ("${term}").`,
-          field,
-        )
-      }
-    }
+    checkPost(input)
 
     const post: FeedPost = {
       id: newId(),
@@ -77,6 +82,8 @@ export function createPost(userId: string, input: PostInput) {
       showReactionCounts: false,
       createdAt: new Date().toISOString(),
       deletedAt: null,
+      editedAt: null,
+      revisions: [],
     }
     db.set((state) => ({ ...state, feedPosts: [...state.feedPosts, post] }))
     const props = { postId: post.id, sharedOnFeed: post.sharedOnFeed, shownOnProfile: post.shownOnProfile }
@@ -93,7 +100,49 @@ function findOwnPost(userId: string, postId: string): FeedPost {
   return post
 }
 
-/** Changes where a publication shows and who sees its reaction counts. The text itself is never edited. */
+/**
+ * The author edits the text and where it shows. It passes the same moderation as a new
+ * publication, and the previous text is kept for moderation: corrections preserve history.
+ */
+export function updatePost(userId: string, postId: string, input: PostInput) {
+  return mockAction('panel-app.feed.posts.update', { userId, postId, ...input }, () => {
+    const post = findOwnPost(userId, postId)
+    checkPost(input)
+    const editedAt = new Date().toISOString()
+    const changedText =
+      post.learned !== input.learned.trim() ||
+      post.applied !== input.applied.trim() ||
+      post.objectiveProgress !== input.objectiveProgress
+    db.set((state) => ({
+      ...state,
+      feedPosts: state.feedPosts.map((p) =>
+        p.id === postId
+          ? {
+              ...p,
+              learned: input.learned.trim(),
+              applied: input.applied.trim(),
+              objectiveProgress: input.objectiveProgress!,
+              sharedOnFeed: input.sharedOnFeed,
+              shownOnProfile: input.shownOnProfile,
+              collectionIds: ownCollectionIds(userId, input.collectionIds),
+              // Changing only where it shows is not an edit of what was written.
+              ...(changedText && {
+                editedAt,
+                revisions: [
+                  ...p.revisions,
+                  { learned: p.learned, applied: p.applied, objectiveProgress: p.objectiveProgress, replacedAt: editedAt },
+                ],
+              }),
+            }
+          : p,
+      ),
+    }))
+    if (changedText) track('feed_post_edited', { postId })
+    return { postId, editedAt: changedText ? editedAt : post.editedAt }
+  })
+}
+
+/** Changes where a publication shows and who sees its reaction counts, from the card's menu. */
 export function updatePostVisibility(
   userId: string,
   postId: string,

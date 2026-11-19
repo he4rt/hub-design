@@ -4,7 +4,7 @@ import type { MemberProfile } from '@/mocks/db'
 export function missingProfileItems(profile: MemberProfile, hasTrajectory: boolean): string[] {
   return [
     !profile.bio && 'uma bio curta',
-    !profile.currentFocus && 'o seu foco atual',
+    !profile.currentFocus && 'o que você está aprendendo agora',
     !profile.readme && 'o texto "Sobre"',
     profile.stacks.length === 0 && 'as stacks com que você trabalha',
     !profile.experiences.some((e) => e.isPublic) && 'uma experiência registrada',

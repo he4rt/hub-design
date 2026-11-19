@@ -3,6 +3,7 @@ import { AuthLayout } from '@/components/auth-layout'
 import PublicProfile from './features/account/public-profile/pages/show'
 import Profile from './features/account/settings/pages/profile'
 import FeedCreate from './features/community/feed/pages/create'
+import FeedEdit from './features/community/feed/pages/edit'
 import FeedIndex from './features/community/feed/pages/index'
 import ForgotPassword from './features/auth/pages/forgot-password'
 import Login from './features/auth/pages/login'
@@ -58,6 +59,7 @@ export const panelAppRoutes: RouteObject = {
         { index: true, Component: FeedIndex, handle: { wide: true } },
         { path: 'feed', loader: ({ request }) => redirect(`/app${new URL(request.url).search}`) },
         { path: 'feed/new', Component: FeedCreate },
+        { path: 'feed/:postId/edit', Component: FeedEdit },
         { path: 'settings/profile', Component: Profile },
       ],
     },

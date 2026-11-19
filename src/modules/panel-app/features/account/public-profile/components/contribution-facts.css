@@ -1,0 +1,90 @@
+.contribution-facts {
+  gap: var(--space-4);
+}
+
+.contribution-facts__heading {
+  color: var(--color-text-strong);
+  font-size: var(--text-md);
+}
+
+.contribution-facts__list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* A tile per kind: the number large, the label under it, the tile itself the link. */
+.contribution-facts__item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-top: 3px solid var(--color-primary);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+
+  &[data-group='forum'] {
+    border-top-color: var(--color-success);
+  }
+
+  strong {
+    color: var(--color-text-strong);
+    font-size: var(--text-2xl);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+
+  a {
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    text-decoration: none;
+    text-wrap: pretty;
+
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+    }
+
+    &:focus-visible {
+      outline: none;
+    }
+  }
+
+  &:hover {
+    border-color: var(--color-text-muted);
+
+    a {
+      color: var(--color-text-strong);
+    }
+  }
+
+  &:has(a:focus-visible) {
+    box-shadow: var(--focus-ring);
+  }
+}
+
+.contribution-facts__arrow {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  color: var(--color-text-muted);
+}
+
+@media (max-width: 599px) {
+  .contribution-facts__list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .contribution-facts__item strong {
+    font-size: var(--text-xl);
+  }
+}

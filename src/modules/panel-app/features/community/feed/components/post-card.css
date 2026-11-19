@@ -29,6 +29,13 @@
   }
 }
 
+.post-card__edited {
+  flex: none;
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+}
+
 .post-card__body {
   display: flex;
   flex-direction: column;

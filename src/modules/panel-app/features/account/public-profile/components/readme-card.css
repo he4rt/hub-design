@@ -1,23 +1,31 @@
 .readme-card {
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  gap: var(--space-3);
 }
 
-.readme-card__header {
+.readme-card__title {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  padding: var(--space-2) var(--space-4);
-  border-bottom: 1px solid var(--color-border);
-  color: var(--color-text-muted);
-  font-size: var(--text-xs);
+  color: var(--color-text-strong);
+  font-size: var(--text-md);
+
+  svg {
+    color: var(--color-text-muted);
+  }
 }
 
 .readme-card__body {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
-  max-width: 65ch;
-  padding: var(--space-4);
+  max-width: 68ch;
+  color: var(--color-text-strong);
+  font-size: var(--text-md);
+  line-height: 1.65;
   text-wrap: pretty;
+}
+
+.readme-card__empty {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
 }

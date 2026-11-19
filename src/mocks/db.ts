@@ -198,6 +198,11 @@ export type MemberProfile = {
    * records in the mock; then the backend computes them (docs/achievements/entities.md).
    */
   journey: MemberJourney
+  /**
+   * Set when the administration enabled the member as a validator, after the technical test.
+   * Role and company show only when the validator allowed it (squads thread, docs/validation.md).
+   */
+  validator: { since: string; role: string | null; company: string | null } | null
 }
 
 /** Highest kind of evidence a member had in the Hub. Never a seniority, never goes down. */
@@ -329,7 +334,8 @@ export type ObjectiveProgress = 'none' | 'little' | 'a-lot' | 'very-much'
 /**
  * Publication of the learning diary. It is a record of its author's trajectory:
  * it always exists for the author, and goes to the community Feed or the public
- * profile only when the author chooses. The text is never edited.
+ * profile only when the author chooses. The author can edit the text; each edit keeps the
+ * previous version for moderation, and members see when it was last edited.
  */
 export type FeedPost = {
   id: string
@@ -349,6 +355,10 @@ export type FeedPost = {
   createdAt: string
   /** Deleted by the author: gone for every member, kept for moderation and audit. */
   deletedAt: string | null
+  /** Last time the author edited the text; members see it on the card. */
+  editedAt: string | null
+  /** Earlier versions of the text, oldest first, seen only by moderation. */
+  revisions: (Pick<FeedPost, 'learned' | 'applied' | 'objectiveProgress'> & { replacedAt: string })[]
 }
 
 export type MockDb = {
@@ -369,10 +379,10 @@ export type MockDb = {
   /** What PostHog would receive, newest first. */
   events: AnalyticsEvent[]
   profiles: MemberProfile[]
+  memberAchievements: MemberAchievement[]
   squads: Squad[]
   projects: SquadProject[]
   discussions: Discussion[]
-  memberAchievements: MemberAchievement[]
 }
 
 export const DEMO_PASSWORD = 'password'
@@ -438,6 +448,8 @@ const post = (
   reactions: [],
   showReactionCounts: false,
   deletedAt: null,
+  editedAt: null,
+  revisions: [],
   ...fields,
 })
 
@@ -577,6 +589,15 @@ const seed: MockDb = {
       shownOnProfile: true,
       collectionIds: ['c2'],
       reactions: [reacted('u1', 'helped', '2026-10-21T10:00:00Z'), reacted('u3', 'want-to-learn', '2026-10-22T10:00:00Z')],
+      editedAt: '2026-10-21T09:10:00Z',
+      revisions: [
+        {
+          learned: 'Como o leitor de tela anuncia mudanças com aria-live.',
+          applied: 'Coloquei a mensagem de erro do meu formulário de contato numa região aria-live.',
+          objectiveProgress: 'very-much',
+          replacedAt: '2026-10-21T09:10:00Z',
+        },
+      ],
     }),
     post('p3', 'u3', '2026-10-28T22:05:00Z', {
       learned: 'A diferença entre interface e classe abstrata em Java, na prática.',
@@ -814,6 +835,7 @@ const seed: MockDb = {
         },
       ],
       journey: { stage: 'delivered', publicStage: 'delivered', contributor: false },
+      validator: null,
     },
     {
       userId: 'u3',
@@ -831,7 +853,100 @@ const seed: MockDb = {
       evidences: [],
       journalPosts: [],
       journey: { stage: 'member', publicStage: 'member', contributor: false },
+      validator: null,
     },
+    {
+      userId: 'u6',
+      handle: 'rafael-costa',
+      bio: null,
+      readme:
+        'Trabalho com back-end há nove anos, a maior parte em PHP e Go.\n\nComo capitão do squad Loja Comunitária, organizo as entregas e reviso os pull requests. Como validador, leio o trabalho de quem está em outros squads.',
+      currentFocus: 'Observabilidade em filas',
+      areas: ['Back-end'],
+      stacks: ['PHP', 'Laravel', 'Go', 'PostgreSQL'],
+      links: [{ id: 'l5', label: 'GitHub', url: 'https://github.com/rafael-costa-dev' }],
+      knowledge: [],
+      learnings: [],
+      experiences: [
+        {
+          id: 'e9',
+          role: 'Engenheiro de software',
+          organization: 'Empresa Exemplo',
+          description: null,
+          startedAt: '2022-04-01',
+          endedAt: null,
+          isPublic: true,
+        },
+      ],
+      articles: [],
+      evidences: [],
+      journalPosts: [],
+      journey: { stage: 'delivered', publicStage: 'delivered', contributor: true },
+      validator: { since: '2026-06-10', role: 'Engenheiro de software', company: 'Empresa Exemplo' },
+    },
+  ],
+  memberAchievements: [
+    ...achievementSeed('u2', [
+      ['git-init', '2025-03-22', true],
+      ['objective-set', '2025-03-22', true],
+      ['remote-added', '2025-03-22', true],
+      ['accounts-in-order', '2025-04-02', true],
+      ['email-verified', '2025-03-22', false],
+      ['page-live', '2025-04-02', true],
+      ['about-me', '2025-04-02', true],
+      ['profile-complete', '2025-04-05', true],
+      ['living-resume', '2025-04-05', false],
+      ['first-record', '2025-03-25', true],
+      ['studying', '2025-05-20', true],
+      ['basement-student', '2025-05-20', true],
+      ['experience-logged', '2025-03-25', true],
+      ['author', '2026-05-10', true],
+      ['with-proof', '2026-05-02', true],
+      ['three-months-trajectory', '2025-11-02', true],
+      ['one-year-trajectory', '2026-05-20', true],
+      ['dear-diary', '2026-04-20', true],
+      ['shared-learning', '2026-05-03', true],
+      ['on-display', '2026-05-03', true],
+      ['linked-to-trajectory', '2026-05-03', true],
+      ['after-class', '2026-08-12', false],
+      ['pr-opened', '2026-08-28', true],
+      ['merged', '2026-09-02', true],
+      ['second-try', '2026-09-02', false, false],
+      ['applicant', '2026-09-05', false],
+      ['in-squad', '2026-09-14', true],
+      ['first-delivery', '2026-10-20', true],
+      ['technical-delivery', '2026-10-20', true],
+      ['solo', '2026-10-20', true],
+      ['readme-credit', '2026-10-22', true],
+      ['thirty-days-squad', '2026-10-20', true],
+      ['course-to-squad', '2026-10-20', true],
+      ['first-week', '2026-09-28', false],
+      ['one-month-hub', '2025-04-22', true],
+      ['six-months-hub', '2025-09-22', true],
+      ['one-year-hub', '2026-03-22', true],
+    ]),
+    {
+      id: 'ma-u2-event',
+      userId: 'u2',
+      key: 'he4rt-event',
+      unlockedAt: '2026-07-12',
+      source: 'administration',
+      grantReason: 'Entregou a fila de inscrições no Hacktoberfest He4rt 2026.',
+      originPublic: true,
+      isPublic: true,
+      revokedAt: null,
+    },
+    ...achievementSeed('u3', [['git-init', '2025-06-05', true]]),
+    ...achievementSeed('u6', [
+      ['git-init', '2025-02-03', true],
+      ['profile-complete', '2025-02-10', true],
+      ['in-squad', '2026-09-07', true],
+      ['captain', '2026-09-07', true],
+      ['validator', '2026-06-10', true],
+      ['first-validation-given', '2026-07-02', true],
+      ['first-commit-reviewer', '2026-08-20', true],
+      ['one-year-hub', '2026-02-03', true],
+    ]),
   ],
   squads: [
     {
@@ -1066,59 +1181,6 @@ const seed: MockDb = {
       ],
     },
   ],
-  memberAchievements: [
-    ...achievementSeed('u2', [
-      ['git-init', '2025-03-22', true],
-      ['objective-set', '2025-03-22', true],
-      ['remote-added', '2025-03-22', true],
-      ['accounts-in-order', '2025-04-02', true],
-      ['email-verified', '2025-03-22', false],
-      ['page-live', '2025-04-02', true],
-      ['about-me', '2025-04-02', true],
-      ['profile-complete', '2025-04-05', true],
-      ['living-resume', '2025-04-05', false],
-      ['first-record', '2025-03-25', true],
-      ['studying', '2025-05-20', true],
-      ['basement-student', '2025-05-20', true],
-      ['experience-logged', '2025-03-25', true],
-      ['author', '2026-05-10', true],
-      ['with-proof', '2026-05-02', true],
-      ['three-months-trajectory', '2025-11-02', true],
-      ['one-year-trajectory', '2026-05-20', true],
-      ['dear-diary', '2026-04-20', true],
-      ['shared-learning', '2026-05-03', true],
-      ['on-display', '2026-05-03', true],
-      ['linked-to-trajectory', '2026-05-03', true],
-      ['after-class', '2026-08-12', false],
-      ['pr-opened', '2026-08-28', true],
-      ['merged', '2026-09-02', true],
-      ['second-try', '2026-09-02', false, false],
-      ['applicant', '2026-09-05', false],
-      ['in-squad', '2026-09-14', true],
-      ['first-delivery', '2026-10-20', true],
-      ['technical-delivery', '2026-10-20', true],
-      ['solo', '2026-10-20', true],
-      ['readme-credit', '2026-10-22', true],
-      ['thirty-days-squad', '2026-10-20', true],
-      ['course-to-squad', '2026-10-20', true],
-      ['first-week', '2026-09-28', false],
-      ['one-month-hub', '2025-04-22', true],
-      ['six-months-hub', '2025-09-22', true],
-      ['one-year-hub', '2026-03-22', true],
-    ]),
-    {
-      id: 'ma-u2-event',
-      userId: 'u2',
-      key: 'he4rt-event',
-      unlockedAt: '2026-07-12',
-      source: 'administration',
-      grantReason: 'Entregou a fila de inscrições no Hacktoberfest He4rt 2026.',
-      originPublic: true,
-      isPublic: true,
-      revokedAt: null,
-    },
-    ...achievementSeed('u3', [['git-init', '2025-06-05', true]]),
-  ],
   discussions: [
     {
       id: 't1',
@@ -1252,7 +1314,7 @@ function achievementSeed(userId: string, rows: [string, string, boolean, boolean
 }
 
 /** The fake backend. Persisted in localStorage; reset it from the debug sidebar. */
-export const db = createStore(seed, { persist: 'he4rt:mock-db:v10' })
+export const db = createStore(seed, { persist: 'he4rt:mock-db:v12' })
 
 export function useDb<S>(selector: (db: MockDb) => S): S {
   return useStore(db, selector)

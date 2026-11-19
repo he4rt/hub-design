@@ -20,6 +20,9 @@
   --color-success: #16a34a;
   --color-success-soft: rgba(22, 163, 74, 0.12);
   --color-warning: #d97706;
+  /* Validators enabled by the administration: set apart from members and from the primary color. */
+  --color-validator: #b45309;
+  --color-validator-soft: rgba(180, 83, 9, 0.12);
   --color-thumb: #ffffff;
   --color-overlay: rgba(9, 9, 11, 0.45);
   /* Banner behind the public profile's identity card. */
@@ -71,6 +74,8 @@
     --color-success: #4ade80;
     --color-success-soft: rgba(74, 222, 128, 0.15);
     --color-warning: #fbbf24;
+    --color-validator: #fbbf24;
+    --color-validator-soft: rgba(251, 191, 36, 0.15);
     --color-overlay: rgba(0, 0, 0, 0.6);
     --color-banner: #2e1065;
     --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);

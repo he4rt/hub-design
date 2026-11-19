@@ -1,4 +1,5 @@
 import { useRef, useState, useTransition } from 'react'
+import { Link } from 'react-router'
 import { Avatar } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -130,6 +131,11 @@ export function PostCard({
           <strong title={name}>{name}</strong>
           <time dateTime={post.createdAt}>{formatPostDate(post.createdAt)}</time>
         </div>
+        {post.editedAt && (
+          <span className="post-card__edited" title="O texto foi corrigido pela autora ou autor depois de publicado.">
+            editado em <time dateTime={post.editedAt}>{formatPostDate(post.editedAt)}</time>
+          </span>
+        )}
         {own && (
           <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
@@ -138,6 +144,10 @@ export function PostCard({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
+              <DropdownMenuItem asChild>
+                <Link to={`/app/feed/${post.id}/edit`}>Editar</Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
               <DropdownMenuItem
                 onSelect={() =>
                   run(

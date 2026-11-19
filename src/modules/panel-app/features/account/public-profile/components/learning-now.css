@@ -1,0 +1,71 @@
+.learning-now__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.learning-now__edit {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--color-text-strong);
+    background: var(--color-surface);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+  }
+}
+
+.learning-now__text {
+  color: var(--color-text-strong);
+  font-size: var(--text-sm);
+  text-wrap: pretty;
+}
+
+.learning-now__empty {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.learning-now__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.learning-now__label {
+  color: var(--color-text-strong);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.learning-now__hint {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+
+  span {
+    flex: none;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.learning-now__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}

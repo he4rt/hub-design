@@ -9,16 +9,17 @@ export type ShownAchievement = {
 }
 
 /** Layouts under test on the profile, picked by `?conquistas=`. */
-export type AchievementsModel = 'vitrine' | 'jornada' | 'aba'
+export type AchievementsModel = 'cabecalho' | 'vitrine' | 'jornada' | 'aba'
 
 export const achievementsModels: { value: AchievementsModel; label: string }[] = [
+  { value: 'cabecalho', label: 'Badges no cabeçalho (dev.to)' },
   { value: 'vitrine', label: 'Vitrine na coluna lateral' },
   { value: 'jornada', label: 'Faixa da jornada' },
   { value: 'aba', label: 'Aba Conquistas' },
 ]
 
 export function parseAchievementsModel(value: string | null): AchievementsModel {
-  return achievementsModels.some((model) => model.value === value) ? (value as AchievementsModel) : 'vitrine'
+  return achievementsModels.some((model) => model.value === value) ? (value as AchievementsModel) : 'cabecalho'
 }
 
 export const groupLabels: Record<AchievementGroup, string> = {

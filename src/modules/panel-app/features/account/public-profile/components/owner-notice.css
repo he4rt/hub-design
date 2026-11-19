@@ -1,4 +1,4 @@
-/* A slim bar on the banner, so the profile below keeps the layout a visitor sees. */
+/* A slim bar under the header, so the profile keeps the layout a visitor sees. */
 .owner-notice {
   display: flex;
   align-items: flex-start;

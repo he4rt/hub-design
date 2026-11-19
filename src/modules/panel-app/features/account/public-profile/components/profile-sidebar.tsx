@@ -1,15 +1,17 @@
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import type { MemberProfile } from '@/mocks/db'
+import { LearningNow } from './learning-now'
 import './profile-sidebar.css'
 
-/** Side box in the dev.to layout: areas, current work, and stacks, out of the header to keep it short. */
-export function ProfileSidebar({ profile }: { profile: MemberProfile }) {
+/** Side box in the dev.to layout: what the member is learning, areas, current work, and stacks. */
+export function ProfileSidebar({ profile, isOwner }: { profile: MemberProfile; isOwner: boolean }) {
   const current = profile.experiences.find((experience) => experience.isPublic && experience.endedAt === null)
 
   return (
     <aside className="profile-sidebar" aria-label="Resumo">
       <Card className="profile-sidebar__box">
+        <LearningNow text={profile.currentFocus} ownerId={isOwner ? profile.userId : null} />
         {profile.areas.length > 0 && (
           <div>
             <h2>Áreas</h2>
