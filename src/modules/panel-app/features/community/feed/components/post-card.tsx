@@ -1,6 +1,7 @@
 import { useRef, useState, useTransition } from 'react'
 import { Link } from 'react-router'
 import { Avatar } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Dialog, DialogClose, DialogContent } from '@/components/ui/dialog'
@@ -11,50 +12,48 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Label } from '@/components/ui/label'
-import { Switch } from '@/components/ui/switch'
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
-import { formatPostDate, OBJECTIVE_PROGRESS, REACTIONS } from '@/lib/feed-post'
-import { labelOf } from '@/lib/member-profile'
-import { useDb, type FeedPost, type ReactionType, type User } from '@/mocks/db'
+import { useNow } from '@/hooks/use-now'
+import { formatFullDate, formatRelative, formatShortDate, OBJECTIVE_PROGRESS } from '@/lib/feed-post'
+import { areaLabels, labelOf } from '@/lib/member-profile'
+import { useDb, type FeedPost, type User } from '@/mocks/db'
 import { errorMessage } from '@/mocks/mock-action'
 import {
   canManagePost,
   canSavePost,
   deletePost,
   savePost,
-  toggleReaction,
   unsavePost,
   updatePostCollections,
   updatePostVisibility,
 } from '../actions'
+import { memberBadges } from '../lib/badges'
 import { CollectionPicker } from './collection-picker'
+import { ReactionBar } from './reaction-bar'
 import './post-card.css'
 
 export type Notice = { tone: 'error' | 'success'; text: string }
 
 /**
- * One publication. Readers mark learning reactions and save it to read again;
- * the author gets a menu to choose where it shows, which study tracks
- * ("trilhas") it is in, and to delete it. Reaction counts show to the author,
- * and to everyone only when the author turned it on for this publication.
- * `showVisibility` tags where the post shows, for the author's own list.
+ * One publication. The author's photo and name open their profile, with their
+ * headline and badges. Readers react and save it to read again; the author gets
+ * a menu to edit it, choose where it shows and who sees the reaction counts,
+ * pick its study tracks ("trilhas") and delete it.
  */
 export function PostCard({
   post,
   author,
   viewerId,
-  showVisibility = false,
   onNotice,
 }: {
   post: FeedPost
   author: User | undefined
   viewerId: string
-  showVisibility?: boolean
   onNotice: (notice: Notice) => void
 }) {
   const [busy, startBusy] = useTransition()
-  const [reacting, startReacting] = useTransition()
+  const now = useNow()
+  const squads = useDb((state) => state.squads)
+  const validators = useDb((state) => state.validators)
   const [saving, startSaving] = useTransition()
   const [confirmingDelete, setConfirmingDelete] = useState(false)
   const [editingCollections, setEditingCollections] = useState(false)
@@ -66,14 +65,14 @@ export function PostCard({
     menuButton.current?.focus()
   }
   const allCollections = useDb((state) => state.feedCollections)
-  const users = useDb((state) => state.users)
   const bookmarks = useDb((state) => state.feedBookmarks)
   const saved = bookmarks.some((b) => b.userId === viewerId && b.postId === post.id)
   const own = canManagePost(post, viewerId)
   const name = author?.name ?? 'Membro'
   const collections = allCollections.filter((c) => post.collectionIds.includes(c.id))
-  const countsVisible = own || post.showReactionCounts
-  const mine = post.reactions.filter((r) => r.userId === viewerId).map((r) => r.type)
+  const badges = author ? memberBadges(author, { squads, validators }) : []
+  const headline = author ? author.bio || areaLabels(author.areas) : ''
+  const profilePath = author ? `/members/${author.username}` : null
 
   function run(action: () => Promise<unknown>, success: string) {
     startBusy(async () => {
@@ -82,16 +81,6 @@ export function PostCard({
         setConfirmingDelete(false)
         setEditingCollections(false)
         onNotice({ tone: 'success', text: success })
-      } catch (e) {
-        onNotice({ tone: 'error', text: errorMessage(e) })
-      }
-    })
-  }
-
-  function react(type: ReactionType) {
-    startReacting(async () => {
-      try {
-        await toggleReaction(viewerId, post.id, type)
       } catch (e) {
         onNotice({ tone: 'error', text: errorMessage(e) })
       }
@@ -108,34 +97,47 @@ export function PostCard({
     })
   }
 
-  function toggleCounts(visible: boolean) {
-    run(
-      () =>
-        updatePostVisibility(viewerId, post.id, {
-          showReactionCounts: visible,
-        }),
-      visible ? 'Todos veem os números desta publicação.' : 'Só você vê os números desta publicação.',
-    )
-  }
-
-  const count = (type: ReactionType) => post.reactions.filter((r) => r.type === type).length
-  const helpers = post.reactions
-    .filter((r) => r.type === 'helped')
-    .map((r) => users.find((u) => u.id === r.userId)?.name ?? 'Membro')
-
   return (
     <Card className="post-card">
       <header className="post-card__header">
-        <Avatar src={author?.photoUrl ?? null} name={name} size="sm" />
-        <div className="post-card__author">
-          <strong title={name}>{name}</strong>
-          <time dateTime={post.createdAt}>{formatPostDate(post.createdAt)}</time>
-        </div>
-        {post.editedAt && (
-          <span className="post-card__edited" title="O texto foi corrigido pela autora ou autor depois de publicado.">
-            editado em <time dateTime={post.editedAt}>{formatPostDate(post.editedAt)}</time>
-          </span>
+        {profilePath ? (
+          <Link to={profilePath} className="post-card__avatar" aria-hidden tabIndex={-1}>
+            <Avatar src={author?.photoUrl ?? null} name={name} />
+          </Link>
+        ) : (
+          <Avatar src={null} name={name} />
         )}
+        <div className="post-card__author">
+          <div className="post-card__name">
+            {profilePath ? (
+              <Link to={profilePath} title={`Ver o perfil de ${name}`}>
+                {name}
+              </Link>
+            ) : (
+              <strong>{name}</strong>
+            )}
+            {badges.map((badge) => (
+              <Badge key={badge.key} className="post-card__badge" data-badge={badge.tone} title={badge.title}>
+                {badge.label}
+              </Badge>
+            ))}
+          </div>
+          {headline && (
+            <p className="post-card__headline" title={headline}>
+              {headline}
+            </p>
+          )}
+          <p className="post-card__meta">
+            <time dateTime={post.createdAt} title={formatFullDate(post.createdAt)}>
+              {formatRelative(post.createdAt, now)}
+            </time>
+            {post.editedAt && (
+              <span title="O texto foi corrigido depois de publicado.">
+                {' · '}editado em <time dateTime={post.editedAt}>{formatShortDate(post.editedAt, now)}</time>
+              </span>
+            )}
+          </p>
+        </div>
         {own && (
           <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
@@ -176,6 +178,22 @@ export function PostCard({
               >
                 {post.shownOnProfile ? 'Tirar do meu perfil público' : 'Mostrar no meu perfil público'}
               </DropdownMenuItem>
+              {post.sharedOnFeed && (
+                <DropdownMenuItem
+                  onSelect={() =>
+                    run(
+                      () => updatePostVisibility(viewerId, post.id, { showReactionCounts: !post.showReactionCounts }),
+                      post.showReactionCounts
+                        ? 'Só você vê os números desta publicação.'
+                        : 'Todos veem os números desta publicação.',
+                    )
+                  }
+                >
+                  {post.showReactionCounts
+                    ? 'Esconder os números das reações'
+                    : 'Mostrar os números das reações a todos'}
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem
                 onSelect={() => {
                   setDraftCollections(post.collectionIds)
@@ -193,16 +211,6 @@ export function PostCard({
         )}
       </header>
 
-      {collections.length > 0 && (
-        <ul className="post-card__collections" aria-label="Trilhas">
-          {collections.map((c) => (
-            <li key={c.id} title={c.name}>
-              {c.name}
-            </li>
-          ))}
-        </ul>
-      )}
-
       <dl className="post-card__body">
         <div>
           <dt>O que aprendi</dt>
@@ -212,79 +220,36 @@ export function PostCard({
           <dt>Como apliquei</dt>
           <dd>{post.applied}</dd>
         </div>
-        <div>
-          <dt>Quanto me aproximou do objetivo</dt>
-          <dd>{labelOf(OBJECTIVE_PROGRESS, post.objectiveProgress)}</dd>
-        </div>
       </dl>
 
-      {showVisibility && (
-        <ul className="post-card__visibility" aria-label="Onde aparece">
-          <li>{post.sharedOnFeed ? 'No Feed da comunidade' : 'Só para você'}</li>
-          {post.shownOnProfile && <li>No perfil público</li>}
-        </ul>
-      )}
+      <div className="post-card__tags">
+        <span className="post-card__progress" title="Quanto isso aproximou do objetivo">
+          {labelOf(OBJECTIVE_PROGRESS, post.objectiveProgress)} do objetivo
+        </span>
+        {collections.map((c) => (
+          <span key={c.id} className="post-card__track" title={`Trilha: ${c.name}`}>
+            Trilha · {c.name}
+          </span>
+        ))}
+      </div>
 
-      {own ? (
-        post.sharedOnFeed && (
-          <div className="post-card__reactions">
-            <ul className="post-card__counts" aria-label="Reações recebidas">
-              {REACTIONS.map((r) => (
-                <li key={r.value}>
-                  {r.label} <span>{count(r.value)}</span>
-                </li>
-              ))}
-            </ul>
-            {helpers.length > 0 && (
-              <p className="post-card__hint">
-                {helpers.join(', ')} {helpers.length === 1 ? 'disse' : 'disseram'} que isso ajudou.
-              </p>
+      {(post.sharedOnFeed || !own) && (
+        <footer className="post-card__footer">
+          <ReactionBar post={post} viewerId={viewerId} own={own} onNotice={onNotice}>
+            {canSavePost(post, viewerId) && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="post-card__save"
+                aria-pressed={saved}
+                loading={saving}
+                onClick={toggleSaved}
+              >
+                {saved ? 'Salvo' : 'Salvar'}
+              </Button>
             )}
-            <div className="post-card__counts-switch">
-              <Label htmlFor={`counts-${post.id}`}>Todos veem os números</Label>
-              <Switch
-                id={`counts-${post.id}`}
-                checked={post.showReactionCounts}
-                disabled={busy}
-                onCheckedChange={toggleCounts}
-              />
-            </div>
-          </div>
-        )
-      ) : (
-        <div className="post-card__reader">
-          <ToggleGroup
-            type="multiple"
-            variant="chips"
-            className="post-card__react"
-            value={mine}
-            disabled={reacting}
-            aria-label="Reagir à publicação"
-            onValueChange={(next) => {
-              const changed = REACTIONS.find((r) => next.includes(r.value) !== mine.includes(r.value))
-              if (changed) react(changed.value)
-            }}
-          >
-            {REACTIONS.map((r) => (
-              <ToggleGroupItem key={r.value} value={r.value}>
-                {r.label}
-                {countsVisible && <span className="post-card__count">{count(r.value)}</span>}
-              </ToggleGroupItem>
-            ))}
-          </ToggleGroup>
-          {canSavePost(post, viewerId) && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="post-card__save"
-              aria-pressed={saved}
-              loading={saving}
-              onClick={toggleSaved}
-            >
-              {saved ? 'Salvo' : 'Salvar'}
-            </Button>
-          )}
-        </div>
+          </ReactionBar>
+        </footer>
       )}
 
       <Dialog open={editingCollections} onOpenChange={(open) => !busy && setEditingCollections(open)}>

@@ -480,6 +480,35 @@ export type FeedCollection = { id: string; userId: string; name: string; created
 /** A publication a member saved to read again, like a bookmark. Only that member sees it. */
 export type FeedBookmark = { userId: string; postId: string; createdAt: string }
 
+/**
+ * Official publication of the community: written by the staff, signed by He4rt Developers.
+ * Pinned ones open the Feed, newest pin first; the staff pins and unpins them.
+ */
+export type FeedAnnouncement = {
+  id: string
+  /** Staff member who wrote it; readers only see He4rt Developers. */
+  authorId: string
+  title: string
+  body: string
+  createdAt: string
+  pinnedAt: string | null
+}
+
+/**
+ * Strip at the top of the home: a notice of the community or a partner's announcement,
+ * always labeled as one or the other. The newest active one shows.
+ */
+export type HomeBanner = {
+  id: string
+  kind: 'notice' | 'partner'
+  /** Name of the partner, for `partner` banners. */
+  partner: string | null
+  text: string
+  link: { label: string; url: string } | null
+  active: boolean
+  createdAt: string
+}
+
 /** How much a learning got the member closer to the objective. A label, never a score. */
 export type ObjectiveProgress = 'none' | 'little' | 'a-lot' | 'very-much'
 
@@ -530,6 +559,8 @@ export type MockDb = {
   feedPosts: FeedPost[]
   feedCollections: FeedCollection[]
   feedBookmarks: FeedBookmark[]
+  feedAnnouncements: FeedAnnouncement[]
+  homeBanners: HomeBanner[]
   /** What PostHog would receive, newest first. */
   events: AnalyticsEvent[]
   profiles: MemberProfile[]
@@ -876,6 +907,37 @@ const seed: MockDb = {
     { id: 'c2', userId: 'u2', name: 'Acessibilidade', createdAt: '2026-10-20T18:42:00Z' },
   ],
   feedBookmarks: [{ userId: 'u2', postId: 'p5', createdAt: '2026-11-13T08:00:00Z' }],
+  feedAnnouncements: [
+    {
+      id: 'an1',
+      authorId: 'u1',
+      title: 'O Feed agora é a página inicial do Hub',
+      body: 'Registre o que você aprendeu e como aplicou. Escolha em cada publicação se ela vai para o Feed, para o seu perfil ou fica só com você. Dúvidas ficam no Fórum.',
+      createdAt: '2026-11-18T12:00:00Z',
+      pinnedAt: '2026-11-18T12:00:00Z',
+    },
+  ],
+  homeBanners: [
+    {
+      id: 'b1',
+      kind: 'notice',
+      partner: null,
+      text: 'O material do teste de entrada dos squads está publicado.',
+      link: { label: 'Ver o teste de entrada', url: '/app/squads/entry-test' },
+      active: true,
+      createdAt: '2026-11-17T12:00:00Z',
+    },
+    {
+      // Placeholder for layout only: never a real partner in seed data.
+      id: 'b2',
+      kind: 'partner',
+      partner: 'Empresa Exemplo',
+      text: 'Anúncio de exemplo de um parceiro da comunidade.',
+      link: { label: 'Saiba mais', url: 'https://example.com' },
+      active: false,
+      createdAt: '2026-11-10T12:00:00Z',
+    },
+  ],
   events: [],
   profiles: [
     {
@@ -1267,7 +1329,7 @@ function achievementSeed(userId: string, rows: [string, string, boolean, boolean
 }
 
 /** The fake backend. Persisted in localStorage; reset it from the debug sidebar. */
-export const db = createStore(seed, { persist: 'he4rt:mock-db:v17' })
+export const db = createStore(seed, { persist: 'he4rt:mock-db:v18' })
 
 export function useDb<S>(selector: (db: MockDb) => S): S {
   return useStore(db, selector)

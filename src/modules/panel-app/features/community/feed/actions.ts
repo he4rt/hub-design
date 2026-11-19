@@ -1,6 +1,6 @@
 import { normalizeText } from '@/lib/text'
 import { track } from '@/mocks/analytics'
-import { db, newId, type FeedCollection, type FeedPost, type ObjectiveProgress, type ReactionType } from '@/mocks/db'
+import { db, newId, type FeedCollection, type FeedPost, type ObjectiveProgress, type ReactionType, type User } from '@/mocks/db'
 import { MockError, mockAction } from '@/mocks/mock-action'
 
 export const POST_TEXT_MAX = 500
@@ -12,6 +12,8 @@ export type PostInput = {
   objectiveProgress: ObjectiveProgress | null
   sharedOnFeed: boolean
   shownOnProfile: boolean
+  /** Everyone sees the reaction counts; off means only the author sees them. */
+  showReactionCounts: boolean
   collectionIds: string[]
 }
 
@@ -80,7 +82,7 @@ export function createPost(userId: string, input: PostInput) {
       shownOnProfile: input.shownOnProfile,
       collectionIds: ownCollectionIds(userId, input.collectionIds),
       reactions: [],
-      showReactionCounts: false,
+      showReactionCounts: input.showReactionCounts,
       createdAt: new Date().toISOString(),
       deletedAt: null,
       editedAt: null,
@@ -125,6 +127,7 @@ export function updatePost(userId: string, postId: string, input: PostInput) {
               objectiveProgress: input.objectiveProgress!,
               sharedOnFeed: input.sharedOnFeed,
               shownOnProfile: input.shownOnProfile,
+              showReactionCounts: input.showReactionCounts,
               collectionIds: ownCollectionIds(userId, input.collectionIds),
               // Changing only where it shows is not an edit of what was written.
               ...(changedText && {
@@ -175,7 +178,7 @@ export function deletePost(userId: string, postId: string) {
 }
 
 /** "Carregar mais": the next page of the Feed, which the page then shows from the store. */
-export function loadMorePosts(view: 'community' | 'mine' | 'saved', limit: number) {
+export function loadMorePosts(view: 'community' | 'saved', limit: number) {
   return mockAction('panel-app.feed.posts.index', { view, limit }, () => ({ limit }))
 }
 
@@ -263,5 +266,28 @@ export function unsavePost(userId: string, postId: string) {
     }))
     track('feed_post_saved', { postId, saved: false })
     return { saved: false }
+  })
+}
+
+/** Only the staff pins the community's official announcements. */
+export function canPinAnnouncement(user: User): boolean {
+  return user.role !== 'member'
+}
+
+/** Pins an announcement at the top of the Feed, or unpins it. */
+export function setAnnouncementPinned(userId: string, announcementId: string, pinned: boolean) {
+  return mockAction('panel-app.feed.announcements.update', { userId, announcementId, pinned }, () => {
+    const user = db.get().users.find((u) => u.id === userId)
+    if (!user || !canPinAnnouncement(user)) throw new MockError('Só a administração fixa comunicados.')
+    if (!db.get().feedAnnouncements.some((a) => a.id === announcementId)) {
+      throw new MockError('Este comunicado não existe mais.')
+    }
+    const pinnedAt = pinned ? new Date().toISOString() : null
+    db.set((state) => ({
+      ...state,
+      feedAnnouncements: state.feedAnnouncements.map((a) => (a.id === announcementId ? { ...a, pinnedAt } : a)),
+    }))
+    track('feed_announcement_pinned', { announcementId, pinned })
+    return { pinnedAt }
   })
 }

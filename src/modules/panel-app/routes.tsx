@@ -1,7 +1,6 @@
 import { redirect, type RouteObject } from 'react-router'
 import { AuthLayout } from '@/components/auth-layout'
 import Profile from './features/account/settings/pages/profile'
-import FeedCreate from './features/community/feed/pages/create'
 import FeedEdit from './features/community/feed/pages/edit'
 import FeedIndex from './features/community/feed/pages/index'
 import ForgotPassword from './features/auth/pages/forgot-password'
@@ -78,7 +77,8 @@ export const panelAppRoutes: RouteObject = {
         // The Feed is the home of the Hub; `wide` lets its three columns use the screen.
         { index: true, Component: FeedIndex, handle: { wide: true } },
         { path: 'feed', loader: ({ request }) => redirect(`/app${new URL(request.url).search}`) },
-        { path: 'feed/new', Component: FeedCreate },
+        // Nova publicação opens over the home.
+        { path: 'feed/new', loader: () => redirect('/app?compose=1') },
         { path: 'feed/:postId/edit', Component: FeedEdit },
         { path: 'settings/profile', Component: Profile },
         { path: 'squads/entry-test', Component: EntryTest },

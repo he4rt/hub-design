@@ -4,19 +4,20 @@ import { FormMessage } from '@/components/form-message'
 import { PageHeader } from '@/components/page-header'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { useDebugActions } from '@/debug/use-debug-actions'
 import { db, newId, updateUser, useDb, type FeedPost, type ObjectiveProgress, type ReactionType } from '@/mocks/db'
 import { errorMessage } from '@/mocks/mock-action'
 import { useAccount } from '@/modules/panel-app/hooks/use-account'
-import { canSavePost, FEED_PAGE_SIZE, loadMorePosts } from '../actions'
+import { createPost, FEED_PAGE_SIZE, loadMorePosts } from '../actions'
+import { AnnouncementCard } from '../components/announcement-card'
+import { HomeBanner } from '../components/home-banner'
+import { PostForm } from '../components/post-form'
 import { HomeAside } from '../components/home-aside'
 import { PostCard, type Notice } from '../components/post-card'
 import { ProfileCard } from '../components/profile-card'
 import { verifyEmail } from '../reminders/actions'
 import './index.css'
 
-type View = 'community' | 'mine' | 'saved'
 
 const PROGRESS_CYCLE: ObjectiveProgress[] = ['none', 'little', 'a-lot', 'very-much']
 
@@ -44,9 +45,10 @@ function makeCommunityPosts(count: number, authorIds: string[]): FeedPost[] {
 
 /**
  * Home of the Hub: the learning diary of the community in the middle, newest
- * first and ten at a time, never ordered by reactions. "Minhas publicações"
- * lists everything the member recorded, shared or not; "Salvos" what they saved
- * from others, newest save first. The member's profile
+ * first and ten at a time, never ordered by reactions, the member's own shared
+ * ones included, with the community's pinned announcements on top. "Nova
+ * publicação" opens over it (`?compose=1`). Their own history and what they
+ * saved live in their profile. The member's profile
  * preview sits on the left and the blocks of their moment on the right.
  */
 export default function FeedIndex() {
@@ -56,13 +58,16 @@ export default function FeedIndex() {
   const [params, setParams] = useSearchParams()
   const posts = useDb((state) => state.feedPosts)
   const users = useDb((state) => state.users)
-  const bookmarks = useDb((state) => state.feedBookmarks)
-  const [notice, setNotice] = useState<Notice | null>((location.state as { notice?: Notice } | null)?.notice ?? null)
+  const announcements = useDb((state) => state.feedAnnouncements)
+  // A notice set here belongs to the navigation it happened in; a new navigation shows its own.
+  const [localNotice, setLocalNotice] = useState<{ key: string; notice: Notice | null } | null>(null)
+  const routeNotice = (location.state as { notice?: Notice } | null)?.notice ?? null
+  const notice = localNotice?.key === location.key ? localNotice.notice : routeNotice
+  const setNotice = (next: Notice | null) => setLocalNotice({ key: location.key, notice: next })
   const [loading, startLoading] = useTransition()
   const [loadError, setLoadError] = useState<string | null>(null)
 
-  const requested = params.get('view')
-  const view: View = requested === 'mine' || requested === 'saved' ? requested : 'community'
+  const composing = params.get('compose') === '1'
   const limit = Math.max(FEED_PAGE_SIZE, Number(params.get('limit')) || FEED_PAGE_SIZE)
 
   useDebugActions('Início (Feed)', [
@@ -185,9 +190,43 @@ export default function FeedIndex() {
       label: 'Esvaziar o Feed',
       run: () => db.set((state) => ({ ...state, feedPosts: [] })),
     },
-    { label: 'Ver minhas publicações', run: () => setParams({ view: 'mine' }) },
-    { label: 'Ver salvos', run: () => setParams({ view: 'saved' }) },
-    { label: 'Nova publicação', run: () => navigate('/app/feed/new') },
+    {
+      label: 'Publicar comunicado da administração',
+      description: 'Assinado por He4rt Developers, sem fixar.',
+      run: () =>
+        db.set((s) => ({
+          ...s,
+          feedAnnouncements: [
+            ...s.feedAnnouncements,
+            {
+              id: newId(),
+              authorId: 'u1',
+              title: 'Manutenção programada no sábado',
+              body: 'O Hub fica fora do ar por até uma hora no sábado de manhã. Nenhum registro é perdido.',
+              createdAt: new Date().toISOString(),
+              pinnedAt: null,
+            },
+          ],
+        })),
+    },
+    {
+      label: 'Desafixar todos os comunicados',
+      run: () => db.set((s) => ({ ...s, feedAnnouncements: s.feedAnnouncements.map((a) => ({ ...a, pinnedAt: null })) })),
+    },
+    {
+      label: 'Banner: aviso da comunidade',
+      run: () => db.set((s) => ({ ...s, homeBanners: s.homeBanners.map((b) => ({ ...b, active: b.kind === 'notice' })) })),
+    },
+    {
+      label: 'Banner: anúncio de parceiro (exemplo)',
+      run: () => db.set((s) => ({ ...s, homeBanners: s.homeBanners.map((b) => ({ ...b, active: b.kind === 'partner' })) })),
+    },
+    {
+      label: 'Banner: nenhum',
+      run: () => db.set((s) => ({ ...s, homeBanners: s.homeBanners.map((b) => ({ ...b, active: false })) })),
+    },
+    { label: 'Ver salvos (no perfil)', run: () => account && navigate(`/members/${account.username}?aba=salvos`) },
+    { label: 'Nova publicação', run: () => setParams({ compose: '1' }) },
     {
       label: 'Expirar sessão',
       description: 'A home exige login: volta ao Login e retorna para cá.',
@@ -197,31 +236,29 @@ export default function FeedIndex() {
 
   if (!account) return null
 
-  const savedAt = new Map(bookmarks.filter((b) => b.userId === account.id).map((b) => [b.postId, b.createdAt]))
-  const visible =
-    view === 'saved'
-      ? posts
-          .filter((p) => savedAt.has(p.id) && canSavePost(p, account.id))
-          .sort((a, b) => savedAt.get(b.id)!.localeCompare(savedAt.get(a.id)!))
-      : posts
-          .filter((p) => p.deletedAt === null && (view === 'mine' ? p.userId === account.id : p.sharedOnFeed))
-          .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+  // Pinned announcements open the Feed, newest pin first; the rest mixes with publications by date.
+  const pinned = announcements
+    .filter((a) => a.pinnedAt !== null)
+    .toSorted((a, b) => b.pinnedAt!.localeCompare(a.pinnedAt!))
+    .map((a) => ({ kind: 'announcement' as const, id: a.id, announcement: a }))
+  const timeline = [
+    ...announcements
+      .filter((a) => a.pinnedAt === null)
+      .map((a) => ({ kind: 'announcement' as const, id: a.id, at: a.createdAt, announcement: a })),
+    ...posts
+      .filter((p) => p.deletedAt === null && p.sharedOnFeed)
+      .map((p) => ({ kind: 'post' as const, id: p.id, at: p.createdAt, post: p })),
+  ].toSorted((a, b) => b.at.localeCompare(a.at))
+  const visible = [...pinned, ...timeline]
   const page = visible.slice(0, limit)
   const hasMore = visible.length > page.length
-
-  function changeView(next: string) {
-    if (!next) return
-    setNotice(null)
-    setLoadError(null)
-    setParams(next === 'community' ? {} : { view: next })
-  }
 
   function loadMore() {
     setLoadError(null)
     startLoading(async () => {
       try {
         const next = limit + FEED_PAGE_SIZE
-        await loadMorePosts(view, next)
+        await loadMorePosts('community', next)
         setLoadError(null)
         setParams(
           (current) => {
@@ -238,6 +275,7 @@ export default function FeedIndex() {
 
   return (
     <div className="feed-home">
+      <HomeBanner />
       <div className="feed-home__grid">
         <aside className="feed-home__profile" aria-label="Seu perfil">
           <ProfileCard account={account} />
@@ -248,50 +286,35 @@ export default function FeedIndex() {
             description="O diário de aprendizado da comunidade."
             actions={
               <Button asChild>
-                <Link to="/app/feed/new">Nova publicação</Link>
+                <Link to="/app?compose=1" preventScrollReset>
+                  Nova publicação
+                </Link>
               </Button>
             }
           />
-          <div className="feed__toolbar">
-            <ToggleGroup type="single" value={view} onValueChange={changeView} aria-label="Quais publicações ver">
-              <ToggleGroupItem value="community">Comunidade</ToggleGroupItem>
-              <ToggleGroupItem value="mine">Minhas publicações</ToggleGroupItem>
-              <ToggleGroupItem value="saved">Salvos</ToggleGroupItem>
-            </ToggleGroup>
-          </div>
           <FormMessage tone={notice?.tone ?? 'success'}>{notice?.text}</FormMessage>
 
           {page.length === 0 ? (
-            view === 'saved' ? (
-              <Card className="feed__empty">
-                <p>Você ainda não salvou nada. Salve uma publicação da comunidade para ler de novo depois.</p>
-                <Button asChild variant="secondary">
-                  <Link to="/app">Ver a comunidade</Link>
-                </Button>
-              </Card>
-            ) : (
-              <Card className="feed__empty">
-                <p>
-                  {view === 'mine'
-                    ? 'Você ainda não registrou nada. Registre o que você aprendeu.'
-                    : 'Ainda não há publicações. Registre o que você aprendeu.'}
-                </p>
-                <Button asChild variant="secondary">
-                  <Link to="/app/feed/new">Nova publicação</Link>
-                </Button>
-              </Card>
-            )
+            <Card className="feed__empty">
+              <p>Ainda não há publicações. Registre o que você aprendeu.</p>
+              <Button asChild variant="secondary">
+                <Link to="/app?compose=1">Nova publicação</Link>
+              </Button>
+            </Card>
           ) : (
             <ol className="feed__list">
-              {page.map((post) => (
-                <li key={post.id}>
-                  <PostCard
-                    post={post}
-                    author={users.find((u) => u.id === post.userId)}
-                    viewerId={account.id}
-                    showVisibility={view === 'mine'}
-                    onNotice={setNotice}
-                  />
+              {page.map((item) => (
+                <li key={item.id}>
+                  {item.kind === 'announcement' ? (
+                    <AnnouncementCard announcement={item.announcement} viewer={account} onNotice={setNotice} />
+                  ) : (
+                    <PostCard
+                      post={item.post}
+                      author={users.find((u) => u.id === item.post.userId)}
+                      viewerId={account.id}
+                      onNotice={setNotice}
+                    />
+                  )}
                 </li>
               ))}
             </ol>
@@ -312,6 +335,32 @@ export default function FeedIndex() {
           <HomeAside account={account} />
         </aside>
       </div>
+      {composing && (
+        <PostForm
+          layout="dialog"
+          account={account}
+          initial={{
+            learned: '',
+            applied: '',
+            objectiveProgress: null,
+            sharedOnFeed: true,
+            shownOnProfile: false,
+            showReactionCounts: false,
+            collectionIds: [],
+          }}
+          title="Nova publicação"
+          submitLabel="Publicar"
+          onSave={async (input) => {
+            await createPost(account.id, input)
+            return {
+              to: '/app',
+              notice: input.sharedOnFeed
+                ? 'Publicação adicionada.'
+                : 'Publicação adicionada, só para você. Ela fica na sua trajetória.',
+            }
+          }}
+        />
+      )}
     </div>
   )
 }

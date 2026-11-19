@@ -10,7 +10,7 @@ import './next-steps.css'
 /** Things that do not exist yet in the Hub carry "Em breve" and no link. */
 const NEXT_STEPS: { title: string; text: string; to?: string }[] = [
   { title: 'Completar o perfil', text: 'Cada campo mostra qual ação ele libera.', to: '/app/settings/profile' },
-  { title: 'Registrar um aprendizado', text: 'O que aprendeu e como aplicou.', to: '/app/feed/new' },
+  { title: 'Registrar um aprendizado', text: 'O que aprendeu e como aplicou.', to: '/app?compose=1' },
   { title: 'Ler a preparação para o squad', text: 'O que cai no teste de entrada, publicado antes.' },
 ]
 

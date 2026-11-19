@@ -1,5 +1,5 @@
 import { useActionState, useState } from 'react'
-import { Link, useNavigate } from 'react-router'
+import { useNavigate } from 'react-router'
 import { FormMessage } from '@/components/form-message'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -27,7 +27,8 @@ const VALID_SAMPLE = {
 }
 
 /**
- * The diary form, for a new publication and for an edit. `onSave` runs the mock action and
+ * The diary form, for a new publication and for an edit. As a `dialog` it opens over the Feed:
+ * clicking outside closes it, after confirming when something was written. `onSave` runs the mock action and
  * returns where to go next; validation errors stay on their fields.
  */
 export function PostForm({
@@ -36,6 +37,7 @@ export function PostForm({
   title,
   submitLabel,
   onSave,
+  layout = 'page',
 }: {
   account: User
   /** Empty for a new publication; the current text for an edit. */
@@ -44,6 +46,7 @@ export function PostForm({
   title: string
   submitLabel: string
   onSave: (input: PostInput) => Promise<{ to: string; notice: string }>
+  layout?: 'page' | 'dialog'
 }) {
   const navigate = useNavigate()
   const [learned, setLearned] = useState(initial.learned)
@@ -51,10 +54,19 @@ export function PostForm({
   const [progress, setProgress] = useState<ObjectiveProgress | null>(initial.objectiveProgress)
   const [sharedOnFeed, setSharedOnFeed] = useState(initial.sharedOnFeed)
   const [shownOnProfile, setShownOnProfile] = useState(initial.shownOnProfile)
+  const [showReactionCounts, setShowReactionCounts] = useState(initial.showReactionCounts)
   const [collectionIds, setCollectionIds] = useState<string[]>(initial.collectionIds)
   const [confirmingDiscard, setConfirmingDiscard] = useState(false)
 
-  const input: PostInput = { learned, applied, objectiveProgress: progress, sharedOnFeed, shownOnProfile, collectionIds }
+  const input: PostInput = {
+    learned,
+    applied,
+    objectiveProgress: progress,
+    sharedOnFeed,
+    shownOnProfile,
+    showReactionCounts,
+    collectionIds,
+  }
 
   const [result, submit, pending] = useActionState(async (): Promise<Result> => {
     const errors = validatePost(input)
@@ -106,97 +118,135 @@ export function PostForm({
     },
   ])
 
-  const dirty = learned.trim() !== initial.learned || applied.trim() !== initial.applied || progress !== initial.objectiveProgress
+  const dirty =
+    learned.trim() !== initial.learned || applied.trim() !== initial.applied || progress !== initial.objectiveProgress
   const objective = labelOf(OBJECTIVES, account.objective)
+
+  // Closing with nothing written goes straight back; otherwise it asks first.
+  const requestClose = () => (dirty ? setConfirmingDiscard(true) : navigate('/app'))
+  const fields = (
+    <>
+      <TextField
+        id="learned"
+        label="O que você aprendeu"
+        value={learned}
+        onChange={setLearned}
+        error={result.errors.learned}
+      />
+      <TextField
+        id="applied"
+        label="Como você aplicou"
+        value={applied}
+        onChange={setApplied}
+        error={result.errors.applied}
+      />
+
+      <fieldset className="post-form__field">
+        <legend id="progress-label">
+          Quanto isso aproximou você do objetivo
+          {objective && <span className="post-form__objective"> · {objective}</span>}
+        </legend>
+        <RadioCards
+          aria-labelledby="progress-label"
+          aria-invalid={!!result.errors.objectiveProgress || undefined}
+          value={progress ?? ''}
+          onValueChange={(value) => setProgress(value as ObjectiveProgress)}
+          className="post-form__progress"
+        >
+          {OBJECTIVE_PROGRESS.map((option) => (
+            <RadioCard key={option.value} value={option.value} label={option.label} />
+          ))}
+        </RadioCards>
+        <FormMessage tone="error">{result.errors.objectiveProgress}</FormMessage>
+      </fieldset>
+
+      <fieldset className="post-form__field">
+        <legend>
+          Trilhas <span className="post-form__objective">· opcional</span>
+        </legend>
+        <CollectionPicker userId={account.id} value={collectionIds} onChange={setCollectionIds} disabled={pending} />
+      </fieldset>
+
+      <div className="post-form__visibility">
+        <div className="post-form__check">
+          <Checkbox
+            id="shared-on-feed"
+            checked={sharedOnFeed}
+            onCheckedChange={(checked) => setSharedOnFeed(checked === true)}
+          />
+          <Label htmlFor="shared-on-feed">Compartilhar no Feed da comunidade</Label>
+        </div>
+        <div className="post-form__check">
+          <Checkbox
+            id="shown-on-profile"
+            checked={shownOnProfile}
+            onCheckedChange={(checked) => setShownOnProfile(checked === true)}
+          />
+          <Label htmlFor="shown-on-profile">Mostrar no meu perfil público</Label>
+        </div>
+        <div className="post-form__check">
+          <Checkbox
+            id="show-reaction-counts"
+            checked={showReactionCounts}
+            disabled={!sharedOnFeed}
+            onCheckedChange={(checked) => setShowReactionCounts(checked === true)}
+          />
+          <Label htmlFor="show-reaction-counts">Todos veem os números das reações</Label>
+        </div>
+        <p className="post-form__hint">
+          {!sharedOnFeed && !shownOnProfile
+            ? 'Só você vai ver esta publicação. Ela fica na sua trajetória.'
+            : shownOnProfile && !account.published
+              ? 'Seu perfil público está desligado: a publicação só aparece nele quando você o publicar.'
+              : 'Você pode mudar isso depois, no menu da publicação.'}
+        </p>
+      </div>
+
+      <FormMessage tone="error">{result.message}</FormMessage>
+    </>
+  )
+  const cancel = (
+    <Button type="button" variant="secondary" disabled={pending} onClick={requestClose}>
+      Cancelar
+    </Button>
+  )
+  const send = (
+    <Button type="submit" form="post-form" loading={pending}>
+      {submitLabel}
+    </Button>
+  )
 
   return (
     <>
-      <Card className="post-form-card">
-        <form action={submit} className="post-form" noValidate>
-          <TextField
-            id="learned"
-            label="O que você aprendeu"
-            value={learned}
-            onChange={setLearned}
-            error={result.errors.learned}
-          />
-          <TextField
-            id="applied"
-            label="Como você aplicou"
-            value={applied}
-            onChange={setApplied}
-            error={result.errors.applied}
-          />
-
-          <fieldset className="post-form__field">
-            <legend id="progress-label">
-              Quanto isso aproximou você do objetivo
-              {objective && <span className="post-form__objective"> · {objective}</span>}
-            </legend>
-            <RadioCards
-              aria-labelledby="progress-label"
-              aria-invalid={!!result.errors.objectiveProgress || undefined}
-              value={progress ?? ''}
-              onValueChange={(value) => setProgress(value as ObjectiveProgress)}
-              className="post-form__progress"
-            >
-              {OBJECTIVE_PROGRESS.map((option) => (
-                <RadioCard key={option.value} value={option.value} label={option.label} />
-              ))}
-            </RadioCards>
-            <FormMessage tone="error">{result.errors.objectiveProgress}</FormMessage>
-          </fieldset>
-
-          <fieldset className="post-form__field">
-            <legend>
-              Trilhas <span className="post-form__objective">· opcional</span>
-            </legend>
-            <CollectionPicker userId={account.id} value={collectionIds} onChange={setCollectionIds} disabled={pending} />
-          </fieldset>
-
-          <div className="post-form__visibility">
-            <div className="post-form__check">
-              <Checkbox
-                id="shared-on-feed"
-                checked={sharedOnFeed}
-                onCheckedChange={(checked) => setSharedOnFeed(checked === true)}
-              />
-              <Label htmlFor="shared-on-feed">Compartilhar no Feed da comunidade</Label>
+      {layout === 'dialog' ? (
+        <Dialog open onOpenChange={(open) => !open && !pending && requestClose()}>
+          <DialogContent
+            className="post-form-dialog"
+            title={title}
+            description="O que você aprendeu, como aplicou e quanto isso aproximou você do objetivo."
+            footer={
+              <>
+                {cancel}
+                {send}
+              </>
+            }
+          >
+            <form id="post-form" action={submit} className="post-form" noValidate>
+              {fields}
+            </form>
+          </DialogContent>
+        </Dialog>
+      ) : (
+        <Card className="post-form-card">
+          <form id="post-form" action={submit} className="post-form" noValidate>
+            {fields}
+            <div className="post-form__actions">
+              {cancel}
+              {send}
             </div>
-            <div className="post-form__check">
-              <Checkbox
-                id="shown-on-profile"
-                checked={shownOnProfile}
-                onCheckedChange={(checked) => setShownOnProfile(checked === true)}
-              />
-              <Label htmlFor="shown-on-profile">Mostrar no meu perfil público</Label>
-            </div>
-            <p className="post-form__hint">
-              {!sharedOnFeed && !shownOnProfile
-                ? 'Só você vai ver esta publicação. Ela fica na sua trajetória.'
-                : shownOnProfile && !account.published
-                  ? 'Seu perfil público está desligado: a publicação só aparece nele quando você o publicar.'
-                  : 'Você pode mudar isso depois, no menu da publicação.'}
-            </p>
-          </div>
-
-          <FormMessage tone="error">{result.message}</FormMessage>
-          <div className="post-form__actions">
-            {dirty ? (
-              <Button type="button" variant="secondary" disabled={pending} onClick={() => setConfirmingDiscard(true)}>
-                Cancelar
-              </Button>
-            ) : (
-              <Button asChild variant="secondary">
-                <Link to={initial.learned ? '/app?view=mine' : '/app'}>Cancelar</Link>
-              </Button>
-            )}
-            <Button type="submit" loading={pending}>
-              {submitLabel}
-            </Button>
-          </div>
-        </form>
-      </Card>
+          </form>
+        </Card>
+      )}
 
       <Dialog open={confirmingDiscard} onOpenChange={setConfirmingDiscard}>
         <DialogContent
@@ -207,7 +257,7 @@ export function PostForm({
               <DialogClose asChild>
                 <Button variant="secondary">Continuar escrevendo</Button>
               </DialogClose>
-              <Button variant="danger" onClick={() => navigate(initial.learned ? '/app?view=mine' : '/app')}>
+              <Button variant="danger" onClick={() => navigate('/app')}>
                 Descartar
               </Button>
             </>

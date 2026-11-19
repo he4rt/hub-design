@@ -11,7 +11,7 @@ const SHOWN_COLLECTIONS = 4
 /**
  * The member beside the Feed, like a LinkedIn profile preview: who they are,
  * the objective, how complete the profile is and their study tracks
- * ("trilhas"), with the shortcuts to what is theirs.
+ * ("trilhas"). The photo and name open their profile, where they edit it.
  */
 export function ProfileCard({ account }: { account: User }) {
   const posts = useDb((state) => state.feedPosts)
@@ -30,8 +30,14 @@ export function ProfileCard({ account }: { account: User }) {
     <Card className="profile-card">
       <div className="profile-card__cover" aria-hidden />
       <div className="profile-card__identity">
-        <Avatar src={account.photoUrl} name={account.name} size="lg" />
-        <h2 title={account.name}>{account.name}</h2>
+        <Link to={`/members/${account.username}`} aria-hidden tabIndex={-1}>
+          <Avatar src={account.photoUrl} name={account.name} size="lg" />
+        </Link>
+        <h2 title={account.name}>
+          <Link to={`/members/${account.username}`} title="Ver meu perfil">
+            {account.name}
+          </Link>
+        </h2>
         {headline && <p title={headline}>{headline}</p>}
         {city && <p className="profile-card__muted">{city}</p>}
       </div>
@@ -62,16 +68,6 @@ export function ProfileCard({ account }: { account: User }) {
         </section>
       )}
 
-      <nav className="profile-card__links" aria-label="Atalhos do perfil">
-        <Link to="/app?view=mine">Minhas publicações</Link>
-        <Link to="/app?view=saved">Salvos</Link>
-        {account.published ? (
-          <Link to={`/members/${account.username}`}>Ver meu perfil público</Link>
-        ) : (
-          <Link to="/app/settings/profile">Perfil privado · publicar</Link>
-        )}
-        <Link to="/app/settings/profile">Editar perfil</Link>
-      </nav>
     </Card>
   )
 }

@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { Link } from 'react-router'
 import { Card } from '@/components/ui/card'
 import { useNow } from '@/hooks/use-now'
-import { formatPostDate } from '@/lib/feed-post'
+import { formatShortDate } from '@/lib/feed-post'
 import { useDb, type User } from '@/mocks/db'
 import { isProfileReminderVisible } from '../reminders/actions'
 import { EmailReminder } from '../reminders/components/email-reminder'
@@ -99,13 +99,13 @@ export function HomeAside({ account }: { account: User }) {
           <ol className="home-aside__trajectory">
             {own.slice(0, RECENT_POSTS).map((post) => (
               <li key={post.id}>
-                <time dateTime={post.createdAt}>{formatPostDate(post.createdAt)}</time>
+                <time dateTime={post.createdAt}>{formatShortDate(post.createdAt, now)}</time>
                 <p title={post.learned}>{post.learned}</p>
               </li>
             ))}
           </ol>
         )}
-        {own.length > RECENT_POSTS && <Link to="/app?view=mine">Ver toda a trajetória</Link>}
+        {own.length > RECENT_POSTS && <Link to={`/members/${account.username}?aba=trajetoria`}>Ver toda a trajetória</Link>}
       </Card>
       {blocks.slice(0, MAX_BLOCKS).map((block) => (
         <div key={block.key}>{block.node}</div>

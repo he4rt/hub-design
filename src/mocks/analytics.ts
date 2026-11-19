@@ -23,6 +23,7 @@ export type AnalyticsEventName =
   | 'feed_collection_created'
   | 'feed_post_collected'
   | 'feed_post_saved'
+  | 'feed_announcement_pinned'
   | 'feed_post_edited'
   | 'squad_test_submitted'
   | 'squad_test_approved'

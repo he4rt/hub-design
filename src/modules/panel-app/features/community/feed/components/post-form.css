@@ -82,3 +82,7 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+.ui-dialog.post-form-dialog {
+  width: min(640px, calc(100vw - 2 * var(--space-4)));
+}

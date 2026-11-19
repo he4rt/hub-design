@@ -6,7 +6,7 @@ import { useAccount } from '@/modules/panel-app/hooks/use-account'
 import { canManagePost, updatePost } from '../actions'
 import { PostForm } from '../components/post-form'
 
-/** The author edits a publication from "Minhas publicações". */
+/** The author edits a publication from its menu, in the Feed or in their profile. */
 export default function FeedEdit() {
   const { postId } = useParams()
   const account = useAccount()
@@ -30,13 +30,17 @@ export default function FeedEdit() {
           objectiveProgress: post.objectiveProgress,
           sharedOnFeed: post.sharedOnFeed,
           shownOnProfile: post.shownOnProfile,
+          showReactionCounts: post.showReactionCounts,
           collectionIds: post.collectionIds,
         }}
         title="Editar publicação"
         submitLabel="Salvar alterações"
         onSave={async (input) => {
           await updatePost(account.id, post.id, input)
-          return { to: '/app?view=mine', notice: 'Publicação atualizada.' }
+          return {
+            to: '/app',
+            notice: input.sharedOnFeed ? 'Publicação atualizada.' : 'Publicação atualizada, só para você. Ela fica na sua trajetória.',
+          }
         }}
       />
     </>
