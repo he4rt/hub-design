@@ -6,6 +6,6 @@
   padding: var(--space-10) var(--space-4);
 
   h1 {
-    font-size: var(--size-display);
+    font: var(--text-display);
   }
 }

@@ -1,4 +1,5 @@
 import { Link, Outlet } from 'react-router'
+import { BrandMark } from '@/components/brand-mark'
 import { Button } from '@/components/ui/button'
 import { useDb } from '@/mocks/db'
 import './landing-layout.css'
@@ -9,9 +10,7 @@ export function LandingLayout() {
   return (
     <div className="landing-layout">
       <header className="landing-layout__header">
-        <Link to="/" className="landing-layout__brand">
-          He4rt Hub
-        </Link>
+        <BrandMark to="/" />
         <nav>
           <Button asChild variant="ghost">
             <Link to="/squads">Squads</Link>
@@ -36,7 +35,7 @@ export function LandingLayout() {
         <Outlet />
       </div>
       <footer className="landing-layout__footer">
-        <span>He4rt Developers · da comunidade para a comunidade</span>
+        <span>He4rt Developers. Da comunidade para a comunidade.</span>
         <Link to="/admin/login">Administração</Link>
       </footer>
     </div>

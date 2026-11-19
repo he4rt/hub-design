@@ -1,7 +1,6 @@
 .form-message {
-  min-height: calc(var(--size-body) * 1.5);
-  font-size: var(--size-body);
-  line-height: 1.5;
+  min-height: 21px;
+  font: var(--text-body);
 
   &[data-tone='error'] {
     color: var(--danger-text);

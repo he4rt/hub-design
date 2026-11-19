@@ -6,11 +6,19 @@
   gap: var(--space-4);
   margin-bottom: var(--space-6);
 
-  h1 {
-    font-size: var(--size-display);
+  > div {
+    min-width: 0;
   }
 
+  /* The page title, once per screen. */
+  h1 {
+    font: var(--text-display);
+    letter-spacing: -0.02em;
+  }
+
+  /* Says something the member uses, or does not exist. */
   p {
+    max-width: 720px;
     margin-top: var(--space-1);
     color: var(--text-muted);
   }

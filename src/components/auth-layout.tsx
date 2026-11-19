@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react'
-import { Link, Outlet } from 'react-router'
+import { Outlet } from 'react-router'
+import { BrandMark } from '@/components/brand-mark'
+import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import './auth-layout.css'
 
@@ -7,10 +9,10 @@ import './auth-layout.css'
 export function AuthLayout({ badge, wide = false }: { badge?: ReactNode; wide?: boolean }) {
   return (
     <main className="auth-layout" data-width={wide ? 'wide' : undefined}>
-      <Link to="/" className="auth-layout__brand">
-        He4rt Hub
-        {badge && <span className="auth-layout__badge">{badge}</span>}
-      </Link>
+      <div className="auth-layout__brand">
+        <BrandMark to="/" />
+        {badge && <Badge variant="neutral">{badge}</Badge>}
+      </div>
       <Card className="auth-layout__card">
         <Outlet />
       </Card>

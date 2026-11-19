@@ -1,0 +1,208 @@
+.sidebar-nav {
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  height: 100dvh;
+  padding: 22px var(--space-4) var(--space-4);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  background: var(--ink);
+  color: var(--on-ink-text);
+
+  /* Focus on ink keeps the gap in the sidebar's color. */
+  a:focus-visible,
+  button:focus-visible {
+    outline: none;
+    box-shadow:
+      0 0 0 2px var(--ink),
+      0 0 0 4px var(--focus);
+  }
+}
+
+.sidebar-nav__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: 2px var(--space-2) 0;
+}
+
+.sidebar-nav__groups {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.sidebar-nav__group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sidebar-nav__label {
+  overflow: hidden;
+  padding: 0 var(--space-3) 6px;
+  color: var(--on-ink-label);
+  font: var(--text-group-label);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar-nav__item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: var(--control-h);
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-md);
+  color: var(--on-ink-text);
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+
+  &:hover {
+    background: var(--ink-2);
+  }
+
+  &.active {
+    background: var(--nav-active);
+    color: var(--on-ink);
+  }
+
+  /* Count pill sits at the end of the item. */
+  .ui-badge {
+    margin-left: auto;
+  }
+}
+
+/* Square icon button on ink: collapse toggle, settings. */
+.sidebar-nav__icon {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-md);
+  background: none;
+  color: var(--on-ink-muted);
+  cursor: pointer;
+
+  &:hover,
+  &.active {
+    background: var(--ink-2);
+    color: var(--on-ink);
+  }
+}
+
+.sidebar-nav__footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 14px var(--space-2) 0;
+  border-top: 1px solid var(--ink-3);
+
+  .ui-button[data-variant='ghost'] {
+    color: var(--on-ink-text);
+
+    &:hover:not(:disabled) {
+      background: var(--ink-2);
+    }
+  }
+}
+
+/* Collapsed: icons only; every item keeps its name in `title` and in the accessible name. */
+@media (min-width: 768px) {
+  .sidebar-nav[data-collapsed] {
+    align-items: center;
+    padding-inline: var(--space-2);
+
+    .sidebar-nav__top {
+      flex-direction: column;
+      padding: 0;
+    }
+
+    .brand-mark__text,
+    .sidebar-nav__label,
+    .sidebar-nav__hide-collapsed {
+      display: none;
+    }
+
+    .sidebar-nav__item {
+      justify-content: center;
+      width: var(--control-h);
+      padding: 0;
+
+      > span {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+      }
+
+      .ui-badge {
+        position: absolute;
+        top: 0;
+        right: -4px;
+      }
+    }
+
+    .sidebar-nav__footer {
+      flex-direction: column;
+      padding: 14px 0 0;
+    }
+  }
+}
+
+@media (max-width: 767px) {
+  .sidebar-nav {
+    position: static;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3) var(--space-4);
+    height: auto;
+    padding: var(--space-3) var(--space-4);
+    overflow: visible;
+  }
+
+  .sidebar-nav__top {
+    padding: 0;
+  }
+
+  .brand-mark__tagline,
+  .sidebar-nav__label,
+  .sidebar-nav__hide-mobile {
+    display: none;
+  }
+
+  .sidebar-nav__footer {
+    flex-wrap: nowrap;
+    margin-left: auto;
+    padding: 0;
+    border-top: none;
+  }
+
+  .sidebar-nav__groups {
+    order: 1;
+    flex-basis: 100%;
+    flex-direction: row;
+    gap: 2px;
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .sidebar-nav__group {
+    flex-direction: row;
+  }
+}

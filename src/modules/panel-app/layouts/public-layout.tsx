@@ -1,4 +1,5 @@
 import { Link, NavLink, Outlet, useLocation } from 'react-router'
+import { BrandMark } from '@/components/brand-mark'
 import { Button } from '@/components/ui/button'
 import { useAccount } from '@/modules/panel-app/hooks/use-account'
 import './public-layout.css'
@@ -14,9 +15,7 @@ export function PublicLayout() {
   return (
     <div className="public-layout">
       <header className="public-layout__header">
-        <Link to="/" className="public-layout__brand">
-          He4rt Hub
-        </Link>
+        <BrandMark to="/" />
         <nav className="public-layout__nav" aria-label="Seções">
           <NavLink to="/app/discussions">Fórum</NavLink>
         </nav>

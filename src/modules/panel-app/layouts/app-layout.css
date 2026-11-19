@@ -1,7 +1,7 @@
-/* Signed-in shell: a side navigation like a dashboard, the page on the right. */
+/* Signed-in shell: the ink sidebar, the page on the right. */
 .app-layout {
   display: grid;
-  grid-template-columns: 232px minmax(0, 1fr);
+  grid-template-columns: var(--sidebar-w) minmax(0, 1fr);
   min-height: 100dvh;
 
   &[data-collapsed] {
@@ -9,226 +9,97 @@
   }
 }
 
-.app-layout__top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-2);
-}
-
-/* Square icon button: collapse toggle and the settings link beside the name. */
-.app-layout__icon {
-  display: inline-flex;
-  flex: none;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  border: none;
-  border-radius: var(--radius-md);
-  background: none;
-  color: var(--text-muted);
-  cursor: pointer;
-
-  &:hover,
-  &.active {
-    background: var(--brand-soft);
-    color: var(--brand-text);
-  }
-
-  &:focus-visible {
-    outline: none;
-    box-shadow: var(--focus-ring);
-  }
-}
-
-.app-layout__sidebar {
-  position: sticky;
-  top: 0;
+/* Invitation for whoever is not a validator yet. */
+.app-layout__invite {
   display: flex;
   flex-direction: column;
-  gap: var(--space-6);
-  height: 100dvh;
-  padding: var(--space-6) var(--space-4);
-  overflow-y: auto;
-  border-right: 1px solid var(--border);
-}
-
-.app-layout__brand {
-  padding: 0 var(--space-3);
-  color: var(--text);
-  font-weight: 700;
+  gap: var(--space-1);
+  padding: 14px;
+  border-radius: var(--radius-md);
+  background: var(--ink-2);
   text-decoration: none;
+
+  &:hover {
+    background: var(--ink-3);
+  }
 }
 
-.app-layout__nav {
+.app-layout__invite-title {
+  color: var(--on-ink);
+  font: var(--text-body-strong);
+}
+
+.app-layout__invite-text {
+  color: var(--on-ink-muted);
+  font: var(--text-caption);
+}
+
+.app-layout__who {
   display: flex;
   flex: 1;
   flex-direction: column;
-  gap: var(--space-1);
-
-  a {
-    display: flex;
-    align-items: center;
-    gap: var(--space-3);
-    padding: var(--space-2) var(--space-3);
-    border-radius: var(--radius-md);
-    color: var(--text);
-    font-size: var(--size-body);
-    text-decoration: none;
-    white-space: nowrap;
-
-    &:hover {
-      background: var(--brand-soft);
-    }
-
-    &.active {
-      color: var(--brand-text);
-      background: var(--brand-soft);
-      font-weight: 600;
-    }
-  }
+  min-width: 0;
 }
 
-.app-layout__account {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-3) 0 0 var(--space-3);
-  border-top: 1px solid var(--border);
+.app-layout__user,
+.app-layout__handle {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-layout__user {
+  color: var(--on-ink);
+  font: var(--text-body-strong);
+}
+
+.app-layout__handle {
+  color: var(--on-ink-muted);
+  font: var(--text-caption);
 }
 
 .app-layout__logout {
   flex-basis: 100%;
   justify-content: flex-start;
-  gap: var(--space-2);
-}
-
-.app-layout__user {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  color: var(--text-muted);
-  font-size: var(--size-body);
 }
 
 .app-layout__content {
   width: 100%;
   max-width: 960px;
   margin: 0 auto;
-  padding: var(--space-8);
+  padding: var(--space-8) var(--space-8) var(--space-10);
 
   &[data-wide] {
-    max-width: 1280px;
+    max-width: var(--content-max);
   }
 }
 
-/* Collapsed: icons only; every item keeps its name in `title` and in the accessible name. */
 @media (min-width: 768px) {
-  .app-layout[data-collapsed] {
-    .app-layout__sidebar {
-      align-items: center;
-      padding-inline: var(--space-2);
-    }
+  .app-layout[data-collapsed] .app-layout__logout {
+    flex-basis: auto;
+    justify-content: center;
 
-    .app-layout__top {
-      flex-direction: column;
-    }
-
-    .app-layout__brand {
-      padding: 0;
-    }
-
-    .app-layout__nav a {
-      justify-content: center;
-      padding: var(--space-2);
-
-      span {
-        position: absolute;
-        width: 1px;
-        height: 1px;
-        overflow: hidden;
-        clip-path: inset(50%);
-        white-space: nowrap;
-      }
-    }
-
-    .app-layout__account {
-      flex-direction: column;
-      padding: var(--space-3) 0 0;
-    }
-
-    .app-layout__user {
-      display: none;
-    }
-
-    .app-layout__logout {
-      flex-basis: auto;
-      justify-content: center;
-
-      span {
-        position: absolute;
-        width: 1px;
-        height: 1px;
-        overflow: hidden;
-        clip-path: inset(50%);
-      }
+    span {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
     }
   }
 }
 
-/* Phones: the side navigation becomes a top bar that scrolls sideways. */
 @media (max-width: 767px) {
   .app-layout,
   .app-layout[data-collapsed] {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .app-layout__sidebar {
-    position: static;
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--space-2) var(--space-4);
-    height: auto;
-    padding: var(--space-3) var(--space-4);
-    overflow: visible;
-    border-right: none;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .app-layout__brand {
-    padding: 0;
-  }
-
-  .app-layout__collapse {
-    display: none;
-  }
-
-  .app-layout__account {
-    flex-wrap: nowrap;
-    margin-left: auto;
-    padding: 0;
-    border-top: none;
-  }
-
   .app-layout__logout {
     flex-basis: auto;
   }
 
-  .app-layout__nav {
-    order: 1;
-    flex-basis: 100%;
-    flex-direction: row;
-    min-width: 0;
-    overflow-x: auto;
-  }
-
   .app-layout__content {
-    padding: var(--space-6) var(--space-4);
+    padding: var(--space-6) var(--space-4) var(--space-10);
   }
 }
