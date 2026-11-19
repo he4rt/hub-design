@@ -81,6 +81,9 @@ Laravel (`src/Features/<Group>/<Feature>/`):
 | `panel-app`   | `account` | `settings`, `two-factor-setup`             |
 | `panel-app`   | `community` | `feed`, `discussions`                    |
 
+No `panel-app`, a home (`/app`) é o Feed (`community/feed`), com o perfil e os blocos do momento do
+membro nas laterais; não há feature `home`.
+
 - Ao planejar uma feature nova, sugira o grupo e diga por quê. Quando nenhum grupo serve, sugira um novo
   e pergunte antes de criar.
 - Um grupo é um agrupamento estável, não o título da seção no menu. Não mova a feature quando só o

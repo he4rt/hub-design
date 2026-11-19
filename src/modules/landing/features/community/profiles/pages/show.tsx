@@ -1,8 +1,9 @@
-import { Link, useNavigate, useParams } from 'react-router'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 import { NotFound } from '@/components/not-found'
 import { Avatar } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { useDebugActions } from '@/debug/use-debug-actions'
 import { formatPostDate, OBJECTIVE_PROGRESS } from '@/lib/feed-post'
 import { areaLabels, labelOf, SITUATIONS } from '@/lib/member-profile'
@@ -22,6 +23,8 @@ export default function Show() {
   const member = useDb((state) => state.users.find((u) => u.username === username && u.onboardedAt) ?? null)
   const viewerId = useDb((state) => state.session?.userId ?? null)
   const feedPosts = useDb((state) => state.feedPosts)
+  const feedCollections = useDb((state) => state.feedCollections)
+  const [params, setParams] = useSearchParams()
 
   useDebugActions('Perfil público', [
     { label: 'Abrir perfil inexistente', run: () => navigate('/members/nao-existe') },
@@ -64,6 +67,14 @@ export default function Show() {
   const posts = feedPosts
     .filter((p) => p.userId === member.id && p.shownOnProfile && p.deletedAt === null)
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+  // A collection shows only with at least one publication the member chose to show here.
+  const collections = feedCollections
+    .filter((c) => c.userId === member.id)
+    .map((c) => ({ ...c, count: posts.filter((p) => p.collectionIds.includes(c.id)).length }))
+    .filter((c) => c.count > 0)
+    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name))
+  const selected = collections.find((c) => c.id === params.get('collection'))?.id ?? 'all'
+  const shown = selected === 'all' ? posts : posts.filter((p) => p.collectionIds.includes(selected))
   const meta = [areaLabels(member.areas), member.city && `${member.city.name} — ${member.city.uf}`].filter(Boolean)
 
   return (
@@ -113,11 +124,29 @@ export default function Show() {
 
       <Card>
         <h2>Trajetória</h2>
-        {posts.length === 0 ? (
+        {collections.length > 0 && (
+          <ToggleGroup
+            type="single"
+            variant="chips"
+            value={selected}
+            aria-label="Trilhas"
+            onValueChange={(next) => next && setParams(next === 'all' ? {} : { collection: next }, { replace: true })}
+          >
+            <ToggleGroupItem value="all">
+              Tudo <span className="public-profile__count">{posts.length}</span>
+            </ToggleGroupItem>
+            {collections.map((c) => (
+              <ToggleGroupItem key={c.id} value={c.id} title={c.name}>
+                {c.name} <span className="public-profile__count">{c.count}</span>
+              </ToggleGroupItem>
+            ))}
+          </ToggleGroup>
+        )}
+        {shown.length === 0 ? (
           <p className="public-profile__muted">Nenhum registro público ainda.</p>
         ) : (
           <ol className="public-profile__records">
-            {posts.map((post) => (
+            {shown.map((post) => (
               <li key={post.id}>
                 <time dateTime={post.createdAt}>{formatPostDate(post.createdAt)} · Diário de aprendizado</time>
                 <p>{post.learned}</p>

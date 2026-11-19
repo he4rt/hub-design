@@ -1,0 +1,143 @@
+.profile-card {
+  gap: var(--space-3);
+  overflow: hidden;
+  padding-top: 0;
+}
+
+.profile-card__cover {
+  height: 56px;
+  margin: 0 calc(-1 * var(--space-6));
+  background: var(--color-primary-soft);
+}
+
+.profile-card__identity {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+  margin-top: -40px;
+
+  .ui-avatar {
+    border: 3px solid var(--color-surface-raised);
+  }
+
+  h2 {
+    max-width: 100%;
+    margin-top: var(--space-2);
+    overflow: hidden;
+    font-size: var(--text-md);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  p {
+    display: -webkit-box;
+    max-width: 100%;
+    overflow: hidden;
+    font-size: var(--text-sm);
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+}
+
+.profile-card__muted {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.profile-card__facts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: 0;
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border);
+  font-size: var(--text-sm);
+
+  div {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-3);
+  }
+
+  dt {
+    color: var(--color-text-muted);
+  }
+
+  dd {
+    margin: 0;
+    color: var(--color-text-strong);
+  }
+}
+
+.profile-card__percent,
+.profile-card__count {
+  font-variant-numeric: tabular-nums;
+}
+
+.profile-card__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border);
+
+  h3 {
+    font-size: var(--text-sm);
+  }
+}
+
+.profile-card__collections {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--text-sm);
+}
+
+.profile-card__collections li {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+
+  span:first-child {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.profile-card__count {
+  color: var(--color-text-muted);
+}
+
+.profile-card__links {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border);
+  font-size: var(--text-sm);
+}
+
+@media (max-width: 767px) {
+  .profile-card__cover {
+    margin: 0 calc(-1 * var(--space-4));
+  }
+}
+
+/* On phones the card stays short so the Feed starts on the first screen. */
+@container (max-width: 699px) {
+  .profile-card__section {
+    display: none;
+  }
+
+  .profile-card__links {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: var(--space-1) var(--space-4);
+  }
+}

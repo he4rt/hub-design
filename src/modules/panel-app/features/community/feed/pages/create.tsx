@@ -15,6 +15,7 @@ import { labelOf, OBJECTIVES } from '@/lib/member-profile'
 import type { ObjectiveProgress } from '@/mocks/db'
 import { MockError, errorMessage } from '@/mocks/mock-action'
 import { useAccount } from '@/modules/panel-app/hooks/use-account'
+import { CollectionPicker } from '../components/collection-picker'
 import { createPost, POST_TEXT_MAX, validatePost, type PostField, type PostInput } from '../actions'
 import './create.css'
 
@@ -35,9 +36,10 @@ export default function FeedCreate() {
   const [progress, setProgress] = useState<ObjectiveProgress | null>(null)
   const [sharedOnFeed, setSharedOnFeed] = useState(true)
   const [shownOnProfile, setShownOnProfile] = useState(false)
+  const [collectionIds, setCollectionIds] = useState<string[]>([])
   const [confirmingDiscard, setConfirmingDiscard] = useState(false)
 
-  const input: PostInput = { learned, applied, objectiveProgress: progress, sharedOnFeed, shownOnProfile }
+  const input: PostInput = { learned, applied, objectiveProgress: progress, sharedOnFeed, shownOnProfile, collectionIds }
 
   const [result, submit, pending] = useActionState(async (): Promise<Result> => {
     if (!account) return NO_ERRORS
@@ -45,7 +47,7 @@ export default function FeedCreate() {
     if (Object.keys(errors).length > 0) return { errors, message: null }
     try {
       await createPost(account.id, input)
-      navigate(sharedOnFeed ? '/app/feed' : '/app/feed?view=mine', {
+      navigate(sharedOnFeed ? '/app' : '/app?view=mine', {
         state: { notice: { tone: 'success', text: 'Publicação adicionada.' } },
       })
       return NO_ERRORS
@@ -136,6 +138,13 @@ export default function FeedCreate() {
             <FormMessage tone="error">{result.errors.objectiveProgress}</FormMessage>
           </fieldset>
 
+          <fieldset className="post-form__field">
+            <legend>
+              Trilhas <span className="post-form__objective">· opcional</span>
+            </legend>
+            <CollectionPicker userId={account.id} value={collectionIds} onChange={setCollectionIds} disabled={pending} />
+          </fieldset>
+
           <div className="post-form__visibility">
             <div className="post-form__check">
               <Checkbox
@@ -170,7 +179,7 @@ export default function FeedCreate() {
               </Button>
             ) : (
               <Button asChild variant="secondary">
-                <Link to="/app/feed">Cancelar</Link>
+                <Link to="/app">Cancelar</Link>
               </Button>
             )}
             <Button type="submit" loading={pending}>
@@ -189,7 +198,7 @@ export default function FeedCreate() {
               <DialogClose asChild>
                 <Button variant="secondary">Continuar escrevendo</Button>
               </DialogClose>
-              <Button variant="danger" onClick={() => navigate('/app/feed')}>
+              <Button variant="danger" onClick={() => navigate('/app')}>
                 Descartar
               </Button>
             </>

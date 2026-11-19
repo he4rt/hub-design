@@ -1,8 +1,58 @@
+/*
+ * Home: profile | Feed | blocks. Two columns when narrower, one on phones
+ * (profile, Feed, blocks). Sized by the space it gets, which the debug sidebar takes from.
+ */
+.feed-home {
+  container-type: inline-size;
+}
+
+.feed-home__grid {
+  display: grid;
+  grid-template-areas: 'profile feed aside';
+  grid-template-columns: 260px minmax(0, 1fr) 300px;
+  align-items: start;
+  gap: var(--space-6);
+}
+
+.feed-home__profile {
+  grid-area: profile;
+}
+
+.feed-home__aside {
+  grid-area: aside;
+}
+
+.feed-home__grid .feed {
+  grid-area: feed;
+}
+
+.feed-home__profile,
+.feed-home__aside {
+  min-width: 0;
+}
+
+@container (max-width: 1039px) {
+  .feed-home__grid {
+    grid-template-areas:
+      'profile feed'
+      'aside feed';
+    grid-template-columns: 260px minmax(0, 1fr);
+    grid-template-rows: auto 1fr;
+  }
+}
+
+@container (max-width: 699px) {
+  .feed-home__grid {
+    grid-template-areas: 'profile' 'feed' 'aside';
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
+  }
+}
+
 .feed {
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
-  max-width: 720px;
 }
 
 .feed__toolbar {

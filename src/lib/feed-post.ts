@@ -1,4 +1,4 @@
-import type { ObjectiveProgress } from '@/mocks/db'
+import type { ObjectiveProgress, ReactionType } from '@/mocks/db'
 
 /**
  * The four answers to "quanto aproximou do objetivo", in order. Always shown
@@ -17,3 +17,11 @@ const POST_DATE = new Intl.DateTimeFormat('pt-BR', { day: 'numeric', month: 'sho
 export function formatPostDate(iso: string): string {
   return POST_DATE.format(new Date(iso))
 }
+
+/** Learning reactions, in the order the buttons show. */
+export const REACTIONS: { value: ReactionType; label: string }[] = [
+  { value: 'helped', label: 'Isso me ajudou' },
+  { value: 'learning-too', label: 'Aprendendo também' },
+  { value: 'want-to-learn', label: 'Quero aprender isso' },
+  { value: 'inspiring', label: 'Inspirador' },
+]

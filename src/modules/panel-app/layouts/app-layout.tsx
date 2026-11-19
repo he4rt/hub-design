@@ -1,5 +1,5 @@
 import { useTransition } from 'react'
-import { Link, Navigate, NavLink, Outlet, useLocation, useNavigate } from 'react-router'
+import { Link, Navigate, NavLink, Outlet, useLocation, useMatches, useNavigate } from 'react-router'
 import { Button } from '@/components/ui/button'
 import { useAccount } from '@/modules/panel-app/hooks/use-account'
 import { logout } from '@/modules/panel-app/features/auth/actions'
@@ -14,6 +14,8 @@ export function AppLayout() {
   const navigate = useNavigate()
   const { pathname, search } = useLocation()
   const [loggingOut, startLogout] = useTransition()
+  // Routes with `handle: { wide: true }` (the home) get the whole width for their columns.
+  const wide = useMatches().some((match) => (match.handle as { wide?: boolean } | undefined)?.wide)
 
   if (!account) return <Navigate to={`/app/login?redirect=${encodeURIComponent(pathname + search)}`} replace />
   if (!account.onboardedAt) return <Navigate to="/app/onboarding" replace />
@@ -26,10 +28,9 @@ export function AppLayout() {
         </Link>
         <nav className="app-layout__nav">
           <NavLink to="/app" end>
-            Dashboard
+            Início
           </NavLink>
           <NavLink to="/app/discussions">Fórum</NavLink>
-          <NavLink to="/app/feed">Feed</NavLink>
           <NavLink to="/app/settings/profile">Configurações</NavLink>
         </nav>
         <span className="app-layout__user" title={account.name}>
@@ -49,7 +50,7 @@ export function AppLayout() {
           Sair
         </Button>
       </header>
-      <main className="app-layout__content">
+      <main className="app-layout__content" data-wide={wide || undefined}>
         <Outlet />
       </main>
     </div>

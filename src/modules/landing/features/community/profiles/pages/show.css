@@ -124,3 +124,9 @@
     font-variant-numeric: tabular-nums;
   }
 }
+
+.public-profile__count {
+  margin-left: var(--space-1);
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}

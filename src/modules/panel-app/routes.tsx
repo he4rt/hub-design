@@ -1,4 +1,4 @@
-import type { RouteObject } from 'react-router'
+import { redirect, type RouteObject } from 'react-router'
 import { AuthLayout } from '@/components/auth-layout'
 import PublicProfile from './features/account/public-profile/pages/show'
 import Profile from './features/account/settings/pages/profile'
@@ -15,7 +15,6 @@ import DiscussionsIndex from './features/community/discussions/pages/index'
 import DiscussionShow from './features/community/discussions/pages/show'
 import SquadShow from './features/development/squads/pages/show'
 import ProjectShow from './features/development/squads/projects/pages/show'
-import Dashboard from './features/home/pages/dashboard'
 import { AppLayout } from './layouts/app-layout'
 import { PublicLayout } from './layouts/public-layout'
 
@@ -55,8 +54,9 @@ export const panelAppRoutes: RouteObject = {
     {
       Component: AppLayout,
       children: [
-        { index: true, Component: Dashboard },
-        { path: 'feed', Component: FeedIndex },
+        // The Feed is the home of the Hub; `wide` lets its three columns use the screen.
+        { index: true, Component: FeedIndex, handle: { wide: true } },
+        { path: 'feed', loader: ({ request }) => redirect(`/app${new URL(request.url).search}`) },
         { path: 'feed/new', Component: FeedCreate },
         { path: 'settings/profile', Component: Profile },
       ],

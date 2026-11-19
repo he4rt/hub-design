@@ -80,7 +80,7 @@ export type User = {
   completeness: { percent: number; missing: ProfileField[] }
   /** First time the completeness reached 100%. */
   profileCompletedAt: string | null
-  /** "Next steps" card on the /app home. */
+  /** "Next steps" card beside the Feed, the /app home. */
   profileReminder: { dismissals: number; hiddenUntil: string | null }
   createdAt: string
 }
@@ -309,6 +309,20 @@ export type Discussion = {
   solvedReplyId: string | null
 }
 
+/** Learning reactions to a publication. Never XP, never an order for the Feed. */
+export type ReactionType = 'helped' | 'learning-too' | 'want-to-learn' | 'inspiring'
+
+export type PostReaction = { userId: string; type: ReactionType; createdAt: string }
+
+/**
+ * Study track: a member's own line of publications about one theme, such as
+ * "IA aplicada", showing how they evolve in it. The interface says "trilha".
+ */
+export type FeedCollection = { id: string; userId: string; name: string; createdAt: string }
+
+/** A publication a member saved to read again, like a bookmark. Only that member sees it. */
+export type FeedBookmark = { userId: string; postId: string; createdAt: string }
+
 /** How much a learning got the member closer to the objective. A label, never a score. */
 export type ObjectiveProgress = 'none' | 'little' | 'a-lot' | 'very-much'
 
@@ -327,6 +341,11 @@ export type FeedPost = {
   sharedOnFeed: boolean
   /** Visitors see it in the public profile, when the profile is published. Off by default. */
   shownOnProfile: boolean
+  /** Collections of the author; a publication can be in several or none. */
+  collectionIds: string[]
+  reactions: PostReaction[]
+  /** Everyone sees how many reactions this publication got; off means only the author sees them. */
+  showReactionCounts: boolean
   createdAt: string
   /** Deleted by the author: gone for every member, kept for moderation and audit. */
   deletedAt: string | null
@@ -345,6 +364,8 @@ export type MockDb = {
   adminSession: { userId: string } | null
   /** Newest last; read through the Feed, which sorts them. */
   feedPosts: FeedPost[]
+  feedCollections: FeedCollection[]
+  feedBookmarks: FeedBookmark[]
   /** What PostHog would receive, newest first. */
   events: AnalyticsEvent[]
   profiles: MemberProfile[]
@@ -407,7 +428,20 @@ const post = (
   userId: string,
   createdAt: string,
   fields: Pick<FeedPost, 'learned' | 'applied' | 'objectiveProgress'> & Partial<FeedPost>,
-): FeedPost => ({ id, userId, createdAt, sharedOnFeed: true, shownOnProfile: false, deletedAt: null, ...fields })
+): FeedPost => ({
+  id,
+  userId,
+  createdAt,
+  sharedOnFeed: true,
+  shownOnProfile: false,
+  collectionIds: [],
+  reactions: [],
+  showReactionCounts: false,
+  deletedAt: null,
+  ...fields,
+})
+
+const reacted = (userId: string, type: ReactionType, createdAt: string): PostReaction => ({ userId, type, createdAt })
 
 const seed: MockDb = {
   users: [
@@ -541,6 +575,8 @@ const seed: MockDb = {
       applied: 'Coloquei a mensagem de erro do meu formulário de contato numa região aria-live.',
       objectiveProgress: 'very-much',
       shownOnProfile: true,
+      collectionIds: ['c2'],
+      reactions: [reacted('u1', 'helped', '2026-10-21T10:00:00Z'), reacted('u3', 'want-to-learn', '2026-10-22T10:00:00Z')],
     }),
     post('p3', 'u3', '2026-10-28T22:05:00Z', {
       learned: 'A diferença entre interface e classe abstrata em Java, na prática.',
@@ -552,6 +588,7 @@ const seed: MockDb = {
       applied: 'Tirei dois efeitos que só copiavam props para state no meu projeto de estudo.',
       objectiveProgress: 'little',
       sharedOnFeed: false,
+      collectionIds: ['c1'],
     }),
     post('p5', 'u1', '2026-11-12T09:15:00Z', {
       learned: 'Índices compostos no MySQL: a ordem das colunas muda quais consultas o índice atende.',
@@ -562,8 +599,21 @@ const seed: MockDb = {
       learned: 'Testes de componente com Testing Library: buscar pelo papel e não pela classe.',
       applied: 'Reescrevi os testes do meu formulário para usar getByRole.',
       objectiveProgress: 'none',
+      shownOnProfile: true,
+      collectionIds: ['c1'],
+      showReactionCounts: true,
+      reactions: [
+        reacted('u1', 'helped', '2026-11-17T09:00:00Z'),
+        reacted('u3', 'learning-too', '2026-11-17T12:00:00Z'),
+        reacted('u4', 'helped', '2026-11-18T08:00:00Z'),
+      ],
     }),
   ],
+  feedCollections: [
+    { id: 'c1', userId: 'u2', name: 'Testes no front-end', createdAt: '2026-11-04T11:30:00Z' },
+    { id: 'c2', userId: 'u2', name: 'Acessibilidade', createdAt: '2026-10-20T18:42:00Z' },
+  ],
+  feedBookmarks: [{ userId: 'u2', postId: 'p5', createdAt: '2026-11-13T08:00:00Z' }],
   events: [],
   profiles: [
     {
@@ -1202,7 +1252,7 @@ function achievementSeed(userId: string, rows: [string, string, boolean, boolean
 }
 
 /** The fake backend. Persisted in localStorage; reset it from the debug sidebar. */
-export const db = createStore(seed, { persist: 'he4rt:mock-db:v7' })
+export const db = createStore(seed, { persist: 'he4rt:mock-db:v10' })
 
 export function useDb<S>(selector: (db: MockDb) => S): S {
   return useStore(db, selector)
