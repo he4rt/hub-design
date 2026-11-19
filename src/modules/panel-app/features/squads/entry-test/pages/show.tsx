@@ -14,9 +14,9 @@ import { useAccount } from '@/modules/panel-app/hooks/use-account'
 import '@/components/stack-page.css'
 
 const STATUS = {
-  open: { label: 'Esperando revisão da staff', tone: 'warning' },
-  approved: { label: 'Aprovado', tone: 'success' },
-  closed: { label: 'Fechado sem merge', tone: 'danger' },
+  open: { label: 'Esperando revisão da staff', variant: 'warning' },
+  approved: { label: 'Aprovado', variant: 'success' },
+  closed: { label: 'Fechado sem merge', variant: 'danger' },
 } as const
 
 /**
@@ -97,7 +97,7 @@ export default function Show() {
                 {test.status === 'closed' && ' · leia os comentários no PR e abra outro quando quiser'}
               </p>
             </div>
-            <Badge tone={STATUS[test.status].tone}>{STATUS[test.status].label}</Badge>
+            <Badge variant={STATUS[test.status].variant}>{STATUS[test.status].label}</Badge>
           </div>
         )}
         {test?.status === 'approved' && (

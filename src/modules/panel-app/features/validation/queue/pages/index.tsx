@@ -81,7 +81,7 @@ export default function Index() {
                     <span className="stack-page__title">
                       {state.users.find((u) => u.id === r.memberId)?.name} · {evaluationCriterion(state, r)?.competency}
                     </span>
-                    {draft && <Badge tone={draft.status === 'in-review' ? 'primary' : 'neutral'}>{draft.status === 'in-review' ? 'Em revisão' : 'Rascunho'}</Badge>}
+                    {draft && <Badge variant={draft.status === 'in-review' ? 'soft' : 'outline'}>{draft.status === 'in-review' ? 'Em revisão' : 'Rascunho'}</Badge>}
                   </div>
                   <div className="stack-page__row">
                     <span className="stack-page__muted">

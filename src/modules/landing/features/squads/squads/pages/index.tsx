@@ -87,7 +87,7 @@ export default function Index() {
                 <Link to={`/squads/${squad.slug}`} className="squads-index__item">
                   <div className="squads-index__title">
                     <h2 title={squad.name}>{squad.name}</h2>
-                    <Badge tone={squad.status === 'active' ? 'success' : 'neutral'}>
+                    <Badge variant={squad.status === 'active' ? 'success' : 'outline'}>
                       {squad.status === 'active' ? 'Ativo' : 'Inativo'}
                     </Badge>
                   </div>

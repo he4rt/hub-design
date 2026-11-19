@@ -38,7 +38,7 @@ export default function Show() {
         </Link>
         <div className="squad-show__title">
           <h1 title={project.name}>{project.name}</h1>
-          <Badge tone={project.status === 'active' ? 'success' : 'neutral'}>
+          <Badge variant={project.status === 'active' ? 'success' : 'outline'}>
             {project.status === 'ended' ? 'Encerrado' : project.status === 'active' ? 'Em andamento' : 'Criando'}
           </Badge>
         </div>

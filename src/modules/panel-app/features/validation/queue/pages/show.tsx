@@ -147,7 +147,7 @@ export default function Show() {
         </div>
 
         <Card>
-          {inReview && <Badge tone="primary">Em revisão da staff</Badge>}
+          {inReview && <Badge variant="soft">Em revisão da staff</Badge>}
           {draft?.review?.decision === 'returned' && <p className="stack-page__quote">Devolvida pela revisão: {draft.review.note}</p>}
           <form action={submit} className="stack-page">
             <datalist id="validation-evidence">

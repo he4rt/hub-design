@@ -71,7 +71,7 @@ export default function Show() {
               <li key={a.id}>
                 <div className="stack-page__row">
                   <span className="stack-page__muted">Enviado em {formatDate(a.createdAt)}</span>
-                  <Badge tone={a.status === 'approved' ? 'success' : a.status === 'pending' ? 'warning' : 'neutral'}>
+                  <Badge variant={a.status === 'approved' ? 'success' : a.status === 'pending' ? 'warning' : 'outline'}>
                     {a.status === 'approved' ? 'Aprovado' : a.status === 'pending' ? 'Com a staff' : 'Recusado com retorno'}
                   </Badge>
                 </div>

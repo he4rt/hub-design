@@ -57,9 +57,9 @@ export default function Index() {
                         </Link>
                       </td>
                       <td>
-                        <Badge tone={squad.status === 'active' ? 'success' : 'neutral'}>{squad.status === 'active' ? 'Ativo' : 'Inativo'}</Badge>
+                        <Badge variant={squad.status === 'active' ? 'success' : 'outline'}>{squad.status === 'active' ? 'Ativo' : 'Inativo'}</Badge>
                       </td>
-                      <td>{state.users.find((u) => u.id === squad.captainId)?.name ?? <Badge tone="warning">Vacancy</Badge>}</td>
+                      <td>{state.users.find((u) => u.id === squad.captainId)?.name ?? <Badge variant="warning">Vacancy</Badge>}</td>
                       <td>{project ? `${project.name}${project.status === 'provisioning' ? ' (criando)' : ''}` : '—'}</td>
                       <td className="admin-squads__num">{project ? `${activeMemberships(state, project.id).length}/${project.seats}` : '—'}</td>
                       <td className="admin-squads__num">

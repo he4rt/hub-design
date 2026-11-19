@@ -80,7 +80,7 @@ export default function Show() {
         <div className="stack-page__row">
           <h2>{project ? `Projeto: ${project.name}` : 'Sem projeto ativo'}</h2>
           {project && (
-            <Badge tone={project.status === 'active' ? 'success' : 'warning'}>
+            <Badge variant={project.status === 'active' ? 'success' : 'warning'}>
               {project.status === 'active' ? 'Ativo' : 'Criando no GitHub'}
             </Badge>
           )}

@@ -53,13 +53,13 @@ export default function Show() {
       <Card>
         <div className="stack-page__row">
           <span>App instalado na organização he4rt</span>
-          <Badge tone="success">Ativo</Badge>
+          <Badge variant="success">Ativo</Badge>
         </div>
         <div className="stack-page__row">
           <span>Último webhook</span>
           <span className="stack-page__actions stack-page__num">
             {formatDateTime(sync.lastWebhookAt)}
-            {stale && <Badge tone="warning">Atrasado</Badge>}
+            {stale && <Badge variant="warning">Atrasado</Badge>}
           </span>
         </div>
         <div className="stack-page__row">

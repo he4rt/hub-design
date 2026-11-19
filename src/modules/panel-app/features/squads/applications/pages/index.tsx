@@ -15,10 +15,10 @@ import { canWithdraw, withdrawApplication } from '../actions'
 import '@/components/stack-page.css'
 
 const STATUS = {
-  pending: { label: 'Aguardando o capitão', tone: 'warning' },
-  accepted: { label: 'Aceita', tone: 'success' },
-  declined: { label: 'Recusada com retorno', tone: 'neutral' },
-  withdrawn: { label: 'Você desistiu', tone: 'neutral' },
+  pending: { label: 'Aguardando o capitão', variant: 'warning' },
+  accepted: { label: 'Aceita', variant: 'success' },
+  declined: { label: 'Recusada com retorno', variant: 'outline' },
+  withdrawn: { label: 'Você desistiu', variant: 'outline' },
 } as const
 
 /** The member's applications, the captain's notes and the feedback of a decline. */
@@ -77,7 +77,7 @@ export default function Index() {
                     <Link to={`/squads/${squad?.slug}`} className="stack-page__title">
                       {squad?.name} · {project?.name}
                     </Link>
-                    <Badge tone={STATUS[app.status].tone}>{STATUS[app.status].label}</Badge>
+                    <Badge variant={STATUS[app.status].variant}>{STATUS[app.status].label}</Badge>
                   </div>
                   <p className="stack-page__muted">Enviada em {formatDate(app.createdAt)}</p>
                   {app.status === 'accepted' && app.githubInvite === 'pending' && (

@@ -16,8 +16,8 @@ import { canPublish, hasOpenContestation, setValidationPublished } from '../acti
 import '@/components/stack-page.css'
 
 const REQUEST = {
-  queued: { label: 'Na fila', tone: 'warning' },
-  assigned: { label: 'Com um validador', tone: 'primary' },
+  queued: { label: 'Na fila', variant: 'warning' },
+  assigned: { label: 'Com um validador', variant: 'soft' },
 } as const
 
 function fakeValidation(memberId: string, insufficient: boolean, i = 0): Validation {
@@ -106,7 +106,7 @@ export default function Index() {
                   <span className="stack-page__title">
                     {evaluationCriterion(state, r)?.competency} · {state.projects.find((p) => p.id === r.projectId)?.name}
                   </span>
-                  <Badge tone={REQUEST[r.status as 'queued' | 'assigned'].tone}>{REQUEST[r.status as 'queued' | 'assigned'].label}</Badge>
+                  <Badge variant={REQUEST[r.status as 'queued' | 'assigned'].variant}>{REQUEST[r.status as 'queued' | 'assigned'].label}</Badge>
                 </div>
                 <div className="stack-page__row">
                   <p className="stack-page__muted">
@@ -142,7 +142,7 @@ export default function Index() {
                     {v.competency}
                   </Link>
                   <span className="stack-page__actions">
-                    {v.insufficientEvidence && <Badge tone="warning">Evidência insuficiente</Badge>}
+                    {v.insufficientEvidence && <Badge variant="warning">Evidência insuficiente</Badge>}
                     {hasOpenContestation(state.contestations, v.id) && <Badge>Revisão em andamento</Badge>}
                   </span>
                 </div>

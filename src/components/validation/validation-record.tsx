@@ -17,7 +17,7 @@ export function ValidationRecord({ validation, projectName }: { validation: Vali
             {employer && `, ${employer}`} · {formatDate(validation.recordedAt)}
           </p>
         </div>
-        {validation.insufficientEvidence && <Badge tone="warning">Evidência insuficiente</Badge>}
+        {validation.insufficientEvidence && <Badge variant="warning">Evidência insuficiente</Badge>}
       </header>
       <dl className="validation-record__body">
         <dt>Contexto</dt>

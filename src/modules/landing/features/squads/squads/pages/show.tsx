@@ -42,7 +42,7 @@ export default function Show() {
         </Link>
         <div className="squad-show__title">
           <h1 title={squad.name}>{squad.name}</h1>
-          <Badge tone={squad.status === 'active' ? 'success' : 'neutral'}>
+          <Badge variant={squad.status === 'active' ? 'success' : 'outline'}>
             {squad.status === 'active' ? 'Ativo' : 'Inativo'}
           </Badge>
         </div>

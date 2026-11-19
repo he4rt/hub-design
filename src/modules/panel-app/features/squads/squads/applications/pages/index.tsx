@@ -13,10 +13,10 @@ import './index.css'
 import '@/components/stack-page.css'
 
 const STATUS = {
-  pending: { label: 'Aguardando', tone: 'warning' },
-  accepted: { label: 'Aceita', tone: 'success' },
-  declined: { label: 'Recusada', tone: 'neutral' },
-  withdrawn: { label: 'Retirada', tone: 'neutral' },
+  pending: { label: 'Aguardando', variant: 'warning' },
+  accepted: { label: 'Aceita', variant: 'success' },
+  declined: { label: 'Recusada', variant: 'outline' },
+  withdrawn: { label: 'Retirada', variant: 'outline' },
 } as const
 
 /** Captain's tab: pick applicants by hand, reading each one's profile and answers. */
@@ -82,7 +82,7 @@ export default function Index() {
                     <span className="stack-page__title">{state.users.find((u) => u.id === a.userId)?.name}</span>
                     <span className="captain-applications__meta">
                       <span className="stack-page__muted stack-page__num">{formatDate(a.createdAt)}</span>
-                      <Badge tone={STATUS[a.status].tone}>{STATUS[a.status].label}</Badge>
+                      <Badge variant={STATUS[a.status].variant}>{STATUS[a.status].label}</Badge>
                     </span>
                   </button>
                 </li>

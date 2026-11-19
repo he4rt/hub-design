@@ -70,14 +70,14 @@ export default function Index() {
           <span>Ocupação</span>
           <span className="stack-page__actions stack-page__num">
             {assigned.length}/{capacity} ({occupancy}%)
-            {occupancy > 80 && <Badge tone="warning">Habilite mais validadores</Badge>}
+            {occupancy > 80 && <Badge variant="warning">Habilite mais validadores</Badge>}
           </span>
         </div>
         <div className="stack-page__row">
           <span>Na fila</span>
           <span className="stack-page__actions stack-page__num">
             {queued.length}
-            {capacity > 0 && queued.length > capacity * 2 && <Badge tone="danger">Acima de 2× a capacidade</Badge>}
+            {capacity > 0 && queued.length > capacity * 2 && <Badge variant="danger">Acima de 2× a capacidade</Badge>}
           </span>
         </div>
       </Card>

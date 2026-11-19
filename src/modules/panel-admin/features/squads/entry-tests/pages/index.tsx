@@ -54,7 +54,7 @@ export default function Index() {
                 <li key={t.userId}>
                   <div className="stack-page__row">
                     <span className="stack-page__title">{name(t.userId)}</span>
-                    {days >= 7 && <Badge tone="warning">Há {days} dias</Badge>}
+                    {days >= 7 && <Badge variant="warning">Há {days} dias</Badge>}
                   </div>
                   <div className="stack-page__row">
                     <span className="stack-page__muted">

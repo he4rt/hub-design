@@ -119,7 +119,7 @@ export function ApplicationReview({ state, application, actorId }: { state: Mock
 
       {decided ? (
         <p className="stack-page__muted">
-          <Badge tone={application.status === 'accepted' ? 'success' : 'neutral'}>
+          <Badge variant={application.status === 'accepted' ? 'success' : 'outline'}>
             {application.status === 'accepted' ? 'Aceita' : application.status === 'declined' ? 'Recusada' : 'Retirada'}
           </Badge>{' '}
           {application.status === 'accepted' &&

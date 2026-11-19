@@ -58,7 +58,7 @@ export default function Index() {
                   <span className="stack-page__title">
                     {state.users.find((u) => u.id === c.openedBy)?.name} · {formatDate(c.createdAt)}
                   </span>
-                  <Badge tone={c.status === 'open' ? 'warning' : 'neutral'}>{OUTCOME[c.status]}</Badge>
+                  <Badge variant={c.status === 'open' ? 'warning' : 'outline'}>{OUTCOME[c.status]}</Badge>
                 </div>
                 <p className="stack-page__quote">{c.reason}</p>
                 {c.decision && <p className="stack-page__muted">Decisão: {c.decision.note}</p>}

@@ -27,9 +27,9 @@ const COLUMNS: { status: BoardStatus; label: string }[] = [
 ]
 
 const DELIVERY = {
-  pending: { label: 'Esperando o capitão', tone: 'warning' },
-  accepted: { label: 'Aceita', tone: 'success' },
-  returned: { label: 'Devolvida', tone: 'danger' },
+  pending: { label: 'Esperando o capitão', variant: 'warning' },
+  accepted: { label: 'Aceita', variant: 'success' },
+  returned: { label: 'Devolvida', variant: 'danger' },
 } as const
 
 /** "Meu squad": the board mirrored from GitHub, my deliveries and my history next to the team's. */
@@ -141,7 +141,7 @@ export default function Show() {
               <li key={d.id}>
                 <div className="stack-page__row">
                   <span className="stack-page__title">{d.title}</span>
-                  <Badge tone={DELIVERY[d.status].tone}>{DELIVERY[d.status].label}</Badge>
+                  <Badge variant={DELIVERY[d.status].variant}>{DELIVERY[d.status].label}</Badge>
                 </div>
                 {d.status === 'accepted' && (
                   <p className="stack-page__muted">Sua parte: {d.credits.find((c) => c.userId === userId)?.part}</p>
