@@ -43,7 +43,7 @@ export function SavedPosts({ ownerId, posts, users }: { ownerId: string; posts: 
                   disabled={pending}
                   onClick={() => run(() => unsavePost(ownerId, post.id))}
                 >
-                  <BookmarkMinus size={14} aria-hidden />
+                  <BookmarkMinus size={16} aria-hidden />
                   Tirar dos salvos
                 </Button>
               </li>

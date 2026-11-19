@@ -60,11 +60,11 @@ export function DiaryCard({
           }
         >
           <ToggleGroupItem value="all">
-            Tudo <span className="diary-card__count">{posts.length}</span>
+            Tudo <span className="diary-card__count">({posts.length})</span>
           </ToggleGroupItem>
           {trilhas.map((c) => (
             <ToggleGroupItem key={c.id} value={c.id} title={c.name}>
-              {c.name} <span className="diary-card__count">{c.count}</span>
+              {c.name} <span className="diary-card__count">({c.count})</span>
             </ToggleGroupItem>
           ))}
         </ToggleGroup>
@@ -78,7 +78,7 @@ export function DiaryCard({
               <div className="diary-card__meta">
                 <time dateTime={post.createdAt}>
                   {formatPostDate(post.createdAt)}
-                  {post.editedAt && ` · editada em ${formatPostDate(post.editedAt)}`}
+                  {post.editedAt && `, editada em ${formatPostDate(post.editedAt)}`}
                 </time>
                 {ownerView && !post.shownOnProfile && (
                   <Badge title={post.sharedOnFeed ? 'Membros veem no Feed; não aparece aqui para ninguém além de você.' : 'Ninguém além de você vê esta publicação.'}>
@@ -100,7 +100,7 @@ export function DiaryCard({
                   </DropdownMenu>
                 )}
               </div>
-              <p>{post.learned}</p>
+              <p className="diary-card__learned">{post.learned}</p>
               <p className="diary-card__muted">Como aplicou: {post.applied}</p>
               <p className="diary-card__muted">{labelOf(OBJECTIVE_PROGRESS, post.objectiveProgress)} do objetivo</p>
             </li>

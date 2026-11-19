@@ -1,16 +1,13 @@
 .saved-posts {
-  gap: var(--space-3);
-
   h2 {
-    color: var(--text);
-    font-size: var(--size-body);
+    font: var(--text-subheading);
   }
 }
 
+/* Each saved publication is text, with a border line between them. */
 .saved-posts__list {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -20,7 +17,18 @@
     flex-direction: column;
     gap: var(--space-1);
     min-width: 0;
+    padding: var(--space-4) 0;
+    border-top: 1px solid var(--border);
     overflow-wrap: anywhere;
+
+    &:first-child {
+      padding-top: 0;
+      border-top: none;
+    }
+
+    &:last-child {
+      padding-bottom: 0;
+    }
   }
 }
 
@@ -29,7 +37,7 @@
   align-items: baseline;
   gap: var(--space-2);
   min-width: 0;
-  font-size: var(--size-body);
+  font: var(--text-body-strong);
 
   a,
   span {
@@ -42,14 +50,15 @@
   time {
     flex-shrink: 0;
     color: var(--text-muted);
-    font-size: var(--size-caption);
+    font: var(--text-caption);
     font-variant-numeric: tabular-nums;
   }
 }
 
 .saved-posts__muted {
+  max-width: 720px;
   color: var(--text-muted);
-  font-size: var(--size-body);
+  font: var(--text-body);
 }
 
 .saved-posts__remove {

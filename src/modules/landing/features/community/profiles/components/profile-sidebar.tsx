@@ -34,7 +34,7 @@ export function ProfileSidebar({
         {current && (
           <div>
             <h2>Atuação atual</h2>
-            <p title={`${current.role} · ${current.organization}`}>{current.role}</p>
+            <p title={`${current.role}, ${current.organization}`}>{current.role}</p>
           </div>
         )}
         {languages.length > 0 && (

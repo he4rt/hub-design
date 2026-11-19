@@ -1,16 +1,15 @@
 .diary-card {
-  gap: var(--space-3);
+  gap: var(--space-4);
 
   h2 {
-    color: var(--text);
-    font-size: var(--size-body);
+    font: var(--text-subheading);
   }
 }
 
+/* Each publication is text, with a border line between them. */
 .diary-card__posts {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -20,19 +19,37 @@
     flex-direction: column;
     gap: var(--space-1);
     min-width: 0;
+    padding: var(--space-4) 0;
+    border-top: 1px solid var(--border);
     overflow-wrap: anywhere;
+
+    &:first-child {
+      padding-top: 0;
+      border-top: none;
+    }
+
+    &:last-child {
+      padding-bottom: 0;
+    }
   }
 
   time {
     color: var(--text-muted);
-    font-size: var(--size-caption);
+    font: var(--text-caption);
     font-variant-numeric: tabular-nums;
   }
 }
 
+.diary-card__learned {
+  max-width: 720px;
+  font: var(--text-body-strong);
+  font-weight: 500;
+}
+
 .diary-card__muted {
+  max-width: 720px;
   color: var(--text-muted);
-  font-size: var(--size-body);
+  font: var(--text-body);
 }
 
 .diary-card__count {

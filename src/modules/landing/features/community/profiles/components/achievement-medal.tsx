@@ -1,6 +1,7 @@
 import { EyeOff } from 'lucide-react'
 import { FormMessage } from '@/components/form-message'
 import { Button } from '@/components/ui/button'
+import { Callout } from '@/components/ui/callout'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { useActionRunner } from '@/hooks/use-action-runner'
 import { formatMonth } from '@/lib/dates'
@@ -9,7 +10,7 @@ import type { ShownAchievement } from '../lib/achievements'
 import './achievement-medal.css'
 
 /**
- * One achievement as a medal. Tap or click opens what it means, when it happened, and where
+ * One achievement as a quiet round mark. Tap or click opens what it means, when it happened, and where
  * it came from; a popover, not a tooltip, so it works on a phone.
  */
 export function AchievementMedal({
@@ -47,18 +48,14 @@ export function AchievementMedal({
         <p className="achievement-medal__name">{definition.name}</p>
         <p>{definition.description}</p>
         <p className="achievement-medal__meta">
-          <time dateTime={achievement.unlockedAt}>{formatMonth(achievement.unlockedAt)}</time>
-          {' · '}
-          {manual ? 'Concedida pela administração' : 'Apurada pela plataforma'}
+          {manual ? 'Concedida pela administração' : 'Apurada pela plataforma'} em{' '}
+          <time dateTime={achievement.unlockedAt}>{formatMonth(achievement.unlockedAt)}</time>.
         </p>
         {manual && achievement.grantReason && <p className="achievement-medal__reason">{achievement.grantReason}</p>}
         {privateReason && (
-          <p className="achievement-medal__private">
-            <EyeOff size={14} aria-hidden />
-            <span>
-              <strong>Só você vê.</strong> {privateReason}
-            </span>
-          </p>
+          <Callout icon={<EyeOff size={16} aria-hidden />}>
+            <strong>Só você vê.</strong> {privateReason}
+          </Callout>
         )}
         {ownerId && (
           <>

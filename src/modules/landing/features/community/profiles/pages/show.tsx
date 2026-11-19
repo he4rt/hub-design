@@ -92,8 +92,9 @@ export default function PublicProfile() {
   if (!user.published && !isOwner) {
     return (
       <div className="public-profile-page">
-        <Card>
+        <Card className="public-profile-page__private-profile">
           <h1>Este perfil é privado</h1>
+          <p>O membro ainda não publicou o perfil.</p>
         </Card>
       </div>
     )
@@ -162,7 +163,7 @@ export default function PublicProfile() {
       <TrajectoryGraph graph={graph} forum={{ discussions, isOwner: asOwner }} editorId={asOwner ? user.id : null} />
     ) : asOwner ? (
       <div className="public-profile-page__empty">
-        <code>fatal: sua trajetória ainda não tem registros publicados</code>
+        <p className="public-profile-page__empty-title">Sua trajetória ainda não tem registros publicados.</p>
         <p>Registre o que você aprendeu e escolha o que aparece aqui.</p>
       </div>
     ) : (

@@ -1,8 +1,9 @@
 import { useId, useState, type CSSProperties } from 'react'
 import { Link } from 'react-router'
-import { ArrowRight, ChevronDown, ExternalLink, MessageSquareText, MessagesSquare } from 'lucide-react'
+import { ChevronDown, ExternalLink, MessageSquareText, MessagesSquare } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import type { Discussion } from '@/mocks/db'
 import { formatDay } from '@/lib/dates'
@@ -101,10 +102,18 @@ function EntryDetail({ entry, forum, editorId }: { entry: TrajectoryEntry; forum
   return (
     <div className="trajectory-graph__detail">
       {EvidenceIcon && entry.reference && (
-        <p className="trajectory-graph__reference" title={entry.reference}>
-          <EvidenceIcon size={14} aria-hidden />
-          <code>{entry.reference}</code>
-        </p>
+        <Card variant="inset" className="trajectory-graph__reference">
+          <p title={entry.reference}>
+            <EvidenceIcon size={16} aria-hidden />
+            <code>{entry.reference}</code>
+          </p>
+          {entry.url && (
+            <a href={entry.url} target="_blank" rel="noreferrer">
+              Abrir no GitHub
+              <ExternalLink size={12} aria-hidden />
+            </a>
+          )}
+        </Card>
       )}
       {entry.detail && <p>{entry.detail}</p>}
       {editorId && entry.record && <RecordVisibility ownerId={editorId} record={entry.record} />}
@@ -116,9 +125,11 @@ function EntryDetail({ entry, forum, editorId }: { entry: TrajectoryEntry; forum
       {entry.notes.map((note) => (
         <article key={note.id} className="trajectory-graph__note" aria-label="Publicação do diário">
           <p className="trajectory-graph__note-meta">
-            <MessageSquareText size={14} aria-hidden />
-            Publicação do diário · <time dateTime={note.createdAt}>{formatDay(note.createdAt)}</time>
-            {note.editedAt && <> · editada em {formatDay(note.editedAt)}</>}
+            <MessageSquareText size={16} aria-hidden />
+            <span>
+              Publicação do diário de <time dateTime={note.createdAt}>{formatDay(note.createdAt)}</time>
+              {note.editedAt && <>, editada em {formatDay(note.editedAt)}</>}
+            </span>
           </p>
           <dl>
             <dt>O que aprendi</dt>
@@ -130,27 +141,20 @@ function EntryDetail({ entry, forum, editorId }: { entry: TrajectoryEntry; forum
         </article>
       ))}
       <p className="trajectory-graph__origin">
-        {entry.type ? `${recordTypeLabels[entry.type]} · ` : ''}
-        {entry.origin}
-        {entry.type === null && entry.project && (
-          <>
-            {' · '}
-            <Link to={entry.project.path}>
-              Ver o projeto
-              <ArrowRight size={12} aria-hidden />
-            </Link>
-          </>
-        )}
-        {entry.url && (
-          <>
-            {' · '}
+        {entry.type ? `${recordTypeLabels[entry.type]}. ` : ''}
+        {entry.origin}.
+      </p>
+      {((entry.type === null && entry.project) || (entry.url && !(EvidenceIcon && entry.reference))) && (
+        <p className="trajectory-graph__links">
+          {entry.type === null && entry.project && <Link to={entry.project.path}>Ver o projeto</Link>}
+          {entry.url && !(EvidenceIcon && entry.reference) && (
             <a href={entry.url} target="_blank" rel="noreferrer">
               {entry.evidenceKind ? 'Abrir no GitHub' : 'Abrir o link'}
               <ExternalLink size={12} aria-hidden />
             </a>
-          </>
-        )}
-      </p>
+          )}
+        </p>
+      )}
     </div>
   )
 }
@@ -173,7 +177,7 @@ function NoteDiscussions({ noteId, forum }: { noteId: string; forum: NoteForum }
     <ul className="trajectory-graph__forum" aria-label="No fórum">
       {related.map((discussion) => (
         <li key={discussion.id}>
-          <MessagesSquare size={14} aria-hidden />
+          <MessagesSquare size={16} aria-hidden />
           <span>No fórum:</span>
           <Link to={`/app/discussions/${discussion.id}`} title={discussion.title}>
             {discussion.title}
@@ -182,7 +186,7 @@ function NoteDiscussions({ noteId, forum }: { noteId: string; forum: NoteForum }
       ))}
       {forum.isOwner && (
         <li>
-          <MessagesSquare size={14} aria-hidden />
+          <MessagesSquare size={16} aria-hidden />
           <Link to={`/app/discussions/new?post=${noteId}`}>Perguntar no fórum sobre esta nota</Link>
         </li>
       )}
@@ -256,7 +260,7 @@ export function TrajectoryGraph({ graph, forum, editorId }: { graph: Graph; foru
           aria-controls={listId}
           onClick={() => setExpanded(!expanded)}
         >
-          <ChevronDown size={14} aria-hidden />
+          <ChevronDown size={16} aria-hidden />
           {expanded ? 'Mostrar só os mais recentes' : 'Ver trajetória completa'}
         </Button>
       )}

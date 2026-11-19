@@ -7,7 +7,7 @@ import './share-profile-button.css'
 
 type Result = { ok: boolean; message: string } | null
 
-/** Shares the profile link like a repository's clone box: the address in mono and a copy button. */
+/** Shares the profile link: the address in an inset block and a copy button. */
 export function ShareProfileButton({ handle }: { handle: string }) {
   const [result, setResult] = useState<Result>(null)
   const [url, setUrl] = useState('')
@@ -30,7 +30,7 @@ export function ShareProfileButton({ handle }: { handle: string }) {
     <Popover onOpenChange={onOpenChange}>
       <PopoverTrigger asChild>
         <Button variant="secondary" size="sm">
-          <Share2 size={14} aria-hidden />
+          <Share2 size={16} aria-hidden />
           Compartilhar
         </Button>
       </PopoverTrigger>
@@ -39,7 +39,7 @@ export function ShareProfileButton({ handle }: { handle: string }) {
         <div className="share-profile__url">
           <code title={url}>{url}</code>
           <Button variant="ghost" size="sm" onClick={copyLink} aria-label="Copiar link">
-            {result?.ok ? <Check size={14} aria-hidden /> : <Copy size={14} aria-hidden />}
+            {result?.ok ? <Check size={16} aria-hidden /> : <Copy size={16} aria-hidden />}
           </Button>
         </div>
         <FormMessage tone={result?.ok === false ? 'error' : 'success'}>{result?.message}</FormMessage>

@@ -29,14 +29,13 @@
 }
 
 .learning-now__text {
-  color: var(--text);
-  font-size: var(--size-body);
+  font: var(--text-body);
   text-wrap: pretty;
 }
 
 .learning-now__empty {
   color: var(--text-muted);
-  font-size: var(--size-body);
+  font: var(--text-body);
 }
 
 .learning-now__form {
@@ -46,9 +45,7 @@
 }
 
 .learning-now__label {
-  color: var(--text);
-  font-size: var(--size-body);
-  font-weight: 600;
+  font: var(--text-body-strong);
 }
 
 .learning-now__hint {
@@ -56,7 +53,7 @@
   justify-content: space-between;
   gap: var(--space-3);
   color: var(--text-muted);
-  font-size: var(--size-caption);
+  font: var(--text-caption);
 
   span {
     flex: none;

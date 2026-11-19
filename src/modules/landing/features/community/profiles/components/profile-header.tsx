@@ -9,9 +9,9 @@ import { ShareProfileButton } from './share-profile-button'
 import './profile-header.css'
 
 /**
- * Identity card in the dev.to layout: centered identity over the banner, facts and links, then
- * no achievements: they live in one block of the side column. A validator gets a ring and a mark in their own color.
- * No counters, level, or follow button.
+ * Identity card: the ink banner on top, the avatar over it, the name in display, then facts and links.
+ * Achievements live in one block of the side column. A validator gets a ring and a mark in the info
+ * family. No counters, level, or follow button.
  */
 export function ProfileHeader({
   name,
@@ -37,7 +37,7 @@ export function ProfileHeader({
   /** UF of the city in the member's account; only the state shows, never the city. */
   state: string | null
 }) {
-  const validatorDetail = validator && [validator.role, validator.company].filter(Boolean).join(' · ')
+  const validatorDetail = validator && [validator.role, validator.company].filter(Boolean).join(', ')
 
   return (
     <Card className="profile-header" data-validator={validator ? '' : undefined}>
@@ -48,7 +48,7 @@ export function ProfileHeader({
         {isOwner && (
           <Button asChild variant="secondary" size="sm">
             <Link to="/app/settings/profile">
-              <Pencil size={14} aria-hidden />
+              <Pencil size={16} aria-hidden />
               Editar perfil
             </Link>
           </Button>
@@ -63,11 +63,11 @@ export function ProfileHeader({
         {bio && <p className="profile-header__bio">{bio}</p>}
         {validator && (
           <p className="profile-header__validator">
-            <ShieldCheck size={14} aria-hidden />
+            <ShieldCheck size={16} aria-hidden />
             <strong>Validador</strong>
             <span>
               desde <time dateTime={validator.since}>{formatMonth(validator.since)}</time>
-              {validatorDetail && ` · ${validatorDetail}`}
+              {validatorDetail && `, ${validatorDetail}`}
             </span>
           </p>
         )}

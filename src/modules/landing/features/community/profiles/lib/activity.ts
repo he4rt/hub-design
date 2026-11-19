@@ -160,23 +160,15 @@ export function memberActivity(
     })
   }
 
+  const receivedCount = validations.filter((v) => v.memberId === userId && v.status === 'recorded' && v.published).length
+  const recordedCount = validations.filter((v) => v.validatorId === userId && v.status === 'recorded').length
   const facts: ContributionFact[] = [
     { id: 'projects', value: projectCount, label: projectCount === 1 ? 'projeto de squad' : 'projetos de squad', group: 'squads' as const },
     { id: 'accepted', value: acceptedCount, label: acceptedCount === 1 ? 'entrega aceita' : 'entregas aceitas', group: 'squads' as const },
     { id: 'prs', value: pullRequestCount, label: pullRequestCount === 1 ? 'pull request em squad' : 'pull requests em squads', group: 'squads' as const },
     { id: 'commits', value: commitCount, label: commitCount === 1 ? 'commit' : 'commits', group: 'squads' as const },
-    {
-      id: 'validated',
-      value: validations.filter((v) => v.memberId === userId && v.status === 'recorded' && v.published).length,
-      label: 'validações recebidas',
-      group: 'squads' as const,
-    },
-    {
-      id: 'reviews',
-      value: validations.filter((v) => v.validatorId === userId && v.status === 'recorded').length,
-      label: 'validações feitas',
-      group: 'squads' as const,
-    },
+    { id: 'validated', value: receivedCount, label: receivedCount === 1 ? 'validação recebida' : 'validações recebidas', group: 'squads' as const },
+    { id: 'reviews', value: recordedCount, label: recordedCount === 1 ? 'validação registrada' : 'validações registradas', group: 'squads' as const },
     { id: 'helped', value: helped.size, label: helped.size === 1 ? 'pessoa ajudada no fórum' : 'pessoas ajudadas no fórum', group: 'forum' as const },
   ].filter((fact) => fact.value > 0)
 

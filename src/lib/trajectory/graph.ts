@@ -147,7 +147,7 @@ export function trajectoryGraph(
     (viewer === 'owner' || post.shownOnProfile || (viewer === 'member' && post.sharedOnFeed))
   const squadOf = (project: Project) => squads.find((squad) => squad.id === project.squadId)
   const projectLink = (project: Project) => ({
-    label: `${project.name} · squad ${squadOf(project)?.name ?? ''}`,
+    label: `${project.name}, squad ${squadOf(project)?.name ?? ''}`,
     path: `/squads/${squadOf(project)?.slug}/projects/${project.slug}`,
   })
   // A participation the member hid stays in the squad log, but not on the profile.
@@ -169,7 +169,7 @@ export function trajectoryGraph(
   const branches: Branch[] = [
     ...competencies.map((competency) => ({
       id: validationBranchId(competency),
-      label: `validação · ${competency}`,
+      label: `Validação: ${competency}`,
       start: shownValidations.find((v) => v.competency === competency)?.recordedAt ?? '',
       end: null,
       tone: 'validation' as const,
@@ -264,7 +264,7 @@ export function trajectoryGraph(
         date: membership.joinedAt,
         title: `Entrou no squad ${squad?.name ?? ''}`,
         // Only the captain is named: the profile does not split the team by stack.
-        badge: { text: squad?.captainId === userId ? `Capitão · ${project.name}` : project.name, mono: false },
+        badge: { text: squad?.captainId === userId ? `Capitão de ${project.name}` : project.name, mono: false },
         detail: `${project.name}, ${formatPeriod(membership.joinedAt, end)}. ${membership.responsibilities}`,
         origin: project.repository ? `Projeto em ${project.repository.fullName}, na organização He4rt` : 'Projeto da organização He4rt',
         project: projectLink(project),

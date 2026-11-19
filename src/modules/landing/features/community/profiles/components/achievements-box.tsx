@@ -1,4 +1,4 @@
-import { Card } from '@/components/ui/card'
+import { Card, CardHeader } from '@/components/ui/card'
 import type { MemberJourney } from '@/mocks/db'
 import { byRecent, journeyStages, type ShownAchievement } from '../lib/achievements'
 import { AchievementMedal } from './achievement-medal'
@@ -8,7 +8,7 @@ import './achievements-box.css'
 const SHOWN = 8
 
 /**
- * The one achievements block of the profile: the journey stage and the latest medals in the side
+ * The one achievements block of the profile: the journey stage and the latest marks in the side
  * column, with the rest one tap away. Computed by the platform; the owner chooses what shows.
  */
 export function AchievementsBox({
@@ -28,15 +28,14 @@ export function AchievementsBox({
 
   return (
     <Card className="achievements-box" aria-labelledby="achievements-box-title">
-      <div className="achievements-box__header">
+      <CardHeader className="achievements-box__header">
         <h2 id="achievements-box-title">Conquistas</h2>
         {items.length > SHOWN && <AllAchievementsDialog items={items} firstName={firstName} ownerId={ownerId} />}
-      </div>
+      </CardHeader>
       {stage && (
         <p className="achievements-box__stage" title={stage.description}>
-          <span>Jornada</span>
-          <strong>{stage.label}</strong>
-          {journey.contributor && <strong>· Contribuidor</strong>}
+          Jornada: <strong>{stage.label}</strong>
+          {journey.contributor && ', contribuidor'}.
         </p>
       )}
       {items.length > 0 ? (

@@ -11,11 +11,7 @@
 }
 
 .achievement-list__heading {
-  color: var(--text-muted);
-  font-size: var(--size-caption);
-  font-weight: 500;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  font: var(--text-subheading);
 }
 
 .achievement-list__items {
@@ -41,30 +37,28 @@
 
 .achievement-list__name {
   overflow: hidden;
-  color: var(--text);
-  font-size: var(--size-body);
-  font-weight: 600;
+  font: var(--text-body-strong);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .achievement-list__private {
-  color: var(--text);
-  font-size: var(--size-caption);
+  color: var(--text-muted);
+  font: var(--text-label);
 }
 
 .achievement-list__description {
   display: -webkit-box;
   overflow: hidden;
   color: var(--text-muted);
-  font-size: var(--size-caption);
+  font: var(--text-caption);
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
 }
 
 .achievement-list__date {
   color: var(--text-muted);
-  font-size: var(--size-caption);
+  font: var(--text-caption);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }

@@ -12,8 +12,7 @@
   padding-bottom: var(--space-3);
   border-bottom: 1px solid var(--border);
   color: var(--text-muted);
-  font-size: var(--size-caption);
-  line-height: 1.4;
+  font: var(--text-caption);
 
   ul {
     display: grid;
@@ -38,7 +37,7 @@
 
   strong {
     color: var(--text);
-    font-weight: 500;
+    font-weight: 600;
   }
 }
 
@@ -46,7 +45,7 @@
   flex-shrink: 0;
   width: 16px;
   height: 3px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--lane);
 }
 
@@ -67,13 +66,12 @@
 .trajectory-graph__row {
   display: grid;
   grid-template-columns: 64px auto minmax(0, 1fr);
-  column-gap: var(--space-2);
+  column-gap: var(--space-3);
 }
 
 .trajectory-graph__date {
   color: var(--text-muted);
-  font-family: var(--font-mono);
-  font-size: var(--size-caption);
+  font: var(--text-caption);
   font-variant-numeric: tabular-nums;
   line-height: 48px;
   white-space: nowrap;
@@ -93,7 +91,7 @@
 .trajectory-graph__line {
   position: absolute;
   width: 3px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--lane);
 
   &[data-part='full'] {
@@ -153,15 +151,6 @@
   stroke-width: 1;
 }
 
-/* A validation stands apart with a thin bar in the validator's color, never louder than the rest. */
-.trajectory-graph__row[data-type='validated'] .trajectory-graph__trigger {
-  box-shadow: inset 2px 0 var(--info-text);
-
-  &:focus-visible {
-    box-shadow: var(--focus-ring);
-  }
-}
-
 .trajectory-graph__body {
   min-width: 0;
 }
@@ -177,7 +166,7 @@
   border-radius: var(--radius-md);
   background: none;
   color: var(--text);
-  font: var(--size-body) / 1.4 var(--font-sans);
+  font: var(--text-body);
   text-align: left;
   cursor: pointer;
 
@@ -196,26 +185,24 @@
   display: flex;
   flex: 1;
   flex-direction: column;
+  gap: 2px;
   min-width: 0;
 }
 
-/* The kind of record, named under the title. */
+/* The kind of record, named under the title; a validation in the validator's info family. */
 .trajectory-graph__type {
   color: var(--text-muted);
-  font-size: var(--size-caption);
+  font: var(--text-caption);
 
   &[data-type='validated'] {
     color: var(--info-text);
     font-weight: 600;
   }
-
-  &[data-type='demonstrated'] {
-    color: var(--text);
-  }
 }
 
 .trajectory-graph__title {
   min-width: 0;
+  font-weight: 500;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -249,7 +236,7 @@
   flex-direction: column;
   gap: var(--space-2);
   padding: var(--space-2) var(--space-2) var(--space-4);
-  font-size: var(--size-body);
+  font: var(--text-body);
   overflow-wrap: anywhere;
 
   a {
@@ -259,18 +246,25 @@
   }
 }
 
+/* What came from GitHub: an inset block, the reference whole in mono, and "Abrir no GitHub". */
 .trajectory-graph__reference {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  color: var(--text);
+  align-items: flex-start;
+
+  p {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    max-width: 100%;
+    color: var(--text-muted);
+  }
 
   code {
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    font-size: var(--size-caption);
+    color: var(--text);
+    font: var(--text-mono);
   }
 }
 
@@ -280,7 +274,14 @@
 }
 
 .trajectory-graph__origin {
-  font-size: var(--size-caption);
+  font: var(--text-caption);
+}
+
+.trajectory-graph__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-4);
+  font: var(--text-caption);
 }
 
 /* Links from a diary note to the forum: quiet, with no reply count. */
@@ -292,7 +293,7 @@
   padding: var(--space-2) 0 0;
   border-top: 1px solid var(--border);
   list-style: none;
-  font-size: var(--size-caption);
+  font: var(--text-caption);
 
   li {
     display: flex;
@@ -315,21 +316,14 @@
   }
 }
 
-/* The diary post reads as the body of the record, like a long commit message. */
+/* The diary post reads as the body of the record, set apart by a border line. */
 .trajectory-graph__note {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
-  padding: var(--space-3) var(--space-4);
-  border-radius: var(--radius-md);
-  background: var(--surface-2);
-
-  h4 {
-    margin: 0;
-    color: var(--text);
-    font-size: var(--size-body);
-    font-weight: 600;
-  }
+  max-width: 720px;
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border);
 
   dl {
     display: grid;
@@ -339,8 +333,7 @@
 
   dt {
     color: var(--text-muted);
-    font-size: var(--size-caption);
-    font-weight: 500;
+    font: var(--text-label);
   }
 
   dd {
@@ -351,14 +344,18 @@
 .trajectory-graph__note-meta {
   display: flex;
   align-items: center;
-  gap: var(--space-1);
+  gap: var(--space-2);
   color: var(--text-muted);
-  font-size: var(--size-caption);
+  font: var(--text-caption);
+
+  svg {
+    flex-shrink: 0;
+  }
 }
 
 .trajectory-graph__more {
   align-self: flex-start;
-  margin-left: 72px;
+  margin-left: 76px;
 
   svg {
     transition: transform 150ms ease-out;
@@ -384,11 +381,7 @@
   }
 
   .trajectory-graph__more {
-    margin-left: 60px;
-  }
-
-  .trajectory-graph__date {
-    font-size: 11px;
+    margin-left: 64px;
   }
 
   /* On a phone the title wraps and the badge drops below it. */

@@ -23,7 +23,7 @@ export function AllAchievementsDialog({
       <DialogContent
         className="all-achievements-dialog"
         title={`Conquistas de ${firstName}`}
-        description="Reconhecimento pelo que aconteceu no Hub. Não é nota nem libera acesso."
+        description="Reconhecimento pelo que aconteceu no Hub. Não mede ninguém nem libera acesso."
         footer={
           <DialogClose asChild>
             <Button variant="secondary">Fechar</Button>

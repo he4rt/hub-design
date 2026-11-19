@@ -1,37 +1,37 @@
-/* dev.to: centered identity, the avatar overlapping a banner that is the top of the card, badges below a rule. */
+/* Centered identity, the avatar overlapping the ink banner that is the top of the card. */
 .profile-header {
   position: relative;
   align-items: center;
   gap: var(--space-3);
   overflow: hidden;
   padding-top: 0;
-  padding-bottom: var(--space-4);
   text-align: center;
 }
 
+/* Solid ink, no gradient: the purple with weight, not with shine. */
 .profile-header__banner {
   align-self: stretch;
   height: 88px;
-  margin: 0 calc(-1 * var(--space-6));
+  margin: 0 calc(-1 * var(--space-5));
   background: var(--ink);
 }
 
 .profile-header__avatar {
   box-sizing: content-box;
-  margin-top: calc(-40px - var(--space-3) - 4px);
+  margin-top: calc(-40px - var(--space-3));
   border: 4px solid var(--surface);
   background: var(--surface);
 
-  /* A validator's ring: the one place their color shows besides the mark under the name. */
+  /* A validator's ring, in the info family: the one place it shows besides the mark under the name. */
   [data-validator] > & {
-    box-shadow: 0 0 0 3px var(--info-text);
+    outline: 2px solid var(--info-text);
   }
 }
 
 .profile-header__actions {
   position: absolute;
   top: calc(88px + var(--space-3));
-  right: var(--space-4);
+  right: var(--space-5);
   display: flex;
   gap: var(--space-2);
 }
@@ -42,7 +42,7 @@
   align-items: center;
   gap: var(--space-2);
   width: 100%;
-  max-width: 44em;
+  max-width: 720px;
   min-width: 0;
 }
 
@@ -51,24 +51,24 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: var(--size-display);
-  font-weight: 700;
-  letter-spacing: -0.01em;
+  font: var(--text-display);
+  letter-spacing: -0.02em;
 }
 
 .profile-header__handle {
   margin-top: calc(-1 * var(--space-2));
   color: var(--text-muted);
-  font-family: var(--font-mono);
-  font-size: var(--size-body);
+  font: var(--text-body);
 }
 
 .profile-header__bio {
   max-width: 60ch;
   margin: 0 auto;
-  text-align: center;
+  font: var(--text-body);
+  text-wrap: pretty;
 }
 
+/* The validator mark: a pill in the info family, with the role in plain text beside it. */
 .profile-header__validator {
   display: inline-flex;
   flex-wrap: wrap;
@@ -76,19 +76,15 @@
   justify-content: center;
   gap: var(--space-1) var(--space-2);
   max-width: 100%;
+  min-height: 24px;
   padding: var(--space-1) var(--space-3);
-  border: 1px solid var(--info-text);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--info-bg);
   color: var(--info-text);
-  font-size: var(--size-body);
-
-  strong {
-    font-weight: 600;
-  }
+  font: var(--text-label);
 
   span {
-    color: var(--text);
+    font-weight: 400;
   }
 }
 
@@ -105,7 +101,7 @@
   align-items: center;
   gap: var(--space-1);
   color: var(--text-muted);
-  font-size: var(--size-body);
+  font: var(--text-caption);
 }
 
 .profile-header__link {
@@ -131,10 +127,6 @@
   .profile-header__banner {
     height: 72px;
     margin: 0 calc(-1 * var(--space-4));
-  }
-
-  .profile-header__avatar {
-    margin-top: calc(-36px - var(--space-3) - 4px);
   }
 
   /* On a phone the actions sit under the identity instead of beside the avatar. */

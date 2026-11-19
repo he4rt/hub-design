@@ -1,40 +1,23 @@
 .achievements-box {
   gap: var(--space-3);
-  padding: var(--space-4);
 }
 
 .achievements-box__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-2);
-  min-height: 32px;
-
-  h2 {
-    color: var(--text-muted);
-    font-size: var(--size-caption);
-    font-weight: 500;
-  }
+  min-height: var(--control-h-sm);
 }
 
+/* Recognition in text-muted, never louder than the trajectory. */
 .achievements-box__stage {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: var(--space-1) var(--space-2);
-  font-size: var(--size-body);
-
-  span {
-    color: var(--text-muted);
-    font-size: var(--size-caption);
-  }
+  color: var(--text-muted);
+  font: var(--text-caption);
 
   strong {
     color: var(--text);
+    font-weight: 600;
   }
 }
 
-/* Four medals a row in the 240px column; the row count is fixed by SHOWN, so nothing jumps. */
+/* Four marks a row in the side column; the row count is fixed by SHOWN, so nothing jumps. */
 .achievements-box__grid {
   display: grid;
   grid-template-columns: repeat(4, 40px);
@@ -47,11 +30,11 @@
 
 .achievements-box__empty {
   color: var(--text-muted);
-  font-size: var(--size-body);
+  font: var(--text-body);
 }
 
 @media (max-width: 899px) {
-  /* Full width under the grid: as many medals as fit, left aligned. */
+  /* Full width under the grid: as many marks as fit, left aligned. */
   .achievements-box__grid {
     grid-template-columns: repeat(auto-fill, 40px);
     justify-content: start;

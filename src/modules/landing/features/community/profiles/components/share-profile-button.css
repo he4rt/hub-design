@@ -4,10 +4,10 @@
 }
 
 .share-profile__title {
-  color: var(--text);
-  font-weight: 600;
+  font: var(--text-body-strong);
 }
 
+/* The address of a Hub page, not a GitHub reference: sans, in an inset block. */
 .share-profile__url {
   display: flex;
   align-items: center;
@@ -23,12 +23,12 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    font-size: var(--size-caption);
+    font: var(--text-caption);
     user-select: all;
   }
 }
 
 .share-profile__hint {
   color: var(--text-muted);
-  font-size: var(--size-caption);
+  font: var(--text-caption);
 }

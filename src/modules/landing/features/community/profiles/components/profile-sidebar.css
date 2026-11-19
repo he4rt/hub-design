@@ -2,10 +2,9 @@
   min-width: 0;
 }
 
-/* A compact box like dev.to's side column: small headings and tight content. */
+/* A compact summary: each part a label in text-muted over plain text. */
 .profile-sidebar__box {
   gap: var(--space-4);
-  padding: var(--space-4);
 
   > div {
     display: flex;
@@ -16,16 +15,14 @@
 
   h2 {
     color: var(--text-muted);
-    font-size: var(--size-caption);
-    font-weight: 500;
+    font: var(--text-label);
   }
 
   > div > p:not(.learning-now__text, .learning-now__empty) {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    color: var(--text);
-    font-size: var(--size-body);
+    font: var(--text-body);
   }
 }
 

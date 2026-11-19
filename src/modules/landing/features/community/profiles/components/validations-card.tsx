@@ -1,3 +1,4 @@
+import { StateChip } from '@/components/state-chip'
 import { Card } from '@/components/ui/card'
 import { ValidationRecord } from '@/components/validation/validation-record'
 import type { Contestation, Project, Validation } from '@/mocks/db'
@@ -25,7 +26,7 @@ export function ValidationsCard({
       {validations.map((v) => (
         <div key={v.id} className="validations-card__item">
           {contestations.some((c) => c.validationId === v.id && c.status === 'open') && (
-            <p className="validations-card__muted">Revisão em andamento.</p>
+            <StateChip entity="contestation" state="open" />
           )}
           <ValidationRecord validation={v} projectName={projects.find((p) => p.id === v.projectId)?.name} />
         </div>
