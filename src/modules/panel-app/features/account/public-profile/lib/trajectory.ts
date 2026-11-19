@@ -33,7 +33,7 @@ export type TrajectoryEntry = {
   title: string
   badge: { text: string; mono: boolean } | null
   evidenceKind: TechnicalEvidence['kind'] | null
-  /** 0 is the member's main line; each squad and publishing site gets its own lane. */
+  /** 0 is the member's main line; each squad and each validated competency gets its own lane. */
   lane: number
   /** A branch starts here and leaves the main line. */
   fork: boolean
@@ -94,7 +94,7 @@ type Draft = Omit<TrajectoryEntry, 'dateLabel' | 'lines' | 'evidenceKind' | 'url
 
 /**
  * The member's published records as a `git log --graph`, newest first: the member is the main
- * line, each squad and each publishing site (dev.to) is a branch. Only records the member
+ * line, each squad and each validated competency is a branch. Only records the member
  * made public, squads they chose to show, and validations they published enter.
  */
 export function trajectoryGraph(
@@ -259,10 +259,12 @@ export function trajectoryGraph(
         })
       return [start, ...ending, ...accepted]
     }),
+    // Only evidence from a He4rt project counts as demonstrated; commits outside the Hub stay off the profile for now.
     ...profile.evidences
       .filter((v) => v.isPublic)
-      .map((v) => {
+      .flatMap((v) => {
         const project = projects.find((candidate) => candidate.id === v.projectId)
+        if (!project) return []
         return {
           id: v.id,
           type: 'demonstrated' as const,
@@ -276,7 +278,7 @@ export function trajectoryGraph(
           origin: `${evidenceLabels[v.kind]} no GitHub`,
           url: v.url,
           reference: evidenceRef(v, { full: true }),
-          project: project ? projectLink(project) : null,
+          project: projectLink(project),
         }
       }),
     // A validation sits on its competency's branch; the first one of a competency forks it off the main line.

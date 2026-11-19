@@ -61,7 +61,8 @@ export function memberActivity(
   let projectCount = 0
   let acceptedCount = 0
   let pullRequestCount = 0
-  let commitCount = profile.evidences.filter((e) => e.isPublic && e.kind === 'commit' && e.projectId === null).length
+  // Commits outside the Hub do not count for now: only squad deliveries do.
+  let commitCount = 0
   // A participation the member hid stays in the squad log, but not on the profile or in its counts.
   for (const membership of memberships.filter((m) => m.userId === userId && m.shownOnProfile)) {
     const project = projects.find((candidate) => candidate.id === membership.projectId)
