@@ -39,6 +39,7 @@ export function AppLayout() {
             Validações
           </NavLink>
           {validator && <NavLink to="/app/validation/queue">Fila</NavLink>}
+          <NavLink to={`/members/${account.username}`}>Meu perfil</NavLink>
           <NavLink to="/app/settings/profile">Configurações</NavLink>
         </nav>
         <span className="app-layout__user" title={account.name}>

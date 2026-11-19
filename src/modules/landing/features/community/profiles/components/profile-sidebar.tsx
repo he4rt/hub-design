@@ -1,6 +1,7 @@
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import type { MemberProfile } from '@/mocks/db'
+import { canSee, type Viewer } from '../lib/visibility'
 import { LearningNow } from './learning-now'
 import './profile-sidebar.css'
 
@@ -10,13 +11,15 @@ export function ProfileSidebar({
   areas,
   languages,
   isOwner,
+  viewer,
 }: {
   profile: MemberProfile
   areas: string
   languages: string[]
   isOwner: boolean
+  viewer: Viewer
 }) {
-  const current = profile.experiences.find((experience) => experience.isPublic && experience.endedAt === null)
+  const current = profile.experiences.find((experience) => canSee(experience.visibility, viewer) && experience.endedAt === null)
 
   return (
     <aside className="profile-sidebar" aria-label="Resumo">

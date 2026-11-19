@@ -8,6 +8,7 @@ import type { Discussion } from '@/mocks/db'
 import { formatDay } from '@/lib/dates'
 import { evidenceIcons } from '@/lib/evidence'
 import { recordTypeLabels, recordTypes, type BranchTone, type RecordType, type TrajectoryEntry, type TrajectoryGraph as Graph } from '../lib/trajectory'
+import { RecordVisibility } from './record-visibility'
 import './trajectory-graph.css'
 
 /** Records shown before "Ver trajetória completa". */
@@ -95,7 +96,7 @@ function Rail({ entry, width, cut }: { entry: TrajectoryEntry; width: number; cu
 /** Forum discussions opened from one of these notes, and, for the owner, a way to open one. */
 type NoteForum = { discussions: Discussion[]; isOwner: boolean }
 
-function EntryDetail({ entry, forum }: { entry: TrajectoryEntry; forum: NoteForum }) {
+function EntryDetail({ entry, forum, editorId }: { entry: TrajectoryEntry; forum: NoteForum; editorId: string | null }) {
   const EvidenceIcon = entry.evidenceKind ? evidenceIcons[entry.evidenceKind] : null
   return (
     <div className="trajectory-graph__detail">
@@ -106,6 +107,7 @@ function EntryDetail({ entry, forum }: { entry: TrajectoryEntry; forum: NoteForu
         </p>
       )}
       {entry.detail && <p>{entry.detail}</p>}
+      {editorId && entry.record && <RecordVisibility ownerId={editorId} record={entry.record} />}
       {entry.type !== null && entry.project && (
         <p className="trajectory-graph__muted">
           Ligado a: <Link to={entry.project.path}>{entry.project.label}</Link>
@@ -193,7 +195,8 @@ function NoteDiscussions({ noteId, forum }: { noteId: string; forum: NoteForum }
  * validated competency is a branch that starts and ends in its own color, and each marker's shape tells the kind
  * of record. It opens with the newest records and never shows counts, streaks, or activity density.
  */
-export function TrajectoryGraph({ graph, forum }: { graph: Graph; forum: NoteForum }) {
+/** `editorId` is the owner's id while they read their own profile as themselves; it shows who sees each record. */
+export function TrajectoryGraph({ graph, forum, editorId }: { graph: Graph; forum: NoteForum; editorId: string | null }) {
   const listId = useId()
   const [expanded, setExpanded] = useState(false)
   const { entries } = graph
@@ -237,7 +240,7 @@ export function TrajectoryGraph({ graph, forum }: { graph: Graph; forum: NoteFor
                   <ChevronDown size={16} className="trajectory-graph__chevron" aria-hidden />
                 </CollapsibleTrigger>
                 <CollapsibleContent>
-                  <EntryDetail entry={entry} forum={forum} />
+                  <EntryDetail entry={entry} forum={forum} editorId={editorId} />
                 </CollapsibleContent>
               </Collapsible>
             </li>

@@ -1,4 +1,4 @@
-import { db } from '@/mocks/db'
+import { db, type MemberProfile, type Visibility } from '@/mocks/db'
 import { MockError, mockAction } from '@/mocks/mock-action'
 
 export const LEARNING_NOW_MAX = 80
@@ -16,5 +16,25 @@ export function updateLearningNow(userId: string, text: string) {
       profiles: state.profiles.map((p) => (p.userId === userId ? { ...p, currentFocus: value || null } : p)),
     }))
     return { currentFocus: value || null }
+  })
+}
+
+export type RecordCollection = keyof Pick<MemberProfile, 'knowledge' | 'learnings' | 'experiences' | 'articles' | 'evidences'>
+
+/** The member chooses who sees one trajectory record: only them, the community, or anyone. */
+export function updateRecordVisibility(userId: string, collection: RecordCollection, recordId: string, visibility: Visibility) {
+  return mockAction('panel-app.members.records.update', { userId, collection, recordId, visibility }, () => {
+    if (db.get().session?.userId !== userId) throw new MockError('Só a dona ou o dono do perfil pode mudar isto.')
+    const profile = db.get().profiles.find((p) => p.userId === userId)
+    if (!profile?.[collection].some((record) => record.id === recordId)) throw new MockError('Este registro não existe mais.')
+    db.set((state) => ({
+      ...state,
+      profiles: state.profiles.map((p) =>
+        p.userId === userId
+          ? { ...p, [collection]: p[collection].map((record) => (record.id === recordId ? { ...record, visibility } : record)) }
+          : p,
+      ),
+    }))
+    return { recordId, visibility }
   })
 }

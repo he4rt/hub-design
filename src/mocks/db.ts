@@ -332,8 +332,11 @@ export type Contestation = {
 
 export type AnalyticsEvent = { event: string; props: Record<string, unknown>; at: string }
 
+/** Who sees a trajectory record: only the member, signed-in members, or anyone with the link. */
+export type Visibility = 'private' | 'community' | 'public'
+
 /*
- * Public profile records. Every record has `isPublic`: it shows on the public
+ * Public profile records. Every record has a `visibility` the member chose: it shows on the public
  * profile only when the member chose to publish it.
  */
 
@@ -342,7 +345,7 @@ export type DeclaredKnowledge = {
   competency: string
   level: 'basic' | 'intermediate' | 'advanced'
   declaredAt: string
-  isPublic: boolean
+  visibility: Visibility
 }
 
 export type LearningRecord = {
@@ -351,7 +354,7 @@ export type LearningRecord = {
   description: string | null
   origin: 'member' | 'basement'
   completedAt: string
-  isPublic: boolean
+  visibility: Visibility
 }
 
 export type ExperienceRecord = {
@@ -361,7 +364,7 @@ export type ExperienceRecord = {
   description: string | null
   startedAt: string
   endedAt: string | null
-  isPublic: boolean
+  visibility: Visibility
 }
 
 /** An article the member wrote outside the Hub, such as on dev.to. */
@@ -372,7 +375,7 @@ export type Article = {
   url: string
   source: 'dev.to'
   publishedAt: string
-  isPublic: boolean
+  visibility: Visibility
 }
 
 /** Commit, pull request, or repository the member picked to show on their profile. */
@@ -389,7 +392,7 @@ export type TechnicalEvidence = {
   date: string
   /** Squad project this evidence belongs to; null for the member's own repositories. */
   projectId: string | null
-  isPublic: boolean
+  visibility: Visibility
 }
 
 /** Public profile of a member (Fundação stage: no squads, validations, or XP yet). */
@@ -881,10 +884,10 @@ const seed: MockDb = {
         'Passei quatro anos no suporte técnico de um provedor de internet e foi lá que comecei a automatizar tarefas com scripts em Bash.\n\nHoje estudo PHP e Laravel e faço sistemas pequenos para comércios do bairro. Quero trabalhar com back-end em um time que revise código junto.\n\nGosto de entender por que algo quebrou antes de corrigir. É o que mais aparece nas minhas notas do diário.',
       currentFocus: 'Filas e testes de integração em Laravel',
       knowledge: [
-        { id: 'k1', competency: 'PHP', level: 'intermediate', declaredAt: '2025-03-25', isPublic: true },
-        { id: 'k2', competency: 'SQL', level: 'basic', declaredAt: '2025-03-25', isPublic: true },
-        { id: 'k3', competency: 'Laravel', level: 'basic', declaredAt: '2025-11-02', isPublic: true },
-        { id: 'k4', competency: 'React', level: 'basic', declaredAt: '2026-06-14', isPublic: true },
+        { id: 'k1', competency: 'PHP', level: 'intermediate', declaredAt: '2025-03-25', visibility: 'public' },
+        { id: 'k2', competency: 'SQL', level: 'basic', declaredAt: '2025-03-25', visibility: 'public' },
+        { id: 'k3', competency: 'Laravel', level: 'basic', declaredAt: '2025-11-02', visibility: 'public' },
+        { id: 'k4', competency: 'React', level: 'basic', declaredAt: '2026-06-14', visibility: 'community' },
       ],
       learnings: [
         {
@@ -893,7 +896,7 @@ const seed: MockDb = {
           description: 'Sintaxe, orientação a objetos e Composer.',
           origin: 'basement',
           completedAt: '2025-05-20',
-          isPublic: true,
+          visibility: 'public',
         },
         {
           id: 'a2',
@@ -901,7 +904,7 @@ const seed: MockDb = {
           description: 'Rotas, Eloquent, filas e testes com Pest.',
           origin: 'basement',
           completedAt: '2025-10-30',
-          isPublic: true,
+          visibility: 'public',
         },
         {
           id: 'a3',
@@ -909,7 +912,7 @@ const seed: MockDb = {
           description: 'Anotei os padrões que mais uso nos meus projetos.',
           origin: 'member',
           completedAt: '2026-03-08',
-          isPublic: true,
+          visibility: 'public',
         },
         {
           id: 'a4',
@@ -917,7 +920,7 @@ const seed: MockDb = {
           description: null,
           origin: 'basement',
           completedAt: '2026-07-19',
-          isPublic: false,
+          visibility: 'private',
         },
       ],
       experiences: [
@@ -928,7 +931,7 @@ const seed: MockDb = {
           description: 'Atendimento de nível 2 e scripts em Bash para diagnóstico de conexões.',
           startedAt: '2021-02-01',
           endedAt: '2025-08-31',
-          isPublic: true,
+          visibility: 'public',
         },
         {
           id: 'e2',
@@ -937,7 +940,7 @@ const seed: MockDb = {
           description: 'Sites e sistemas pequenos em Laravel para comércios do bairro.',
           startedAt: '2025-09-01',
           endedAt: null,
-          isPublic: true,
+          visibility: 'public',
         },
       ],
       articles: [
@@ -948,7 +951,7 @@ const seed: MockDb = {
           url: 'https://dev.to/ana-souza-dev/fila-laravel-checkout',
           source: 'dev.to',
           publishedAt: '2026-08-14',
-          isPublic: true,
+          visibility: 'public',
         },
         {
           id: 'r2',
@@ -957,7 +960,7 @@ const seed: MockDb = {
           url: 'https://dev.to/ana-souza-dev/pest-primeiros-testes',
           source: 'dev.to',
           publishedAt: '2026-05-10',
-          isPublic: true,
+          visibility: 'public',
         },
         {
           id: 'r3',
@@ -966,7 +969,7 @@ const seed: MockDb = {
           url: 'https://dev.to/ana-souza-dev/explain-mysql',
           source: 'dev.to',
           publishedAt: '2026-04-22',
-          isPublic: false,
+          visibility: 'private',
         },
       ],
       evidences: [
@@ -980,7 +983,7 @@ const seed: MockDb = {
           url: 'https://github.com/ana-souza-dev/loja-bairro/pull/12',
           date: '2026-08-10',
           projectId: null,
-          isPublic: true,
+          visibility: 'public',
         },
         {
           id: 'v2',
@@ -992,7 +995,7 @@ const seed: MockDb = {
           url: 'https://github.com/ana-souza-dev/frete-calc/commit/3f9c2a1',
           date: '2026-05-02',
           projectId: null,
-          isPublic: true,
+          visibility: 'public',
         },
         {
           id: 'v3',
@@ -1004,7 +1007,7 @@ const seed: MockDb = {
           url: 'https://github.com/ana-souza-dev/scripts-suporte',
           date: '2023-06-15',
           projectId: null,
-          isPublic: true,
+          visibility: 'public',
         },
         {
           id: 'v4',
@@ -1016,7 +1019,7 @@ const seed: MockDb = {
           url: 'https://github.com/ana-souza-dev/docker-estudos/commit/9b01e7c',
           date: '2026-07-15',
           projectId: null,
-          isPublic: false,
+          visibility: 'private',
         },
         {
           id: 'v5',
@@ -1028,7 +1031,7 @@ const seed: MockDb = {
           url: 'https://github.com/he4rt/loja-comunitaria/pull/34',
           date: '2026-10-18',
           projectId: 'p1',
-          isPublic: true,
+          visibility: 'public',
         },
       ],
       journey: { stage: 'delivered', publicStage: 'delivered', contributor: false },
@@ -1037,7 +1040,7 @@ const seed: MockDb = {
       userId: 'u3',
       readme: null,
       currentFocus: null,
-      knowledge: [{ id: 'k5', competency: 'HTML e CSS', level: 'basic', declaredAt: '2026-10-28', isPublic: true }],
+      knowledge: [{ id: 'k5', competency: 'HTML e CSS', level: 'basic', declaredAt: '2026-10-28', visibility: 'public' }],
       learnings: [],
       experiences: [],
       articles: [],
@@ -1059,7 +1062,7 @@ const seed: MockDb = {
           description: null,
           startedAt: '2022-04-01',
           endedAt: null,
-          isPublic: true,
+          visibility: 'public',
         },
       ],
       articles: [],
@@ -1264,7 +1267,7 @@ function achievementSeed(userId: string, rows: [string, string, boolean, boolean
 }
 
 /** The fake backend. Persisted in localStorage; reset it from the debug sidebar. */
-export const db = createStore(seed, { persist: 'he4rt:mock-db:v16' })
+export const db = createStore(seed, { persist: 'he4rt:mock-db:v17' })
 
 export function useDb<S>(selector: (db: MockDb) => S): S {
   return useStore(db, selector)

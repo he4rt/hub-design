@@ -1,6 +1,8 @@
-import type { FeedPost, MemberProfile, Project, Squad, SquadDelivery, SquadMembership, TechnicalEvidence, Validation } from '@/mocks/db'
+import type { FeedPost, MemberProfile, Visibility, Project, Squad, SquadDelivery, SquadMembership, TechnicalEvidence, Validation } from '@/mocks/db'
 import { formatMonth, formatPeriod } from '@/lib/dates'
 import { evidenceRef } from '@/lib/evidence'
+import type { RecordCollection } from '../actions'
+import { canSee, type Viewer } from './visibility'
 
 /**
  * The five kinds of trajectory record in PRODUCT.md, from the weakest to the strongest proof.
@@ -49,8 +51,10 @@ export type TrajectoryEntry = {
   reference: string | null
   /** Squad project of a record, linked to its page. */
   project: { label: string; path: string } | null
-  /** Diary publications the member tied to this learning record and showed on the profile. */
+  /** Diary publications the member tied to this learning record that the viewer may read. */
   notes: FeedPost[]
+  /** The record behind the entry, so its owner can choose who sees it; null for squad and validation events. */
+  record: { collection: RecordCollection; id: string; visibility: Visibility } | null
 }
 
 export type TrajectoryGraph = {
@@ -89,8 +93,8 @@ function assignLanes(branches: Branch[]): Map<string, number> {
   return lanes
 }
 
-type Draft = Omit<TrajectoryEntry, 'dateLabel' | 'lines' | 'evidenceKind' | 'url' | 'reference' | 'project' | 'notes' | 'fork' | 'merge' | 'badge' | 'tone'> &
-  Partial<Pick<TrajectoryEntry, 'evidenceKind' | 'url' | 'reference' | 'project' | 'notes' | 'fork' | 'merge' | 'badge' | 'tone'>>
+type Draft = Omit<TrajectoryEntry, 'dateLabel' | 'lines' | 'evidenceKind' | 'url' | 'reference' | 'project' | 'notes' | 'fork' | 'merge' | 'badge' | 'tone' | 'record'> &
+  Partial<Pick<TrajectoryEntry, 'evidenceKind' | 'url' | 'reference' | 'project' | 'notes' | 'fork' | 'merge' | 'badge' | 'tone' | 'record'>>
 
 /**
  * The member's published records as a `git log --graph`, newest first: the member is the main
@@ -106,6 +110,7 @@ export function trajectoryGraph(
     deliveries,
     validations,
     posts,
+    viewer,
   }: {
     squads: Squad[]
     projects: Project[]
@@ -113,11 +118,17 @@ export function trajectoryGraph(
     deliveries: SquadDelivery[]
     validations: Validation[]
     posts: FeedPost[]
+    viewer: Viewer
   },
 ): TrajectoryGraph {
   const userId = profile.userId
-  const learnings = profile.learnings.filter((l) => l.isPublic)
-  const experiences = profile.experiences.filter((e) => e.isPublic)
+  const shown = <T extends { visibility: Visibility }>(records: T[]) => records.filter((r) => canSee(r.visibility, viewer))
+  const learnings = shown(profile.learnings)
+  const experiences = shown(profile.experiences)
+  // The owner reads every publication they kept; members those in the Feed or on the profile; visitors those on the profile.
+  const readable = (post: FeedPost) =>
+    post.deletedAt === null &&
+    (viewer === 'owner' || post.shownOnProfile || (viewer === 'member' && post.sharedOnFeed))
   const squadOf = (project: Project) => squads.find((squad) => squad.id === project.squadId)
   const projectLink = (project: Project) => ({
     label: `${project.name} · squad ${squadOf(project)?.name ?? ''}`,
@@ -131,7 +142,7 @@ export function trajectoryGraph(
       return project ? [{ project, membership }] : []
     })
 
-  const articles = profile.articles.filter((a) => a.isPublic)
+  const articles = shown(profile.articles)
   // Published validations, only the latest record of a corrected one. Each competency opens its own branch.
   const shownValidations = validations
     .filter((v) => v.memberId === userId && v.status === 'recorded' && v.published)
@@ -159,10 +170,9 @@ export function trajectoryGraph(
   const projectLane = (projectId: string | null) => (projectId && laneOf.get(projectId)) || 0
 
   const drafts: Draft[] = [
-    ...profile.knowledge
-      .filter((k) => k.isPublic)
-      .map((k) => ({
+    ...shown(profile.knowledge).map((k) => ({
         id: k.id,
+        record: { collection: 'knowledge' as const, id: k.id, visibility: k.visibility },
         type: 'declared' as const,
         lane: 0,
         date: k.declaredAt,
@@ -173,6 +183,7 @@ export function trajectoryGraph(
       })),
     ...learnings.map((l) => ({
       id: l.id,
+      record: { collection: 'learnings' as const, id: l.id, visibility: l.visibility },
       type: 'learning' as const,
       lane: 0,
       date: l.completedAt,
@@ -182,11 +193,12 @@ export function trajectoryGraph(
       origin: l.origin === 'basement' ? 'Concluído na Basement' : 'Registrado pelo membro',
       notes: posts
         .filter((post) => post.userId === profile.userId && post.learningId === l.id)
-        .filter((post) => post.shownOnProfile && post.deletedAt === null)
+        .filter(readable)
         .toSorted((a, b) => a.createdAt.localeCompare(b.createdAt)),
     })),
     ...articles.map((a) => ({
       id: a.id,
+      record: { collection: 'articles' as const, id: a.id, visibility: a.visibility },
       type: 'learning' as const,
       lane: 0,
       date: a.publishedAt,
@@ -199,6 +211,7 @@ export function trajectoryGraph(
     // Professional experience and articles stay on the main line: only squads and validations open branches.
     ...experiences.map((e) => ({
       id: e.id,
+      record: { collection: 'experiences' as const, id: e.id, visibility: e.visibility },
       type: 'experience' as const,
       lane: 0,
       date: e.startedAt,
@@ -260,13 +273,12 @@ export function trajectoryGraph(
       return [start, ...ending, ...accepted]
     }),
     // Only evidence from a He4rt project counts as demonstrated; commits outside the Hub stay off the profile for now.
-    ...profile.evidences
-      .filter((v) => v.isPublic)
-      .flatMap((v) => {
+    ...shown(profile.evidences).flatMap((v) => {
         const project = projects.find((candidate) => candidate.id === v.projectId)
         if (!project) return []
         return {
           id: v.id,
+          record: { collection: 'evidences' as const, id: v.id, visibility: v.visibility },
           type: 'demonstrated' as const,
           // An evidence of a shown squad sits on that squad's branch.
           lane: projectLane(v.projectId),
@@ -335,6 +347,7 @@ export function trajectoryGraph(
       reference: null,
       project: null,
       notes: [],
+      record: null,
       ...draft,
       lines,
     }

@@ -7,7 +7,7 @@ export function missingProfileItems(user: User, profile: MemberProfile, hasTraje
     !profile.currentFocus && 'o que você está aprendendo agora',
     !profile.readme && 'o texto "Sobre"',
     user.languages.length === 0 && 'as linguagens com que você trabalha',
-    !profile.experiences.some((e) => e.isPublic) && 'uma experiência registrada',
+    !profile.experiences.some((e) => e.visibility === 'public') && 'uma experiência registrada',
     !hasTrajectory && 'um registro publicado na trajetória',
   ].filter((item) => item !== false)
 }

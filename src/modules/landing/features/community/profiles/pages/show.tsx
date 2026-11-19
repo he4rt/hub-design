@@ -22,6 +22,7 @@ import { achievementsModels, parseAchievementsModel, shownAchievements } from '.
 import { activityGroupLabels, memberActivity, type ActivityGroup } from '../lib/activity'
 import { missingProfileItems } from '../lib/completeness'
 import { trajectoryGraph } from '../lib/trajectory'
+import { viewerOptions, type Viewer } from '../lib/visibility'
 import './show.css'
 
 const TABS = { 'visao-geral': 'Visão geral', atividade: 'Atividade', trajetoria: 'Trajetória', conquistas: 'Conquistas' } as const
@@ -112,8 +113,20 @@ export default function PublicProfile() {
     )
   }
   const profile = storedProfile ?? emptyProfile(user.id)
+  // "Ver como": the owner reads their profile as a member or a visitor would.
+  const viewAs = viewerOptions.find((option) => option.param !== null && option.param === params.get('ver'))?.value
+  const viewer: Viewer = isOwner ? (viewAs ?? 'owner') : sessionUserId ? 'member' : 'visitor'
+  const asOwner = viewer === 'owner'
+  const setViewer = (next: Viewer) =>
+    setParams((current) => {
+      const result = new URLSearchParams(current)
+      const param = viewerOptions.find((option) => option.value === next)?.param
+      if (param) result.set('ver', param)
+      else result.delete('ver')
+      return result
+    })
 
-  const graph = trajectoryGraph(profile, { squads, projects, memberships, deliveries, validations, posts })
+  const graph = trajectoryGraph(profile, { squads, projects, memberships, deliveries, validations, posts, viewer })
   const entries = graph.entries
   // The Conquistas tab exists only in the "aba" achievements model.
   const tabs = (Object.keys(TABS) as Tab[]).filter((value) => value !== 'conquistas' || model === 'aba')
@@ -126,7 +139,7 @@ export default function PublicProfile() {
     discussions,
     posts,
     validations,
-    signedIn: Boolean(sessionUserId),
+    signedIn: viewer !== 'visitor',
   })
   const github = user.linkedAccounts.find((account) => account.provider === 'github')
   const linkedin = user.linkedAccounts.find((account) => account.provider === 'linkedin')
@@ -142,6 +155,7 @@ export default function PublicProfile() {
         company: validatorRecord.showEmployer ? validatorRecord.company : null,
       }
     : null
+  // On the profile, the diary shows what the member chose to show there, whoever reads it.
   const shownPosts = posts
     .filter((p) => p.userId === user.id && p.shownOnProfile && p.deletedAt === null)
     .toSorted((a, b) => b.createdAt.localeCompare(a.createdAt))
@@ -152,14 +166,14 @@ export default function PublicProfile() {
   const firstName = user.name.split(' ')[0]
   const achievements = shownAchievements(
     allAchievements.filter((item) => item.userId === profile.userId),
-    isOwner,
+    viewer === 'owner',
   )
-  const achievementProps = { items: achievements, journey: profile.journey, isOwner, firstName }
+  const achievementProps = { items: achievements, journey: profile.journey, isOwner: asOwner, firstName }
 
   const trajectory =
     entries.length > 0 ? (
-      <TrajectoryGraph graph={graph} forum={{ discussions, isOwner }} />
-    ) : isOwner ? (
+      <TrajectoryGraph graph={graph} forum={{ discussions, isOwner: asOwner }} editorId={asOwner ? user.id : null} />
+    ) : asOwner ? (
       <div className="public-profile-page__empty">
         <code>fatal: sua trajetória ainda não tem registros publicados</code>
         <p>Registre o que você aprendeu e escolha o que aparece aqui.</p>
@@ -177,7 +191,7 @@ export default function PublicProfile() {
         photoUrl={user.photoUrl}
         links={links}
         validator={validator}
-        isOwner={isOwner}
+        isOwner={asOwner}
         memberSince={user.createdAt}
         state={user.city?.uf ?? null}
         achievements={model === 'cabecalho' ? achievements : []}
@@ -192,7 +206,9 @@ export default function PublicProfile() {
           </Button>
         </Card>
       )}
-      {isOwner && <OwnerNotice missing={missingProfileItems(user, profile, entries.length > 0)} />}
+      {isOwner && (
+        <OwnerNotice missing={missingProfileItems(user, profile, entries.length > 0)} viewer={viewer} onViewerChange={setViewer} />
+      )}
 
       <Tabs value={activeTab} onValueChange={(value) =>
           setParams(() => {
@@ -211,7 +227,7 @@ export default function PublicProfile() {
 
         <div className="public-profile-page__grid">
           <div className="public-profile-page__side">
-            <ProfileSidebar profile={profile} areas={areaLabels(user.areas)} languages={user.languages} isOwner={isOwner} />
+            <ProfileSidebar profile={profile} areas={areaLabels(user.areas)} languages={user.languages} isOwner={asOwner} viewer={viewer} />
             {model === 'vitrine' && <AchievementsBox {...achievementProps} />}
           </div>
 
@@ -219,7 +235,7 @@ export default function PublicProfile() {
             <TabsContent value="visao-geral" className="public-profile-page__tab">
               <ReadmeCard
                 readme={profile.readme}
-                empty={isOwner ? 'Conte quem você é no texto "Sobre", em Editar perfil.' : `${firstName} ainda não escreveu o texto "Sobre".`}
+                empty={asOwner ? 'Conte quem você é no texto "Sobre", em Editar perfil.' : `${firstName} ainda não escreveu o texto "Sobre".`}
               />
               {publishedValidations.length > 0 && (
                 <ValidationsCard validations={publishedValidations} projects={projects} contestations={contestations} />
@@ -227,7 +243,7 @@ export default function PublicProfile() {
               <DiaryCard
                 posts={shownPosts}
                 collections={collections.filter((c) => c.userId === user.id)}
-                empty={isOwner ? 'Escolha no Feed quais publicações aparecem aqui.' : `${firstName} ainda não mostrou publicações do diário.`}
+                empty={asOwner ? 'Escolha no Feed quais publicações aparecem aqui.' : `${firstName} ainda não mostrou publicações do diário.`}
               />
             </TabsContent>
             <TabsContent value="atividade" className="public-profile-page__tab">
@@ -250,7 +266,7 @@ export default function PublicProfile() {
                     <AchievementList items={achievements} />
                   ) : (
                     <p className="public-profile-page__empty">
-                      {isOwner ? 'Suas conquistas aparecem aqui conforme você avança.' : `${firstName} ainda não publicou conquistas.`}
+                      {asOwner ? 'Suas conquistas aparecem aqui conforme você avança.' : `${firstName} ainda não publicou conquistas.`}
                     </p>
                   )}
                 </Card>
