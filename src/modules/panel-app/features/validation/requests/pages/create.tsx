@@ -20,13 +20,13 @@ export default function Create() {
   const [params] = useSearchParams()
   const state = useDb((s) => s)
   const memberId = state.session?.userId ?? ''
-  const squad = state.squadTeams.find((s) => s.slug === params.get('squad'))
+  const squad = state.squads.find((s) => s.slug === params.get('squad'))
   const deliveries = validatableDeliveries(state, memberId).filter(
-    (d) => !squad || state.teamProjects.find((p) => p.id === d.projectId)?.squadId === squad.id,
+    (d) => !squad || state.projects.find((p) => p.id === d.projectId)?.squadId === squad.id,
   )
   const [selected, setSelected] = useState<string[]>([])
   const [criterionId, setCriterionId] = useState('')
-  const project = state.teamProjects.find((p) => p.id === deliveries.find((d) => selected.includes(d.id))?.projectId)
+  const project = state.projects.find((p) => p.id === deliveries.find((d) => selected.includes(d.id))?.projectId)
   const blocked = openRequests(state, memberId).length >= MEMBER_OPEN_REQUESTS
 
   const [result, submit, pending] = useActionState(async () => {
@@ -44,7 +44,7 @@ export default function Create() {
       label: 'Preencher pedido válido',
       run: () => {
         setSelected(deliveries.slice(0, 1).map((d) => d.id))
-        setCriterionId(state.teamProjects.find((p) => p.id === deliveries[0]?.projectId)?.evaluationCriteria[0]?.id ?? '')
+        setCriterionId(state.projects.find((p) => p.id === deliveries[0]?.projectId)?.evaluationCriteria[0]?.id ?? '')
       },
     },
     { label: 'Entrar como Ana (entrega aceita)', run: () => db.set((s) => ({ ...s, session: { userId: 'u2' } })) },
@@ -86,7 +86,7 @@ export default function Create() {
                     />
                     <span>
                       {d.title}
-                      <span className="stack-page__muted"> · {state.teamProjects.find((p) => p.id === d.projectId)?.name}</span>
+                      <span className="stack-page__muted"> · {state.projects.find((p) => p.id === d.projectId)?.name}</span>
                     </span>
                   </label>
                 )

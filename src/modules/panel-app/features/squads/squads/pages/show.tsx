@@ -1,4 +1,4 @@
-import { Link, useNavigate } from 'react-router'
+import { Link, Navigate, useNavigate } from 'react-router'
 import { FormMessage } from '@/components/form-message'
 import { NotFound } from '@/components/not-found'
 import { PageHeader } from '@/components/page-header'
@@ -56,7 +56,9 @@ export default function Show() {
     { label: 'Entrar como Rafael (capitão)', run: () => db.set((s) => ({ ...s, session: { userId: 'u6' } })) },
   ])
 
-  if (!squad || (!member && !manager)) return <NotFound />
+  if (!squad) return <NotFound />
+  // Who is not in the squad reads its public page.
+  if (!member && !manager) return <Navigate to={`/squads/${squad.slug}`} replace />
 
   const board = state.boardItems.filter((i) => i.projectId === project?.id)
   const myDeliveries = state.deliveries.filter((d) => d.credits.some((c) => c.userId === userId))
@@ -161,11 +163,11 @@ export default function Show() {
       <div className="my-squad__history">
         <Card>
           <h2>O que foi meu</h2>
-          <SquadLog entries={myLog} projects={state.teamProjects} users={state.users} />
+          <SquadLog entries={myLog} projects={state.projects} users={state.users} />
         </Card>
         <Card>
           <h2>O que foi do time</h2>
-          <SquadLog entries={teamLog} projects={state.teamProjects} users={state.users} />
+          <SquadLog entries={teamLog} projects={state.projects} users={state.users} />
         </Card>
       </div>
 

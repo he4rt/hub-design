@@ -14,8 +14,6 @@ import UsageData from './features/auth/pages/usage-data'
 import DiscussionCreate from './features/community/discussions/pages/create'
 import DiscussionsIndex from './features/community/discussions/pages/index'
 import DiscussionShow from './features/community/discussions/pages/show'
-import SquadShow from './features/development/squads/pages/show'
-import ProjectShow from './features/development/squads/projects/pages/show'
 import MyApplications from './features/squads/applications/pages/index'
 import EntryTest from './features/squads/entry-test/pages/show'
 import ApplicationCreate from './features/squads/squads/applications/pages/create'
@@ -59,8 +57,12 @@ export const panelAppRoutes: RouteObject = {
       Component: PublicLayout,
       children: [
         { path: 'members/:handle', Component: PublicProfile },
-        { path: 'squads/:squadSlug', Component: SquadShow },
-        { path: 'squads/:squadSlug/projects/:projectSlug', Component: ProjectShow },
+        // The public project page lives on the landing; old links keep working.
+        {
+          path: 'squads/:squad/projects/:project',
+          loader: ({ params, request }) =>
+            redirect(`/squads/${params.squad}/projects/${params.project}${new URL(request.url).search}`),
+        },
         { path: 'discussions', Component: DiscussionsIndex },
         // Visitors see the form and a sign-in prompt; publishing needs a session.
         { path: 'discussions/new', Component: DiscussionCreate },

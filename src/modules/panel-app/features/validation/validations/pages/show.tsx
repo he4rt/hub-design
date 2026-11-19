@@ -43,7 +43,7 @@ export default function Show() {
 
   const previous = state.validations.find((v) => v.id === validation.supersedesId)
   const contestations = state.contestations.filter((c) => c.validationId === validation.id)
-  const project = state.teamProjects.find((p) => p.id === validation.projectId)
+  const project = state.projects.find((p) => p.id === validation.projectId)
 
   return (
     <div className="stack-page">

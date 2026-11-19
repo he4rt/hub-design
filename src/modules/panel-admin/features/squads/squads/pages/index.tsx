@@ -14,7 +14,7 @@ export default function Index() {
   const state = useDb((s) => s)
 
   useDebugActions('Squads (admin)', [
-    { label: 'Esvaziar squads', run: () => db.set((s) => ({ ...s, squadTeams: [] })) },
+    { label: 'Esvaziar squads', run: () => db.set((s) => ({ ...s, squads: [] })) },
   ])
 
   return (
@@ -29,7 +29,7 @@ export default function Index() {
         }
       />
       <Card>
-        {state.squadTeams.length === 0 ? (
+        {state.squads.length === 0 ? (
           <p className="stack-page__muted">Nenhum squad ainda. Crie o primeiro e encaminhe um projeto.</p>
         ) : (
           <div className="admin-squads__scroll">
@@ -45,7 +45,7 @@ export default function Index() {
                 </tr>
               </thead>
               <tbody>
-                {state.squadTeams.map((squad) => {
+                {state.squads.map((squad) => {
                   const project = activeProject(state, squad.id)
                   const pendingApps = state.applications.filter((a) => a.projectId === project?.id && a.status === 'pending').length
                   const pendingDeliveries = state.deliveries.filter((d) => d.projectId === project?.id && d.status === 'pending').length

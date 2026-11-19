@@ -28,13 +28,13 @@ export function createSquad(actorId: string, input: { name: string; description:
     const description = requireText(input.description, 10, 'Descreva o squad em ao menos 10 caracteres.', 'description')
     const slug = slugify(name, 40)
     if (RESERVED_SQUAD_SLUGS.includes(slug)) throw new MockError('Este nome é reservado. Escolha outro.', 'name')
-    if (db.get().squadTeams.some((s) => s.slug === slug)) throw new MockError('Já existe um squad com este nome.', 'name')
+    if (db.get().squads.some((s) => s.slug === slug)) throw new MockError('Já existe um squad com este nome.', 'name')
     if (input.captainId) requireGithub(input.captainId)
     const id = newId()
     db.set((s) => ({
       ...s,
-      squadTeams: [
-        ...s.squadTeams,
+      squads: [
+        ...s.squads,
         { id, slug, name, description, captainId: input.captainId || null, status: 'inactive', createdAt: new Date().toISOString() },
       ],
     }))
@@ -67,7 +67,7 @@ export function createProject(actorId: string, squadId: string, input: ProjectIn
   return mockAction('panel-admin.squads.projects.store', input, () => {
     staff(actorId)
     const state = db.get()
-    const squad = state.squadTeams.find((s) => s.id === squadId)
+    const squad = state.squads.find((s) => s.id === squadId)
     if (!squad) throw new MockError('Squad não encontrado.')
     if (!canCreateProject(squadId)) throw new MockError('Este squad já tem um projeto ativo.')
     const name = requireText(input.name, 3, 'Dê um nome ao projeto.', 'name')
@@ -86,19 +86,19 @@ export function createProject(actorId: string, squadId: string, input: ProjectIn
 
     const repo = input.repository.trim().toLowerCase()
     if (!/^he4rt\/[a-z0-9-]+$/.test(repo)) throw new MockError('O repositório fica na organização: he4rt/nome-do-projeto.', 'repository')
-    const exists = ORG_REPOSITORIES.includes(repo) || state.teamProjects.some((p) => p.repository?.fullName === repo)
+    const exists = ORG_REPOSITORIES.includes(repo) || state.projects.some((p) => p.repository?.fullName === repo)
     if (input.repositoryMode === 'create' && exists) throw new MockError('Este repositório já existe. Use "Vincular existente".', 'repository')
     if (input.repositoryMode === 'link' && !exists) throw new MockError('Este repositório não existe na organização.', 'repository')
-    if (state.teamProjects.some((p) => p.repository?.fullName === repo && p.status !== 'ended')) {
+    if (state.projects.some((p) => p.repository?.fullName === repo && p.status !== 'ended')) {
       throw new MockError('Este repositório já está num projeto ativo.', 'repository')
     }
 
     const id = newId()
     db.set((s) => ({
       ...s,
-      squadTeams: s.squadTeams.map((sq) => (sq.id === squadId ? { ...sq, captainId } : sq)),
-      teamProjects: [
-        ...s.teamProjects,
+      squads: s.squads.map((sq) => (sq.id === squadId ? { ...sq, captainId } : sq)),
+      projects: [
+        ...s.projects,
         {
           id,
           squadId,
@@ -131,7 +131,7 @@ export function createProject(actorId: string, squadId: string, input: ProjectIn
 export function changeCaptain(actorId: string, squadId: string, captainId: string, reason: string) {
   return mockAction('panel-admin.squads.captain.update', { squadId, captainId, reason }, () => {
     staff(actorId)
-    const squad = db.get().squadTeams.find((s) => s.id === squadId)
+    const squad = db.get().squads.find((s) => s.id === squadId)
     if (!squad) throw new MockError('Squad não encontrado.')
     if (squad.captainId) superAdmin(actorId)
     if (squad.captainId === captainId) throw new MockError('Esta pessoa já é a capitã.', 'captain')
@@ -141,12 +141,12 @@ export function changeCaptain(actorId: string, squadId: string, captainId: strin
     const now = new Date().toISOString()
     db.set((s) => ({
       ...s,
-      squadTeams: s.squadTeams.map((sq) => (sq.id === squadId ? { ...sq, captainId } : sq)),
+      squads: s.squads.map((sq) => (sq.id === squadId ? { ...sq, captainId } : sq)),
       memberships:
         project && !s.memberships.some((m) => m.projectId === project.id && m.userId === captainId && m.leftAt === null)
           ? [
               ...s.memberships,
-              { id: newId(), squadId, projectId: project.id, userId: captainId, responsibilities: 'Capitão.', joinedAt: now, leftAt: null, leftReason: null },
+              { id: newId(), squadId, projectId: project.id, userId: captainId, responsibilities: 'Capitão.', joinedAt: now, leftAt: null, leftReason: null, shownOnProfile: false },
             ]
           : s.memberships,
     }))
@@ -163,7 +163,7 @@ export function removeMember(actorId: string, membershipId: string, reason: stri
     db.set((s) => ({
       ...s,
       memberships: s.memberships.map((x) => (x.id === membershipId ? { ...x, leftAt: new Date().toISOString(), leftReason: text } : x)),
-      squadTeams: s.squadTeams.map((sq) => (sq.id === m.squadId && sq.captainId === m.userId ? { ...sq, captainId: null } : sq)),
+      squads: s.squads.map((sq) => (sq.id === m.squadId && sq.captainId === m.userId ? { ...sq, captainId: null } : sq)),
     }))
     appendLog({ squadId: m.squadId, projectId: m.projectId, kind: 'member-removed', actorId, subjectId: m.userId, reason: text })
   })
@@ -181,12 +181,12 @@ export function reassignMember(actorId: string, membershipId: string, targetSqua
     }
     const text = requireText(reason, 10, 'Diga o motivo, que fica no log dos dois squads.', 'reason')
     const now = new Date().toISOString()
-    const targetName = state.squadTeams.find((s) => s.id === targetSquadId)?.name ?? ''
+    const targetName = state.squads.find((s) => s.id === targetSquadId)?.name ?? ''
     db.set((s) => ({
       ...s,
       memberships: [
         ...s.memberships.map((x) => (x.id === membershipId ? { ...x, leftAt: now, leftReason: text } : x)),
-        { id: newId(), squadId: targetSquadId, projectId: target.id, userId: m.userId, responsibilities: '', joinedAt: now, leftAt: null, leftReason: null },
+        { id: newId(), squadId: targetSquadId, projectId: target.id, userId: m.userId, responsibilities: '', joinedAt: now, leftAt: null, leftReason: null, shownOnProfile: m.shownOnProfile },
       ],
     }))
     appendLog({ squadId: m.squadId, projectId: m.projectId, kind: 'member-reassigned', actorId, subjectId: m.userId, detail: `para ${targetName}`, reason: text })

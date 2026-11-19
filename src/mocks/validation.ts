@@ -29,8 +29,8 @@ export function isEligible(state: MockDb, validatorId: string, request: Validati
   if (!validator || validator.suspension) return false
   if (validatorId === request.memberId) return false
   if (openCount(state, validatorId) >= VALIDATOR_WINDOW) return false
-  const project = state.teamProjects.find((p) => p.id === request.projectId)
-  const squad = state.squadTeams.find((s) => s.id === project?.squadId)
+  const project = state.projects.find((p) => p.id === request.projectId)
+  const squad = state.squads.find((s) => s.id === project?.squadId)
   if (squad?.captainId === validatorId) return false
   if (state.memberships.some((m) => m.squadId === squad?.id && m.userId === validatorId)) return false
   const conflicted = state.validationRequests.some(
@@ -80,5 +80,5 @@ export function byQueueOrder(a: ValidationRequest, b: ValidationRequest): number
 }
 
 export function evaluationCriterion(state: MockDb, request: ValidationRequest) {
-  return state.teamProjects.find((p) => p.id === request.projectId)?.evaluationCriteria.find((c) => c.id === request.criterionId)
+  return state.projects.find((p) => p.id === request.projectId)?.evaluationCriteria.find((c) => c.id === request.criterionId)
 }

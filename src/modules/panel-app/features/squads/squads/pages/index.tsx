@@ -14,8 +14,8 @@ export default function Index() {
   const userId = state.session?.userId ?? ''
   const active = activeSquadIds(state, userId)
   const squadIds = [...new Set(state.memberships.filter((m) => m.userId === userId).map((m) => m.squadId))]
-  const captainOf = state.squadTeams.filter((s) => s.captainId === userId && !squadIds.includes(s.id))
-  const squads = state.squadTeams.filter((s) => squadIds.includes(s.id) || captainOf.includes(s))
+  const captainOf = state.squads.filter((s) => s.captainId === userId && !squadIds.includes(s.id))
+  const squads = state.squads.filter((s) => squadIds.includes(s.id) || captainOf.includes(s))
   const approved = hasApprovedEntryTest(state, userId)
 
   useDebugActions('Meus squads', [

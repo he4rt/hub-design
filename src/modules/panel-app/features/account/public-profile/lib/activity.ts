@@ -1,4 +1,4 @@
-import type { Discussion, MemberProfile, Squad, SquadProject } from '@/mocks/db'
+import type { Discussion, MemberProfile, Project, Squad, SquadDelivery, SquadMembership } from '@/mocks/db'
 import { formatMonth } from '@/modules/panel-app/lib/dates'
 
 export type ActivityGroup = 'squads' | 'forum' | 'learning'
@@ -31,60 +31,77 @@ export const activityGroupLabels: Record<ActivityGroup, string> = {
  */
 export function memberActivity(
   profile: MemberProfile,
-  { squads, projects, discussions, signedIn }: { squads: Squad[]; projects: SquadProject[]; discussions: Discussion[]; signedIn: boolean },
+  {
+    squads,
+    projects,
+    memberships,
+    deliveries,
+    discussions,
+    signedIn,
+  }: {
+    squads: Squad[]
+    projects: Project[]
+    memberships: SquadMembership[]
+    deliveries: SquadDelivery[]
+    discussions: Discussion[]
+    signedIn: boolean
+  },
 ): { items: ActivityItem[]; facts: ContributionFact[] } {
   const userId = profile.userId
   const items: Omit<ActivityItem, 'dateLabel'>[] = []
-  const projectPath = (project: SquadProject) => {
+  const projectPath = (project: Project) => {
     const squad = squads.find((candidate) => candidate.id === project.squadId)
-    return `/app/squads/${squad?.slug}/projects/${project.slug}?member=${profile.handle}`
+    return `/squads/${squad?.slug}/projects/${project.slug}`
   }
 
   let projectCount = 0
   let acceptedCount = 0
   let pullRequestCount = 0
-  for (const project of projects) {
-    // A participation the member hid stays in the squad log, but not on the profile or in its counts.
-    const participant = project.participants.find((p) => p.userId === userId && p.shownOnProfile)
-    if (!participant) continue
+  // A participation the member hid stays in the squad log, but not on the profile or in its counts.
+  for (const membership of memberships.filter((m) => m.userId === userId && m.shownOnProfile)) {
+    const project = projects.find((candidate) => candidate.id === membership.projectId)
+    if (!project) continue
     projectCount += 1
-    const squadName = squads.find((squad) => squad.id === project.squadId)?.name ?? ''
+    const squad = squads.find((candidate) => candidate.id === project.squadId)
     items.push({
-      id: `join-${project.id}`,
+      id: `join-${membership.id}`,
       group: 'squads',
       kind: 'Squad',
-      date: participant.joinedAt,
-      title: `Entrou no squad ${squadName} como ${participant.role.toLowerCase()}`,
+      date: membership.joinedAt,
+      title: `Entrou no squad ${squad?.name ?? ''}${squad?.captainId === userId ? ' como capitão' : ''}`,
       href: projectPath(project),
       external: false,
       note: `Projeto ${project.name}`,
     })
-    for (const delivery of project.deliveries.filter((d) => d.status === 'accepted' && d.memberIds.includes(userId))) {
+    const accepted = deliveries.filter(
+      (d) => d.projectId === project.id && d.status === 'accepted' && d.credits.some((c) => c.userId === userId),
+    )
+    for (const delivery of accepted) {
       acceptedCount += 1
+      const date = delivery.decidedAt ?? delivery.createdAt
       items.push({
         id: delivery.id,
         group: 'squads',
         kind: 'Entrega aceita',
-        date: delivery.date,
+        date,
         title: delivery.title,
         href: projectPath(project),
         external: false,
         note: project.name,
       })
-    }
-    for (const evidence of project.evidences.filter((e) => e.authorId === userId)) {
-      if (evidence.kind === 'pull-request') pullRequestCount += 1
-      const repo = project.repository.split('/')[1]
-      items.push({
-        id: evidence.id,
-        group: 'squads',
-        kind: evidence.kind === 'pull-request' ? 'Pull request' : 'Commit',
-        date: evidence.date,
-        title: evidence.title,
-        href: evidence.url,
-        external: true,
-        note: evidence.kind === 'pull-request' ? `${repo}#${evidence.ref}` : `${repo}@${evidence.ref}`,
-      })
+      for (const evidence of delivery.evidence.filter((e) => e.authorId === userId)) {
+        if (evidence.kind === 'pull-request') pullRequestCount += 1
+        items.push({
+          id: `${delivery.id}-${evidence.ref}`,
+          group: 'squads',
+          kind: evidence.kind === 'pull-request' ? 'Pull request' : evidence.kind === 'review' ? 'Revisão' : 'Commit',
+          date,
+          title: delivery.title,
+          href: evidence.url,
+          external: true,
+          note: evidence.ref,
+        })
+      }
     }
   }
 

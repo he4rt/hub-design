@@ -1,4 +1,4 @@
-import type { Discussion, DiscussionCategory, MemberProfile, Squad, SquadProject } from '@/mocks/db'
+import type { Discussion, DiscussionCategory, MemberProfile, Project, Squad } from '@/mocks/db'
 
 export const categoryLabels: Record<DiscussionCategory, string> = {
   question: 'Dúvida',
@@ -11,9 +11,9 @@ export function lastActivity(discussion: Discussion): string {
   return discussion.replies.at(-1)?.createdAt ?? discussion.createdAt
 }
 
-export function projectPath(project: SquadProject, squads: Squad[]): string {
+export function projectPath(project: Project, squads: Squad[]): string {
   const squad = squads.find((candidate) => candidate.id === project.squadId)
-  return `/app/squads/${squad?.slug}/projects/${project.slug}`
+  return `/squads/${squad?.slug}/projects/${project.slug}`
 }
 
 export type ResolvedContext = { kind: string; label: string; path: string | null }
@@ -24,13 +24,13 @@ export type ResolvedContext = { kind: string; label: string; path: string | null
  */
 export function discussionContext(
   discussion: Discussion,
-  { squads, projects, profiles }: { squads: Squad[]; projects: SquadProject[]; profiles: MemberProfile[] },
+  { squads, projects, profiles }: { squads: Squad[]; projects: Project[]; profiles: MemberProfile[] },
 ): ResolvedContext | null {
   const context = discussion.context
   if (!context) return null
   if (context.type === 'squad') {
     const squad = squads.find((candidate) => candidate.id === context.id)
-    return squad ? { kind: 'Squad', label: squad.name, path: `/app/squads/${squad.slug}` } : null
+    return squad ? { kind: 'Squad', label: squad.name, path: `/squads/${squad.slug}` } : null
   }
   if (context.type === 'project') {
     const project = projects.find((candidate) => candidate.id === context.id)

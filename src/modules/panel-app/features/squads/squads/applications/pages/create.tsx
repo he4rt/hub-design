@@ -25,7 +25,7 @@ export default function Create() {
   const account = useAccount()
   const state = useDb((s) => s)
   const squad = findSquadBySlug(state, squadSlug)
-  const project = state.teamProjects.find((p) => p.squadId === squad?.id && p.slug === projectSlug)
+  const project = state.projects.find((p) => p.squadId === squad?.id && p.slug === projectSlug)
   const [answers, setAnswers] = useState<Record<string, string>>({})
 
   const [result, submit, pending] = useActionState(async (): Promise<Result> => {
@@ -55,7 +55,7 @@ export default function Create() {
     { label: 'Responder curto (erro esperado)', run: () => setAnswers({ q1: 'Testes', q2: 'Não' }) },
     {
       label: 'Lotar os lugares (erro esperado)',
-      run: () => db.set((s) => ({ ...s, teamProjects: s.teamProjects.map((p) => (p.id === project?.id ? { ...p, seats: 0 } : p)) })),
+      run: () => db.set((s) => ({ ...s, projects: s.projects.map((p) => (p.id === project?.id ? { ...p, seats: 0 } : p)) })),
     },
     { label: 'Entrar como Letícia (teste aprovado)', run: () => db.set((s) => ({ ...s, session: { userId: 'u10' } })) },
     { label: 'Entrar como Gustavo (sem teste)', run: () => db.set((s) => ({ ...s, session: { userId: 'u11' } })) },

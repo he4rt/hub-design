@@ -27,7 +27,7 @@ export default function Show() {
   const feedCollections = useDb((state) => state.feedCollections)
   const [params, setParams] = useSearchParams()
   const validations = useDb((state) => state.validations)
-  const projects = useDb((state) => state.teamProjects)
+  const projects = useDb((state) => state.projects)
   const contestations = useDb((state) => state.contestations)
 
   useDebugActions('Perfil público', [

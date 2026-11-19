@@ -1,12 +1,12 @@
 import { Link } from 'react-router'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { useDb, type SquadTeam, type TeamProject } from '@/mocks/db'
+import { useDb, type Squad, type Project } from '@/mocks/db'
 import { activeMemberships, applyBlocker, githubHandle, hasApprovedEntryTest } from '@/mocks/squads'
 import './apply-call.css'
 
 /** "Candidatar-se" for the visitor or member, pointing to the step they are missing. */
-export function ApplyCall({ squad, project }: { squad: SquadTeam; project: TeamProject }) {
+export function ApplyCall({ squad, project }: { squad: Squad; project: Project }) {
   const state = useDb((s) => s)
   const userId = state.session?.userId
   const here = `/squads/${squad.slug}`

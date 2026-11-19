@@ -42,7 +42,7 @@ export function declareConflict(validatorId: string, requestId: string, descript
 
 function toValidation(state: ReturnType<typeof db.get>, validatorId: string, requestId: string, draft: ValidationDraft) {
   const request = state.validationRequests.find((r) => r.id === requestId)!
-  const project = state.teamProjects.find((p) => p.id === request.projectId)
+  const project = state.projects.find((p) => p.id === request.projectId)
   const validator = state.validators.find((v) => v.userId === validatorId)
   const existing = state.validations.find((v) => v.requestId === requestId && v.status !== 'recorded')
   return {

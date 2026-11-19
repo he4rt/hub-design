@@ -36,7 +36,7 @@ export default function Show() {
     {
       label: 'GitHub confirma o projeto em criação',
       run: () => {
-        const p = state.teamProjects.find((x) => x.squadId === squad?.id && x.status === 'provisioning')
+        const p = state.projects.find((x) => x.squadId === squad?.id && x.status === 'provisioning')
         run(() => projectProvisioned(p?.id ?? 'nenhum'))
       },
     },
@@ -53,7 +53,7 @@ export default function Show() {
   const superAdmin = isSuperAdmin(admin)
   const project = activeProject(state, squad.id)
   const members = project ? activeMemberships(state, project.id) : []
-  const otherSquads = state.squadTeams.filter((s) => s.id !== squad.id && activeProject(state, s.id)?.status === 'active')
+  const otherSquads = state.squads.filter((s) => s.id !== squad.id && activeProject(state, s.id)?.status === 'active')
   const canChangeCaptain = !squad.captainId || superAdmin
 
   return (
@@ -180,7 +180,7 @@ export default function Show() {
 
       <Card>
         <h2>Log do squad</h2>
-        <SquadLog entries={state.squadLog.filter((e) => e.squadId === squad.id)} projects={state.teamProjects} users={state.users} />
+        <SquadLog entries={state.squadLog.filter((e) => e.squadId === squad.id)} projects={state.projects} users={state.users} />
       </Card>
     </div>
   )

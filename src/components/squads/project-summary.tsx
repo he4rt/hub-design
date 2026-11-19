@@ -1,10 +1,10 @@
 import { Badge } from '@/components/ui/badge'
-import type { TeamProject } from '@/mocks/db'
+import type { Project } from '@/mocks/db'
 import { LEVEL_LABELS } from '@/mocks/squads'
 import './project-summary.css'
 
 /** What every project carries from its creation: goal, acceptance and evaluation criteria, stack and level. */
-export function ProjectSummary({ project }: { project: TeamProject }) {
+export function ProjectSummary({ project }: { project: Project }) {
   return (
     <div className="project-summary">
       <p className="project-summary__goal">{project.goal}</p>

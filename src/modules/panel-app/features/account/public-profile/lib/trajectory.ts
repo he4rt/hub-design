@@ -1,4 +1,4 @@
-import type { JournalPost, MemberProfile, Squad, SquadProject, TechnicalEvidence } from '@/mocks/db'
+import type { JournalPost, MemberProfile, Project, Squad, SquadMembership, TechnicalEvidence } from '@/mocks/db'
 import { formatMonth, formatPeriod } from '@/modules/panel-app/lib/dates'
 import { evidenceRef } from '@/modules/panel-app/lib/evidence'
 
@@ -50,25 +50,26 @@ type Draft = Omit<TrajectoryEntry, 'dateLabel' | 'evidenceKind' | 'url' | 'refer
  */
 export function trajectoryEntries(
   profile: MemberProfile,
-  { squads, projects }: { squads: Squad[]; projects: SquadProject[] },
+  { squads, projects, memberships }: { squads: Squad[]; projects: Project[]; memberships: SquadMembership[] },
 ): TrajectoryEntry[] {
   const learnings = profile.learnings.filter((l) => l.isPublic)
   const experiences = profile.experiences.filter((e) => e.isPublic)
-  const squadOf = (project: SquadProject) => squads.find((squad) => squad.id === project.squadId)
-  // The project page opens on what this member did, apart from the team.
-  const projectLink = (project: SquadProject) => ({
+  const squadOf = (project: Project) => squads.find((squad) => squad.id === project.squadId)
+  const projectLink = (project: Project) => ({
     label: `${project.name} · squad ${squadOf(project)?.name ?? ''}`,
-    path: `/app/squads/${squadOf(project)?.slug}/projects/${project.slug}?member=${profile.handle}`,
+    path: `/squads/${squadOf(project)?.slug}/projects/${project.slug}`,
   })
   const projectLinkById = (projectId: string | null) => {
     const project = projects.find((candidate) => candidate.id === projectId)
     return project ? projectLink(project) : null
   }
-  const participations = projects.flatMap((project) =>
-    project.participants
-      .filter((participant) => participant.userId === profile.userId && participant.shownOnProfile)
-      .map((participant) => ({ project, participant })),
-  )
+  // A participation the member hid stays in the squad log, but not on the profile.
+  const participations = memberships
+    .filter((membership) => membership.userId === profile.userId && membership.shownOnProfile)
+    .flatMap((membership) => {
+      const project = projects.find((candidate) => candidate.id === membership.projectId)
+      return project ? [{ project, membership }] : []
+    })
 
   const drafts: Draft[] = [
     ...profile.knowledge
@@ -107,17 +108,22 @@ export function trajectoryEntries(
       detail: [`${e.organization}, ${formatPeriod(e.startedAt, e.endedAt)}.`, e.description].filter(Boolean).join(' '),
       origin: 'Registrado pelo membro',
     })),
-    ...participations.map(({ project, participant }) => ({
-      id: `${project.id}-${participant.userId}`,
-      kind: 'project' as const,
-      date: participant.joinedAt,
-      title: `Entrou no squad ${squadOf(project)?.name ?? ''}`,
-      badge: { text: participant.role, mono: false },
-      strength: 'registered' as const,
-      detail: `${participant.role} no projeto ${project.name}, ${formatPeriod(participant.joinedAt, project.endedAt)}. ${participant.responsibilities}`,
-      origin: `Projeto em ${project.repository}, na organização He4rt`,
-      project: projectLink(project),
-    })),
+    ...participations.map(({ project, membership }) => {
+      const captain = squadOf(project)?.captainId === membership.userId
+      return {
+        id: membership.id,
+        kind: 'project' as const,
+        date: membership.joinedAt,
+        title: `Entrou no squad ${squadOf(project)?.name ?? ''}`,
+        badge: { text: captain ? 'Capitão' : 'Membro', mono: false },
+        strength: 'registered' as const,
+        detail: `Projeto ${project.name}, ${formatPeriod(membership.joinedAt, membership.leftAt ?? project.endedAt)}. ${membership.responsibilities}`,
+        origin: project.repository
+          ? `Projeto em ${project.repository.fullName}, na organização He4rt`
+          : 'Projeto da organização He4rt',
+        project: projectLink(project),
+      }
+    }),
     ...profile.articles
       .filter((a) => a.isPublic)
       .map((a) => ({

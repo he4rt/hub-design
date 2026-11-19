@@ -104,7 +104,7 @@ export type PendingSocialLink = { provider: SocialProvider; email: string; handl
 export type UserRole = 'member' | 'admin' | 'super-admin'
 
 /** A project team in the He4rt organization on GitHub. Never deleted, only inactive. */
-export type SquadTeam = {
+export type Squad = {
   id: string
   slug: string
   name: string
@@ -120,7 +120,7 @@ export type EvaluationCriterion = { id: string; competency: string; description:
 export type ApplicationQuestion = { id: string; text: string; required: boolean }
 
 /** A project is born in the Hub with its goal and criteria; the GitHub App creates the repository and board. */
-export type TeamProject = {
+export type Project = {
   id: string
   squadId: string
   slug: string
@@ -150,6 +150,11 @@ export type SquadMembership = {
   joinedAt: string
   leftAt: string | null
   leftReason: string | null
+  /**
+   * The member chose to show this participation on their public profile. Off when it starts:
+   * the squad log keeps it either way, but nothing private is published by itself.
+   */
+  shownOnProfile: boolean
 }
 
 /** One per member: a pull request to a He4rt repository, merged by someone from the staff. */
@@ -459,66 +464,6 @@ export type MemberAchievement = {
   revokedAt: string | null
 }
 
-/** A project team in the He4rt organization on GitHub, led by a captain. Never closed, only inactive. */
-export type Squad = {
-  id: string
-  slug: string
-  name: string
-  description: string
-  captainId: string
-  status: 'active' | 'inactive'
-}
-
-/** A member's place in a squad project, kept apart from what the team did. */
-export type ProjectParticipant = {
-  userId: string
-  role: string
-  /** What this member answered for, as the captain registered it. */
-  responsibilities: string
-  joinedAt: string
-  /** The member chose to show this participation on their public profile. */
-  shownOnProfile: boolean
-}
-
-/** Commit or pull request in the project's repository, with its author. */
-export type ProjectEvidence = {
-  id: string
-  kind: 'commit' | 'pull-request'
-  /** Short commit hash or pull request number. */
-  ref: string
-  title: string
-  authorId: string
-  date: string
-  url: string
-}
-
-/** Work the squad accepted or is reviewing, credited to the members who did it. */
-export type Delivery = {
-  id: string
-  title: string
-  description: string
-  memberIds: string[]
-  status: 'accepted' | 'in-review'
-  date: string
-  evidenceIds: string[]
-}
-
-/** One project of a squad: the squad log keeps it for good, project by project. */
-export type SquadProject = {
-  id: string
-  squadId: string
-  slug: string
-  name: string
-  description: string
-  /** Repository under the He4rt organization, such as `he4rt/loja-comunitaria`. */
-  repository: string
-  startedAt: string
-  endedAt: string | null
-  participants: ProjectParticipant[]
-  deliveries: Delivery[]
-  evidences: ProjectEvidence[]
-}
-
 export type DiscussionCategory = 'question' | 'technical' | 'learning'
 
 /** What a discussion is about: a squad, a squad project, or one of the author's journal posts. */
@@ -606,11 +551,9 @@ export type MockDb = {
   events: AnalyticsEvent[]
   profiles: MemberProfile[]
   memberAchievements: MemberAchievement[]
-  squads: Squad[]
-  projects: SquadProject[]
   discussions: Discussion[]
-  squadTeams: SquadTeam[]
-  teamProjects: TeamProject[]
+  squads: Squad[]
+  projects: Project[]
   memberships: SquadMembership[]
   entryTests: EntryTest[]
   applications: SquadApplication[]
@@ -1241,239 +1184,6 @@ const seed: MockDb = {
       ['one-year-hub', '2026-02-03', true],
     ]),
   ],
-  squads: [
-    {
-      id: 's1',
-      slug: 'loja-comunitaria',
-      name: 'Loja Comunitária',
-      description: 'Loja virtual aberta para comércios de bairro, mantida pela comunidade.',
-      captainId: 'u6',
-      status: 'active',
-    },
-    {
-      id: 's2',
-      slug: 'agenda-he4rt',
-      name: 'Agenda He4rt',
-      description: 'Agenda dos eventos e calls da comunidade.',
-      captainId: 'u1',
-      status: 'inactive',
-    },
-  ],
-  projects: [
-    {
-      id: 'p1',
-      squadId: 's1',
-      slug: 'checkout',
-      name: 'Checkout e pedidos',
-      description:
-        'Fluxo de compra da loja: carrinho, cálculo de frete, pagamento simulado e e-mails do pedido. Cada entrega passa por revisão de outro membro antes de entrar.',
-      repository: 'he4rt/loja-comunitaria',
-      startedAt: '2026-09-07',
-      endedAt: null,
-      participants: [
-        {
-          userId: 'u6',
-          role: 'Capitão',
-          responsibilities: 'Organiza as entregas, registra o contexto de cada uma e revisa os pull requests.',
-          joinedAt: '2026-09-07',
-          shownOnProfile: true,
-        },
-        {
-          userId: 'u2',
-          role: 'Back-end',
-          responsibilities: 'Fila dos e-mails do pedido e testes do fluxo de compra.',
-          joinedAt: '2026-09-14',
-          shownOnProfile: true,
-        },
-        {
-          userId: 'u7',
-          role: 'Front-end',
-          responsibilities: 'Carrinho e acessibilidade das telas de compra.',
-          joinedAt: '2026-09-14',
-          shownOnProfile: false,
-        },
-        {
-          userId: 'u3',
-          role: 'Front-end',
-          responsibilities: 'Cálculo de frete na tela do checkout.',
-          joinedAt: '2026-10-26',
-          shownOnProfile: false,
-        },
-      ],
-      deliveries: [
-        {
-          id: 'd1',
-          title: 'E-mails do pedido por uma fila',
-          description: 'O pedido é confirmado na hora, e os e-mails saem por uma fila com três tentativas.',
-          memberIds: ['u2'],
-          status: 'accepted',
-          date: '2026-10-20',
-          evidenceIds: ['pe1', 'pe2'],
-        },
-        {
-          id: 'd2',
-          title: 'Carrinho navegável pelo teclado',
-          description: 'Carrinho usável só com teclado e com leitor de tela, revisado com o NVDA.',
-          memberIds: ['u7'],
-          status: 'accepted',
-          date: '2026-10-28',
-          evidenceIds: ['pe3'],
-        },
-        {
-          id: 'd3',
-          title: 'Frete calculado no checkout',
-          description: 'O frete aparece assim que o CEP é digitado, usando o cálculo testado da Ana.',
-          memberIds: ['u3', 'u2'],
-          status: 'in-review',
-          date: '2026-11-12',
-          evidenceIds: ['pe4'],
-        },
-      ],
-      evidences: [
-        {
-          id: 'pe5',
-          kind: 'commit',
-          ref: 'c07e1b2',
-          title: 'Configura o CI com Pest e Pint',
-          authorId: 'u6',
-          date: '2026-09-08',
-          url: 'https://github.com/he4rt/loja-comunitaria/commit/c07e1b2',
-        },
-        {
-          id: 'pe1',
-          kind: 'pull-request',
-          ref: '34',
-          title: 'Envia os e-mails do pedido por uma fila com retry',
-          authorId: 'u2',
-          date: '2026-10-18',
-          url: 'https://github.com/he4rt/loja-comunitaria/pull/34',
-        },
-        {
-          id: 'pe2',
-          kind: 'commit',
-          ref: 'a41c9e0',
-          title: 'Testa o envio de e-mail com a fila falhando',
-          authorId: 'u2',
-          date: '2026-10-17',
-          url: 'https://github.com/he4rt/loja-comunitaria/commit/a41c9e0',
-        },
-        {
-          id: 'pe3',
-          kind: 'pull-request',
-          ref: '29',
-          title: 'Carrinho navegável por teclado e leitor de tela',
-          authorId: 'u7',
-          date: '2026-10-27',
-          url: 'https://github.com/he4rt/loja-comunitaria/pull/29',
-        },
-        {
-          id: 'pe4',
-          kind: 'pull-request',
-          ref: '41',
-          title: 'Calcula o frete na tela do checkout',
-          authorId: 'u3',
-          date: '2026-11-11',
-          url: 'https://github.com/he4rt/loja-comunitaria/pull/41',
-        },
-      ],
-    },
-    {
-      id: 'p0',
-      squadId: 's1',
-      slug: 'catalogo',
-      name: 'Catálogo de produtos',
-      description: 'Cadastro e busca de produtos para os comércios publicarem o que vendem.',
-      repository: 'he4rt/loja-comunitaria',
-      startedAt: '2026-03-02',
-      endedAt: '2026-07-31',
-      participants: [
-        {
-          userId: 'u6',
-          role: 'Capitão',
-          responsibilities: 'Organizou as entregas e revisou os pull requests.',
-          joinedAt: '2026-03-02',
-          shownOnProfile: true,
-        },
-        {
-          userId: 'u7',
-          role: 'Front-end',
-          responsibilities: 'Busca de produtos e listagem por categoria.',
-          joinedAt: '2026-03-09',
-          shownOnProfile: false,
-        },
-      ],
-      deliveries: [
-        {
-          id: 'd0',
-          title: 'Busca de produtos por nome e categoria',
-          description: 'Busca com filtro por categoria, sem recarregar a página.',
-          memberIds: ['u7'],
-          status: 'accepted',
-          date: '2026-06-18',
-          evidenceIds: ['pe0'],
-        },
-      ],
-      evidences: [
-        {
-          id: 'pe0',
-          kind: 'pull-request',
-          ref: '12',
-          title: 'Busca de produtos com filtro por categoria',
-          authorId: 'u7',
-          date: '2026-06-16',
-          url: 'https://github.com/he4rt/loja-comunitaria/pull/12',
-        },
-      ],
-    },
-    {
-      id: 'p9',
-      squadId: 's2',
-      slug: 'calendario',
-      name: 'Calendário de eventos',
-      description: 'Página com as calls diárias e os eventos da comunidade, com lembrete por e-mail.',
-      repository: 'he4rt/agenda',
-      startedAt: '2025-08-04',
-      endedAt: '2025-12-15',
-      participants: [
-        {
-          userId: 'u1',
-          role: 'Capitão',
-          responsibilities: 'Organizou as entregas e revisou os pull requests.',
-          joinedAt: '2025-08-04',
-          shownOnProfile: true,
-        },
-        {
-          userId: 'u6',
-          role: 'Back-end',
-          responsibilities: 'Lembretes por e-mail e importação dos eventos.',
-          joinedAt: '2025-08-11',
-          shownOnProfile: true,
-        },
-      ],
-      deliveries: [
-        {
-          id: 'd9',
-          title: 'Lembrete por e-mail antes de cada call',
-          description: 'Lembrete enviado uma hora antes, com o link da call.',
-          memberIds: ['u6'],
-          status: 'accepted',
-          date: '2025-11-03',
-          evidenceIds: ['pe9'],
-        },
-      ],
-      evidences: [
-        {
-          id: 'pe9',
-          kind: 'pull-request',
-          ref: '7',
-          title: 'Envia lembrete por e-mail uma hora antes da call',
-          authorId: 'u6',
-          date: '2025-11-01',
-          url: 'https://github.com/he4rt/agenda/pull/7',
-        },
-      ],
-    },
-  ],
   discussions: [
     {
       id: 't1',
@@ -1608,7 +1318,7 @@ function achievementSeed(userId: string, rows: [string, string, boolean, boolean
 }
 
 /** The fake backend. Persisted in localStorage; reset it from the debug sidebar. */
-export const db = createStore(seed, { persist: 'he4rt:mock-db:v13' })
+export const db = createStore(seed, { persist: 'he4rt:mock-db:v14' })
 
 export function useDb<S>(selector: (db: MockDb) => S): S {
   return useStore(db, selector)

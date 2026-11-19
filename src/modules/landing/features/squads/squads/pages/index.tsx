@@ -14,7 +14,7 @@ export default function Index() {
   const [params, setParams] = useSearchParams()
   const filter = (params.get('status') as Filter | null) ?? 'all'
   const state = useDb((s) => s)
-  const squads = state.squadTeams.filter((squad) => filter === 'all' || squad.status === filter)
+  const squads = state.squads.filter((squad) => filter === 'all' || squad.status === filter)
 
   useDebugActions('Squads', [
     {
@@ -22,8 +22,8 @@ export default function Index() {
       run: () =>
         db.set((s) => ({
           ...s,
-          squadTeams: [
-            ...s.squadTeams,
+          squads: [
+            ...s.squads,
             ...Array.from({ length: 20 }, (_, i) => {
               const id = newId()
               return {
@@ -41,12 +41,12 @@ export default function Index() {
     },
     {
       label: 'Deixar todos inativos',
-      run: () => db.set((s) => ({ ...s, squadTeams: s.squadTeams.map((sq) => ({ ...sq, status: 'inactive' as const })) })),
+      run: () => db.set((s) => ({ ...s, squads: s.squads.map((sq) => ({ ...sq, status: 'inactive' as const })) })),
     },
     {
       label: 'Tirar o capitão da Loja (vacancy)',
       run: () =>
-        db.set((s) => ({ ...s, squadTeams: s.squadTeams.map((sq) => (sq.id === 's1' ? { ...sq, captainId: null } : sq)) })),
+        db.set((s) => ({ ...s, squads: s.squads.map((sq) => (sq.id === 's1' ? { ...sq, captainId: null } : sq)) })),
     },
   ])
 
@@ -79,7 +79,7 @@ export default function Index() {
       ) : (
         <ul className="squads-index__list">
           {squads.map((squad) => {
-            const project = state.teamProjects.find((p) => p.squadId === squad.id && p.status !== 'ended')
+            const project = state.projects.find((p) => p.squadId === squad.id && p.status !== 'ended')
             const captain = state.users.find((u) => u.id === squad.captainId)
             const free = project ? project.seats - activeMemberships(state, project.id).length : 0
             return (

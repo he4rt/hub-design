@@ -20,7 +20,7 @@ type Result = { tone: 'error' | 'success'; text: string } | null
  */
 export function ApplicationReview({ state, application, actorId }: { state: MockDb; application: SquadApplication; actorId: string }) {
   const user = state.users.find((u) => u.id === application.userId)
-  const project = state.teamProjects.find((p) => p.id === application.projectId)
+  const project = state.projects.find((p) => p.id === application.projectId)
   const test = state.entryTests.find((t) => t.userId === application.userId)
   const pastSquads = state.memberships.filter((m) => m.userId === application.userId)
   const [strengths, setStrengths] = useState(application.notes?.strengths ?? '')
@@ -94,7 +94,7 @@ export function ApplicationReview({ state, application, actorId }: { state: Mock
             {test?.approvedAt && `, merged em ${formatDate(test.approvedAt)}`}
           </li>
           <li>
-            Squads: {pastSquads.length === 0 ? 'primeiro squad' : pastSquads.map((m) => state.squadTeams.find((s) => s.id === m.squadId)?.name).join(', ')}
+            Squads: {pastSquads.length === 0 ? 'primeiro squad' : pastSquads.map((m) => state.squads.find((s) => s.id === m.squadId)?.name).join(', ')}
           </li>
           {user?.bio && <li>{user.bio}</li>}
         </ul>

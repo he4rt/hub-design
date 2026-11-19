@@ -6,8 +6,8 @@ import type { MockDb } from './db'
  */
 export const squadsSeed: Pick<
   MockDb,
-  | 'squadTeams'
-  | 'teamProjects'
+  | 'squads'
+  | 'projects'
   | 'memberships'
   | 'entryTests'
   | 'applications'
@@ -21,7 +21,7 @@ export const squadsSeed: Pick<
   | 'validations'
   | 'contestations'
 > = {
-  squadTeams: [
+  squads: [
     {
       id: 's1',
       slug: 'loja-comunitaria',
@@ -50,7 +50,7 @@ export const squadsSeed: Pick<
       createdAt: '2026-08-20T12:00:00Z',
     },
   ],
-  teamProjects: [
+  projects: [
     {
       id: 'p1',
       squadId: 's1',
@@ -127,11 +127,12 @@ export const squadsSeed: Pick<
     },
   ],
   memberships: [
-    membership('m1', 's1', 'p1', 'u6', '2026-09-01T12:00:00Z', 'Capitão: organiza o board e revisa os PRs.'),
-    membership('m2', 's1', 'p1', 'u2', '2026-09-05T12:00:00Z', 'Cálculo de frete e testes do checkout.'),
+    { ...membership('m1', 's1', 'p1', 'u6', '2026-09-01T12:00:00Z', 'Capitão: organiza o board e revisa os PRs.'), shownOnProfile: true },
+    { ...membership('m2', 's1', 'p1', 'u2', '2026-09-05T12:00:00Z', 'Cálculo de frete e testes do checkout.'), shownOnProfile: true },
     membership('m3', 's1', 'p1', 'u7', '2026-09-08T12:00:00Z', 'Cupons de desconto.'),
     {
       ...membership('m4', 's1', 'p0', 'u6', '2026-03-10T12:00:00Z', 'Capitão.'),
+      shownOnProfile: true,
       leftAt: '2026-07-30T12:00:00Z',
     },
     {
@@ -349,7 +350,7 @@ export const squadsSeed: Pick<
 }
 
 function membership(id: string, squadId: string, projectId: string, userId: string, joinedAt: string, responsibilities: string) {
-  return { id, squadId, projectId, userId, responsibilities, joinedAt, leftAt: null, leftReason: null }
+  return { id, squadId, projectId, userId, responsibilities, joinedAt, leftAt: null, leftReason: null, shownOnProfile: false }
 }
 
 function entryTest(

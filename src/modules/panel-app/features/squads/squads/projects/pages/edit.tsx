@@ -24,7 +24,7 @@ export default function Edit() {
   const { project: projectSlug } = useParams()
   const navigate = useNavigate()
   const { state, userId, squad, manager } = useSquadPage()
-  const project = state.teamProjects.find((p) => p.squadId === squad?.id && p.slug === projectSlug)
+  const project = state.projects.find((p) => p.squadId === squad?.id && p.slug === projectSlug)
   const [seats, setSeats] = useState(String(project?.seats ?? 0))
   const [rows, setRows] = useState<Row[]>(() =>
     (project?.applicationQuestions ?? []).map((q) => ({ ...q, rowId: crypto.randomUUID() })),

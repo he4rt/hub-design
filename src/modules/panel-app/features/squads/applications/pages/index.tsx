@@ -69,8 +69,8 @@ export default function Index() {
         ) : (
           <ul className="stack-page__list">
             {mine.map((app) => {
-              const project = state.teamProjects.find((p) => p.id === app.projectId)
-              const squad = state.squadTeams.find((s) => s.id === project?.squadId)
+              const project = state.projects.find((p) => p.id === app.projectId)
+              const squad = state.squads.find((s) => s.id === project?.squadId)
               return (
                 <li key={app.id}>
                   <div className="stack-page__row">

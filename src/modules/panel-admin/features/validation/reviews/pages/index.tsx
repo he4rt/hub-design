@@ -43,7 +43,7 @@ export default function Index() {
           {inReview.map((v) => (
             <Card key={v.id}>
               <p className="stack-page__muted">Para {state.users.find((u) => u.id === v.memberId)?.name}</p>
-              <ValidationRecord validation={v} projectName={state.teamProjects.find((p) => p.id === v.projectId)?.name} />
+              <ValidationRecord validation={v} projectName={state.projects.find((p) => p.id === v.projectId)?.name} />
               <div className="stack-page__actions">
                 <Button size="sm" disabled={pending} onClick={() => run(() => decideReview(admin?.id ?? '', v.id, 'approved', note), 'Registrada.')}>
                   Aprovar e registrar

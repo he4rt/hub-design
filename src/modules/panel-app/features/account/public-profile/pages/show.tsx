@@ -36,6 +36,8 @@ export default function PublicProfile() {
   const sessionUserId = useDb((db) => db.session?.userId)
   const squads = useDb((db) => db.squads)
   const projects = useDb((db) => db.projects)
+  const memberships = useDb((db) => db.memberships)
+  const deliveries = useDb((db) => db.deliveries)
   const discussions = useDb((db) => db.discussions)
   const allAchievements = useDb((db) => db.memberAchievements)
 
@@ -70,12 +72,19 @@ export default function PublicProfile() {
   // A missing profile and a profile turned off look the same, so the link never reveals an account.
   if (!profile || !user) return <NotFound />
 
-  const entries = trajectoryEntries(profile, { squads, projects })
+  const entries = trajectoryEntries(profile, { squads, projects, memberships })
   const isOwner = sessionUserId === profile.userId
   // The Conquistas tab exists only in the "aba" achievements model.
   const tabs = (Object.keys(TABS) as Tab[]).filter((value) => value !== 'conquistas' || model === 'aba')
   const activeTab = tabs.includes(tab) ? tab : 'visao-geral'
-  const activity = memberActivity(profile, { squads, projects, discussions, signedIn: Boolean(sessionUserId) })
+  const activity = memberActivity(profile, {
+    squads,
+    projects,
+    memberships,
+    deliveries,
+    discussions,
+    signedIn: Boolean(sessionUserId),
+  })
   const firstName = user.name.split(' ')[0]
   const achievements = shownAchievements(
     allAchievements.filter((item) => item.userId === profile.userId),

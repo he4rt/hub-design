@@ -13,7 +13,7 @@ import './delivery-review.css'
 
 /** One pending delivery: the captain checks the criterion and writes who did what. */
 export function DeliveryReview({ state, delivery, actorId }: { state: MockDb; delivery: SquadDelivery; actorId: string }) {
-  const project = state.teamProjects.find((p) => p.id === delivery.projectId)
+  const project = state.projects.find((p) => p.id === delivery.projectId)
   const criterion = project?.acceptanceCriteria.find((c) => c.id === delivery.criterionId)
   const [credits, setCredits] = useState(delivery.credits)
   const [collaboration, setCollaboration] = useState(delivery.collaboration)

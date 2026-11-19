@@ -1,4 +1,4 @@
-import type { SquadLogEntry, TeamProject, User } from '@/mocks/db'
+import type { SquadLogEntry, Project, User } from '@/mocks/db'
 import { formatDate, LOG_LABELS } from '@/mocks/squads'
 import './squad-log.css'
 
@@ -9,7 +9,7 @@ export function SquadLog({
   users,
 }: {
   entries: SquadLogEntry[]
-  projects: TeamProject[]
+  projects: Project[]
   users: User[]
 }) {
   if (entries.length === 0) return <p className="squad-log__empty">Nada registrado ainda.</p>

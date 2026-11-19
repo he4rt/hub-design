@@ -9,7 +9,7 @@ export type ApplicationAnswer = { questionId: string; answer: string }
 export function applyToProject(userId: string, projectId: string, answers: ApplicationAnswer[]) {
   return mockAction('panel-app.squads.projects.applications.store', { projectId, answers }, () => {
     const state = db.get()
-    const project = state.teamProjects.find((p) => p.id === projectId)
+    const project = state.projects.find((p) => p.id === projectId)
     if (!project) throw new MockError('Projeto não encontrado.')
     const blocker = applyBlocker(state, userId, project)
     if (blocker) throw new MockError(blocker)
@@ -48,7 +48,7 @@ export const FEEDBACK_MIN = 30
 function managedApplication(actorId: string, applicationId: string) {
   const state = db.get()
   const app = state.applications.find((a) => a.id === applicationId)
-  const project = state.teamProjects.find((p) => p.id === app?.projectId)
+  const project = state.projects.find((p) => p.id === app?.projectId)
   if (!app || !project) throw new MockError('Candidatura não encontrada.')
   if (!canManageSquad(state, project.squadId, actorId)) throw new MockError('Só o capitão do squad decide as candidaturas.')
   return { app, project, state }
@@ -73,7 +73,7 @@ export function saveApplicationNotes(actorId: string, applicationId: string, inp
 
 export function canAccept(state: MockDb, applicationId: string): boolean {
   const app = state.applications.find((a) => a.id === applicationId)
-  const project = state.teamProjects.find((p) => p.id === app?.projectId)
+  const project = state.projects.find((p) => p.id === app?.projectId)
   return !!app && !!project && app.status === 'pending' && project.status === 'active' && freeSeats(state, project) > 0
 }
 

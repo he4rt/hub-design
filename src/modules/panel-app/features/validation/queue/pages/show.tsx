@@ -90,7 +90,7 @@ export default function Show() {
 
   if (!request) return <NotFound />
 
-  const project = state.teamProjects.find((p) => p.id === request.projectId)
+  const project = state.projects.find((p) => p.id === request.projectId)
   const deliveries = state.deliveries.filter((d) => request.deliveryIds.includes(d.id))
   const member = state.users.find((u) => u.id === request.memberId)
   const evidence = deliveries.flatMap((d) => d.evidence.map((e) => e.ref))

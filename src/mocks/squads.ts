@@ -1,4 +1,4 @@
-import { db, newId, type MockDb, type SquadTeam, type SquadLogEntry, type TeamProject, type User } from './db'
+import { db, newId, type MockDb, type Squad, type SquadLogEntry, type Project, type User } from './db'
 import { MockError } from './mock-action'
 
 /**
@@ -25,25 +25,25 @@ export function githubHandle(user: User | null | undefined): string | null {
   return user?.linkedAccounts.find((account) => account.provider === 'github')?.handle ?? null
 }
 
-export function activeProject(state: MockDb, squadId: string): TeamProject | undefined {
-  return state.teamProjects.find((project) => project.squadId === squadId && project.status !== 'ended')
+export function activeProject(state: MockDb, squadId: string): Project | undefined {
+  return state.projects.find((project) => project.squadId === squadId && project.status !== 'ended')
 }
 
 export function activeMemberships(state: MockDb, projectId: string) {
   return state.memberships.filter((m) => m.projectId === projectId && m.leftAt === null)
 }
 
-export function freeSeats(state: MockDb, project: TeamProject): number {
+export function freeSeats(state: MockDb, project: Project): number {
   return project.seats - activeMemberships(state, project.id).length
 }
 
-export function isCaptain(squad: SquadTeam | undefined, userId: string | undefined): boolean {
+export function isCaptain(squad: Squad | undefined, userId: string | undefined): boolean {
   return !!squad && !!userId && squad.captainId === userId
 }
 
 /** Captain of the squad, or the super admin, who can do everything. */
 export function canManageSquad(state: MockDb, squadId: string, userId: string | undefined): boolean {
-  const squad = state.squadTeams.find((s) => s.id === squadId)
+  const squad = state.squads.find((s) => s.id === squadId)
   const user = state.users.find((u) => u.id === userId)
   return isCaptain(squad, userId) || isSuperAdmin(user)
 }
@@ -53,7 +53,7 @@ export function hasApprovedEntryTest(state: MockDb, userId: string): boolean {
 }
 
 /** Why the member cannot apply to the project now, or null when they can. */
-export function applyBlocker(state: MockDb, userId: string, project: TeamProject): string | null {
+export function applyBlocker(state: MockDb, userId: string, project: Project): string | null {
   const user = state.users.find((u) => u.id === userId)
   if (!githubHandle(user)) return 'Vincule o GitHub para participar de squads.'
   if (!hasApprovedEntryTest(state, userId)) return 'Conclua o teste de entrada antes de se candidatar.'
@@ -100,7 +100,7 @@ export function requireText(text: string, min: number, message: string, field?: 
 }
 
 export function findSquadBySlug(state: MockDb, slug: string | undefined) {
-  return state.squadTeams.find((squad) => squad.slug === slug)
+  return state.squads.find((squad) => squad.slug === slug)
 }
 
 export function userName(state: MockDb, userId: string | null | undefined): string {

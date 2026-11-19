@@ -25,7 +25,7 @@ export function canLeave(captainId: string | null, userId: string): boolean {
 export function leaveSquad(userId: string, squadId: string) {
   return mockAction('panel-app.squads.members.destroy', { squadId }, () => {
     const state = db.get()
-    const squad = state.squadTeams.find((s) => s.id === squadId)
+    const squad = state.squads.find((s) => s.id === squadId)
     const active = state.memberships.filter((m) => m.squadId === squadId && m.userId === userId && m.leftAt === null)
     if (!squad || active.length === 0) throw new MockError('Você não está neste squad.')
     if (!canLeave(squad.captainId, userId)) throw new MockError('O capitão sai só depois que a staff aloca outro capitão.')

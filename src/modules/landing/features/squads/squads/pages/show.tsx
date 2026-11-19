@@ -30,7 +30,7 @@ export default function Show() {
 
   const project = activeProject(state, squad.id)
   const captain = state.users.find((u) => u.id === squad.captainId)
-  const pastProjects = state.teamProjects
+  const pastProjects = state.projects
     .filter((p) => p.squadId === squad.id && p.status === 'ended')
     .sort((a, b) => (b.endedAt ?? '').localeCompare(a.endedAt ?? ''))
 
@@ -96,7 +96,7 @@ export default function Show() {
         <h2>Log do squad</h2>
         <SquadLog
           entries={state.squadLog.filter((e) => e.squadId === squad.id)}
-          projects={state.teamProjects}
+          projects={state.projects}
           users={state.users}
         />
       </Card>

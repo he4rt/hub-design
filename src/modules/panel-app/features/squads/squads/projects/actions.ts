@@ -6,7 +6,7 @@ export type ProjectSettings = { seats: number; questions: (ApplicationQuestion &
 
 function managed(actorId: string, projectId: string) {
   const state = db.get()
-  const project = state.teamProjects.find((p) => p.id === projectId)
+  const project = state.projects.find((p) => p.id === projectId)
   if (!project) throw new MockError('Projeto não encontrado.')
   const actor = state.users.find((u) => u.id === actorId)
   if (!canManageSquad(state, project.squadId, actorId) && !isStaff(actor)) {
@@ -31,7 +31,7 @@ export function updateProjectSettings(actorId: string, projectId: string, input:
     questions.forEach((q) => requireText(q.text, 10, 'Cada pergunta precisa de ao menos 10 caracteres.', 'questions'))
     db.set((s) => ({
       ...s,
-      teamProjects: s.teamProjects.map((p) => (p.id === projectId ? { ...p, seats: input.seats, applicationQuestions: questions } : p)),
+      projects: s.projects.map((p) => (p.id === projectId ? { ...p, seats: input.seats, applicationQuestions: questions } : p)),
     }))
   })
 }
@@ -44,9 +44,9 @@ export function endProject(actorId: string, projectId: string) {
     const now = new Date().toISOString()
     db.set((s) => ({
       ...s,
-      teamProjects: s.teamProjects.map((p) => (p.id === projectId ? { ...p, status: 'ended' as const, endedAt: now } : p)),
+      projects: s.projects.map((p) => (p.id === projectId ? { ...p, status: 'ended' as const, endedAt: now } : p)),
       memberships: s.memberships.map((m) => (m.projectId === projectId && m.leftAt === null ? { ...m, leftAt: now, leftReason: 'Projeto encerrado' } : m)),
-      squadTeams: s.squadTeams.map((sq) => (sq.id === project.squadId ? { ...sq, status: 'inactive' as const } : sq)),
+      squads: s.squads.map((sq) => (sq.id === project.squadId ? { ...sq, status: 'inactive' as const } : sq)),
       applications: s.applications.map((a) =>
         a.projectId === projectId && a.status === 'pending'
           ? {

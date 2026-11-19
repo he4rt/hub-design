@@ -69,9 +69,9 @@ export function inviteAccepted(applicationId: string) {
     if (!app || app.status !== 'accepted' || app.githubInvite !== 'pending') {
       throw new MockError('Não há convite pendente para esta candidatura.')
     }
-    const project = state.teamProjects.find((p) => p.id === app.projectId)
+    const project = state.projects.find((p) => p.id === app.projectId)
     if (!project) throw new MockError('Projeto não encontrado.')
-    const squad = state.squadTeams.find((s) => s.id === project.squadId)
+    const squad = state.squads.find((s) => s.id === project.squadId)
     db.set((s) => ({
       ...s,
       applications: s.applications.map((a) => (a.id === applicationId ? { ...a, githubInvite: 'accepted' as const } : a)),
@@ -86,6 +86,7 @@ export function inviteAccepted(applicationId: string) {
           joinedAt: new Date().toISOString(),
           leftAt: null,
           leftReason: null,
+          shownOnProfile: false,
         },
       ],
     }))
@@ -131,7 +132,7 @@ function createPendingDelivery(itemId: string): string | null {
   const existing = state.deliveries.find((d) => d.boardItemId === itemId)
   if (existing?.status === 'accepted' || existing?.status === 'pending') return null
 
-  const repo = state.teamProjects.find((p) => p.id === item.projectId)?.repository?.fullName.split('/')[1] ?? 'repo'
+  const repo = state.projects.find((p) => p.id === item.projectId)?.repository?.fullName.split('/')[1] ?? 'repo'
   const people = [...new Set([...merged.flatMap((pr) => [pr.authorId, ...pr.coAuthorIds]), ...item.assigneeIds])]
   const evidence: Evidence[] = merged.map((pr) => ({
     kind: 'pull-request',
@@ -164,7 +165,7 @@ function createPendingDelivery(itemId: string): string | null {
 export function pullRequestMerged(itemId: string, authorId: string, coAuthorIds: string[] = []) {
   return mockAction('github.webhook.pull_request.closed', { itemId, merged: true }, () => {
     const number = 40 + Math.floor(Math.random() * 900)
-    const project = db.get().teamProjects.find((p) => p.id === db.get().boardItems.find((i) => i.id === itemId)?.projectId)
+    const project = db.get().projects.find((p) => p.id === db.get().boardItems.find((i) => i.id === itemId)?.projectId)
     db.set((s) => ({
       ...s,
       boardItems: s.boardItems.map((i) =>
@@ -213,24 +214,24 @@ export function accessDiverged(description: string) {
 export function projectProvisioned(projectId: string) {
   return mockAction('github.webhook.projects_v2.created', { projectId }, () => {
     const state = db.get()
-    const project = state.teamProjects.find((p) => p.id === projectId && p.status === 'provisioning')
+    const project = state.projects.find((p) => p.id === projectId && p.status === 'provisioning')
     if (!project) throw new MockError('Não há projeto esperando o GitHub.')
-    const squad = state.squadTeams.find((s) => s.id === project.squadId)
+    const squad = state.squads.find((s) => s.id === project.squadId)
     const now = new Date().toISOString()
     const number = 20 + Math.floor(Math.random() * 80)
     db.set((s) => ({
       ...s,
-      teamProjects: s.teamProjects.map((p) =>
+      projects: s.projects.map((p) =>
         p.id === projectId
           ? { ...p, status: 'active' as const, startedAt: now, board: { number, url: `https://github.com/orgs/he4rt/projects/${number}` } }
           : p,
       ),
-      squadTeams: s.squadTeams.map((sq) => (sq.id === project.squadId ? { ...sq, status: 'active' as const } : sq)),
+      squads: s.squads.map((sq) => (sq.id === project.squadId ? { ...sq, status: 'active' as const } : sq)),
       memberships:
         squad?.captainId && !s.memberships.some((m) => m.projectId === projectId && m.userId === squad.captainId)
           ? [
               ...s.memberships,
-              { id: newId(), squadId: project.squadId, projectId, userId: squad.captainId, responsibilities: 'Capitão.', joinedAt: now, leftAt: null, leftReason: null },
+              { id: newId(), squadId: project.squadId, projectId, userId: squad.captainId, responsibilities: 'Capitão.', joinedAt: now, leftAt: null, leftReason: null, shownOnProfile: false },
             ]
           : s.memberships,
     }))

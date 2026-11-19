@@ -104,7 +104,7 @@ export default function Index() {
               <li key={r.id}>
                 <div className="stack-page__row">
                   <span className="stack-page__title">
-                    {evaluationCriterion(state, r)?.competency} · {state.teamProjects.find((p) => p.id === r.projectId)?.name}
+                    {evaluationCriterion(state, r)?.competency} · {state.projects.find((p) => p.id === r.projectId)?.name}
                   </span>
                   <Badge tone={REQUEST[r.status as 'queued' | 'assigned'].tone}>{REQUEST[r.status as 'queued' | 'assigned'].label}</Badge>
                 </div>

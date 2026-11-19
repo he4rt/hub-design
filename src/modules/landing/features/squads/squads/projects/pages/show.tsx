@@ -17,7 +17,7 @@ export default function Show() {
   const navigate = useNavigate()
   const state = useDb((s) => s)
   const squad = findSquadBySlug(state, squadSlug)
-  const project = state.teamProjects.find((p) => p.squadId === squad?.id && p.slug === projectSlug)
+  const project = state.projects.find((p) => p.squadId === squad?.id && p.slug === projectSlug)
 
   useDebugActions('Projeto', [
     { label: 'Abrir projeto encerrado', run: () => navigate('/squads/loja-comunitaria/projects/catalogo') },

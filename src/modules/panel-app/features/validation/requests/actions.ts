@@ -25,7 +25,7 @@ export function requestValidation(memberId: string, input: { deliveryIds: string
     }
     const projectId = deliveries[0].projectId
     if (deliveries.some((d) => d.projectId !== projectId)) throw new MockError('As entregas precisam ser do mesmo projeto.', 'deliveries')
-    const project = state.teamProjects.find((p) => p.id === projectId)
+    const project = state.projects.find((p) => p.id === projectId)
     if (!project?.evaluationCriteria.some((c) => c.id === input.criterionId)) {
       throw new MockError('Escolha uma competência dos critérios de avaliação do projeto.', 'criterion')
     }

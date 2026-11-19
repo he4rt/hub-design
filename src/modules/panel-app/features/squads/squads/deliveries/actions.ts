@@ -12,7 +12,7 @@ export type DeliveryDecision = {
 function managed(actorId: string, deliveryId: string) {
   const state = db.get()
   const delivery = state.deliveries.find((d) => d.id === deliveryId)
-  const project = state.teamProjects.find((p) => p.id === delivery?.projectId)
+  const project = state.projects.find((p) => p.id === delivery?.projectId)
   if (!delivery || !project) throw new MockError('Entrega não encontrada.')
   if (!canManageSquad(state, project.squadId, actorId)) throw new MockError('Só o capitão do squad decide as entregas.')
   if (delivery.status !== 'pending') throw new MockError('Esta entrega já foi decidida.')
@@ -37,7 +37,7 @@ export function acceptDelivery(actorId: string, deliveryId: string, input: Deliv
     if (delivery.kind === 'technical' && !item?.pullRequests.some((pr) => pr.merged)) {
       throw new MockError('Entrega técnica precisa de um PR merged.')
     }
-    const squad = state.squadTeams.find((s) => s.id === project.squadId)
+    const squad = state.squads.find((s) => s.id === project.squadId)
     const actor = state.users.find((u) => u.id === actorId)
     if (needsSuperAdmin(squad?.captainId ?? null, credits) && !isSuperAdmin(actor)) {
       throw new MockError('Uma entrega creditada só ao capitão é aceita pelo super admin.')
