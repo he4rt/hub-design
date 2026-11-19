@@ -1,6 +1,6 @@
 import type { FeedPost, MemberProfile, Project, Squad, SquadDelivery, SquadMembership, TechnicalEvidence, Validation } from '@/mocks/db'
-import { formatMonth, formatPeriod } from '@/modules/panel-app/lib/dates'
-import { evidenceRef } from '@/modules/panel-app/lib/evidence'
+import { formatMonth, formatPeriod } from '@/lib/dates'
+import { evidenceRef } from '@/lib/evidence'
 
 /**
  * The five kinds of trajectory record in PRODUCT.md, from the weakest to the strongest proof.

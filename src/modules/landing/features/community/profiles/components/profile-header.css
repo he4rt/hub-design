@@ -63,6 +63,12 @@
   font-size: var(--text-sm);
 }
 
+.profile-header__bio {
+  max-width: 60ch;
+  margin: 0 auto;
+  text-align: center;
+}
+
 .profile-header__validator {
   display: inline-flex;
   flex-wrap: wrap;

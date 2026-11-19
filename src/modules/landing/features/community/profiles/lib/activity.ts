@@ -1,5 +1,5 @@
 import type { Discussion, FeedPost, MemberProfile, Project, Squad, SquadDelivery, SquadMembership, Validation } from '@/mocks/db'
-import { formatMonth } from '@/modules/panel-app/lib/dates'
+import { formatMonth } from '@/lib/dates'
 
 export type ActivityGroup = 'squads' | 'forum' | 'learning'
 

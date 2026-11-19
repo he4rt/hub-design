@@ -1,4 +1,4 @@
-import { formatMonth } from '@/modules/panel-app/lib/dates'
+import { formatMonth } from '@/lib/dates'
 import { groupAchievements, groupLabels, type ShownAchievement } from '../lib/achievements'
 import { AchievementMedal } from './achievement-medal'
 import './achievement-list.css'

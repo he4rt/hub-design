@@ -1,6 +1,6 @@
 import { EyeOff } from 'lucide-react'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { formatMonth } from '@/modules/panel-app/lib/dates'
+import { formatMonth } from '@/lib/dates'
 import type { ShownAchievement } from '../lib/achievements'
 import './achievement-medal.css'
 

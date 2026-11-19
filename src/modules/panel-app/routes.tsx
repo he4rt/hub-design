@@ -1,6 +1,5 @@
 import { redirect, type RouteObject } from 'react-router'
 import { AuthLayout } from '@/components/auth-layout'
-import PublicProfile from './features/account/public-profile/pages/show'
 import Profile from './features/account/settings/pages/profile'
 import FeedCreate from './features/community/feed/pages/create'
 import FeedEdit from './features/community/feed/pages/edit'
@@ -56,7 +55,11 @@ export const panelAppRoutes: RouteObject = {
       // Readable without login: visitors only read, every action needs a session.
       Component: PublicLayout,
       children: [
-        { path: 'members/:handle', Component: PublicProfile },
+        // The single public profile lives on the landing; old links keep working.
+        {
+          path: 'members/:username',
+          loader: ({ params, request }) => redirect(`/members/${params.username}${new URL(request.url).search}`),
+        },
         // The public project page lives on the landing; old links keep working.
         {
           path: 'squads/:squad/projects/:project',

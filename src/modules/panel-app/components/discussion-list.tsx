@@ -3,7 +3,7 @@ import { CheckCircle2, MessagesSquare } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { useNow } from '@/hooks/use-now'
 import { useDb, type Discussion } from '@/mocks/db'
-import { formatDay, formatRelative } from '@/modules/panel-app/lib/dates'
+import { formatDay, formatRelative } from '@/lib/dates'
 import { categoryLabels, discussionContext, lastActivity } from '@/modules/panel-app/lib/discussions'
 import './discussion-list.css'
 

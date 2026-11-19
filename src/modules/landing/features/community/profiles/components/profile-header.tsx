@@ -4,8 +4,7 @@ import { siDevdotto, siGithub, siGitlab, siX } from 'simple-icons'
 import { Avatar } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import type { MemberProfile } from '@/mocks/db'
-import { formatMonth } from '@/modules/panel-app/lib/dates'
+import { formatMonth } from '@/lib/dates'
 import { byRecent, type ShownAchievement } from '../lib/achievements'
 import { AchievementMedal } from './achievement-medal'
 import { AllAchievementsDialog } from './all-achievements-dialog'
@@ -21,16 +20,23 @@ const BADGES_IN_HEADER = 10
  */
 export function ProfileHeader({
   name,
+  username,
+  bio,
   photoUrl,
-  profile,
+  links,
+  validator,
   isOwner,
   memberSince,
   state,
   achievements,
 }: {
   name: string
+  username: string
+  bio: string
   photoUrl: string | null
-  profile: MemberProfile
+  links: { label: string; url: string }[]
+  /** From the validators the administration enabled; role and company only when the validator allowed. */
+  validator: { since: string; role: string | null; company: string | null } | null
   isOwner: boolean
   /** When the account was created in the Hub; it does not know how long someone has been in He4rt. */
   memberSince: string
@@ -38,7 +44,6 @@ export function ProfileHeader({
   state: string | null
   achievements: ShownAchievement[]
 }) {
-  const { validator } = profile
   const validatorDetail = validator && [validator.role, validator.company].filter(Boolean).join(' · ')
 
   return (
@@ -46,7 +51,7 @@ export function ProfileHeader({
       <div className="profile-header__banner" aria-hidden />
       <Avatar src={photoUrl} name={name} size="lg" className="profile-header__avatar" />
       <div className="profile-header__actions">
-        <ShareProfileButton handle={profile.handle} />
+        <ShareProfileButton handle={username} />
         {isOwner && (
           <Button asChild variant="secondary" size="sm">
             <Link to="/app/settings/profile">
@@ -61,7 +66,8 @@ export function ProfileHeader({
         <h1 className="profile-header__name" title={name}>
           {name}
         </h1>
-        <p className="profile-header__handle">@{profile.handle}</p>
+        <p className="profile-header__handle">@{username}</p>
+        {bio && <p className="profile-header__bio">{bio}</p>}
         {validator && (
           <p className="profile-header__validator">
             <ShieldCheck size={14} aria-hidden />
@@ -83,9 +89,9 @@ export function ProfileHeader({
             <CalendarDays size={14} aria-hidden />
             Membro desde <time dateTime={memberSince}>{formatMonth(memberSince)}</time>
           </p>
-          {profile.links.map((link) => (
+          {links.map((link) => (
             <a
-              key={link.id}
+              key={link.url}
               href={link.url}
               target="_blank"
               rel="noreferrer"

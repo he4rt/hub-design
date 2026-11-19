@@ -1,209 +1,264 @@
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 import { NotFound } from '@/components/not-found'
-import { Avatar } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
-import { ValidationRecord } from '@/components/validation/validation-record'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useDebugActions } from '@/debug/use-debug-actions'
-import { formatPostDate, OBJECTIVE_PROGRESS } from '@/lib/feed-post'
-import { areaLabels, labelOf, SITUATIONS } from '@/lib/member-profile'
-import { db, useDb } from '@/mocks/db'
+import { areaLabels } from '@/lib/member-profile'
+import { db, useDb, type MemberProfile } from '@/mocks/db'
+import { AchievementList } from '../components/achievement-list'
+import { AchievementsBox } from '../components/achievements-box'
+import { ActivityList } from '../components/activity-list'
+import { ContributionFacts } from '../components/contribution-facts'
+import { DiaryCard } from '../components/diary-card'
+import { JourneyBand } from '../components/journey-band'
+import { OwnerNotice } from '../components/owner-notice'
+import { ProfileHeader } from '../components/profile-header'
+import { ProfileSidebar } from '../components/profile-sidebar'
+import { ReadmeCard } from '../components/readme-card'
+import { TrajectoryGraph } from '../components/trajectory-graph'
+import { ValidationsCard } from '../components/validations-card'
+import { achievementsModels, parseAchievementsModel, shownAchievements } from '../lib/achievements'
+import { activityGroupLabels, memberActivity, type ActivityGroup } from '../lib/activity'
+import { missingProfileItems } from '../lib/completeness'
+import { trajectoryGraph } from '../lib/trajectory'
 import './show.css'
 
-const MONTH_YEAR = new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' })
+const TABS = { 'visao-geral': 'Visão geral', atividade: 'Atividade', trajetoria: 'Trajetória', conquistas: 'Conquistas' } as const
+type Tab = keyof typeof TABS
+
+/** A member who has not registered any trajectory record yet. */
+function emptyProfile(userId: string): MemberProfile {
+  return {
+    userId,
+    readme: null,
+    currentFocus: null,
+    knowledge: [],
+    learnings: [],
+    experiences: [],
+    articles: [],
+    evidences: [],
+    journey: { stage: 'member', publicStage: 'member', contributor: false },
+  }
+}
 
 /**
- * Public profile: anyone with the link reads it once the member publishes it.
- * A private profile only says so. The starting point, the birth date and
- * "open to opportunities" never show here.
+ * The single public profile of a member, at /members/:username: who they are (from the He4rt
+ * account), what they did on the platform, and how they evolved. Anyone with the link reads it
+ * once the member publishes it; a private profile only says so, except to its owner.
  */
-export default function Show() {
+export default function PublicProfile() {
   const { username } = useParams()
   const navigate = useNavigate()
-  const member = useDb((state) => state.users.find((u) => u.username === username && u.onboardedAt) ?? null)
-  const viewerId = useDb((state) => state.session?.userId ?? null)
-  const feedPosts = useDb((state) => state.feedPosts)
-  const feedCollections = useDb((state) => state.feedCollections)
   const [params, setParams] = useSearchParams()
-  const validations = useDb((state) => state.validations)
-  const projects = useDb((state) => state.projects)
-  const contestations = useDb((state) => state.contestations)
+  const user = useDb((s) => s.users.find((u) => u.username === username && u.onboardedAt))
+  const storedProfile = useDb((s) => s.profiles.find((p) => p.userId === user?.id))
+  const validatorRecord = useDb((s) => s.validators.find((v) => v.userId === user?.id && v.suspension === null))
+  const collections = useDb((s) => s.feedCollections)
+  const contestations = useDb((s) => s.contestations)
+  const sessionUserId = useDb((db) => db.session?.userId)
+  const squads = useDb((db) => db.squads)
+  const projects = useDb((db) => db.projects)
+  const memberships = useDb((db) => db.memberships)
+  const deliveries = useDb((db) => db.deliveries)
+  const posts = useDb((db) => db.feedPosts)
+  const validations = useDb((db) => db.validations)
+  const discussions = useDb((db) => db.discussions)
+  const allAchievements = useDb((db) => db.memberAchievements)
+
+  const tab: Tab = (params.get('aba') as Tab) in TABS ? (params.get('aba') as Tab) : 'visao-geral'
+  const tipo = params.get('tipo') as ActivityGroup | null
+  const model = parseAchievementsModel(params.get('conquistas'))
+  const group = tipo && tipo in activityGroupLabels ? tipo : null
 
   useDebugActions('Perfil público', [
-    { label: 'Abrir perfil inexistente', run: () => navigate('/members/nao-existe') },
-    { label: 'Abrir perfil privado', run: () => navigate('/members/bruno-lima') },
+    { label: 'Abrir Visão geral', run: () => setParams({}) },
+    { label: 'Abrir Atividade', run: () => setParams({ aba: 'atividade' }) },
+    { label: 'Abrir Trajetória', run: () => setParams({ aba: 'trajetoria' }) },
+    ...achievementsModels.map((option) => ({
+      label: `Conquistas: ${option.label}`,
+      run: () =>
+        setParams((next) => {
+          next.set('conquistas', option.value)
+          return next
+        }),
+    })),
+    { label: 'Ver perfil completo', run: () => navigate('/members/ana-souza') },
+    { label: 'Ver perfil sem trajetória', run: () => navigate('/members/leticia-prado') },
+    { label: 'Ver perfil de validador', run: () => navigate('/members/diego-ramos') },
+    { label: 'Ver perfil privado', run: () => navigate('/members/bruno-lima') },
+    { label: 'Ver perfil inexistente', run: () => navigate('/members/ninguem') },
     {
       label: 'Ver como visitante',
       description: 'Remove a sessão de membro.',
-      run: () => db.set((state) => ({ ...state, session: null })),
+      run: () => db.set((s) => ({ ...s, session: null })),
+    },
+    {
+      label: 'Ver como dono do perfil',
+      description: 'Entre como ana@he4rt.dev ou bruno@he4rt.dev (senha "password"); o login volta a este perfil.',
+      run: () => navigate(`/app/login?redirect=${encodeURIComponent(`/members/${username}`)}`),
     },
   ])
 
-  if (!member) return <NotFound />
-
-  const isOwner = viewerId === member.id
-
-  if (!member.published) {
+  if (!user) return <NotFound />
+  const isOwner = sessionUserId === user.id
+  if (!user.published && !isOwner) {
     return (
-      <main className="public-profile public-profile--private">
+      <div className="public-profile-page">
         <Card>
           <h1>Este perfil é privado</h1>
-          {isOwner && (
-            <Button asChild variant="secondary">
-              <Link to="/app/settings/profile">Publicar meu perfil</Link>
-            </Button>
-          )}
         </Card>
-      </main>
+      </div>
     )
   }
+  const profile = storedProfile ?? emptyProfile(user.id)
 
-  const back = encodeURIComponent(`/members/${member.username}`)
-  const github = member.linkedAccounts.find((account) => account.provider === 'github')
-  const linkedin = member.linkedAccounts.find((account) => account.provider === 'linkedin')
+  const graph = trajectoryGraph(profile, { squads, projects, memberships, deliveries, validations, posts })
+  const entries = graph.entries
+  // The Conquistas tab exists only in the "aba" achievements model.
+  const tabs = (Object.keys(TABS) as Tab[]).filter((value) => value !== 'conquistas' || model === 'aba')
+  const activeTab = tabs.includes(tab) ? tab : 'visao-geral'
+  const activity = memberActivity(profile, {
+    squads,
+    projects,
+    memberships,
+    deliveries,
+    discussions,
+    posts,
+    validations,
+    signedIn: Boolean(sessionUserId),
+  })
+  const github = user.linkedAccounts.find((account) => account.provider === 'github')
+  const linkedin = user.linkedAccounts.find((account) => account.provider === 'linkedin')
   const links = [
-    github && { label: 'GitHub', href: `https://github.com/${github.handle}` },
-    linkedin && { label: 'LinkedIn', href: `https://www.linkedin.com/in/${linkedin.handle}` },
-    member.portfolioUrl && { label: 'Portfólio', href: member.portfolioUrl },
+    github && { label: 'GitHub', url: `https://github.com/${github.handle}` },
+    linkedin && { label: 'LinkedIn', url: `https://www.linkedin.com/in/${linkedin.handle}` },
+    user.portfolioUrl && { label: 'Portfólio', url: user.portfolioUrl },
   ].filter((link) => !!link)
-  // Only the diary publications the member chose to show here.
-  const posts = feedPosts
-    .filter((p) => p.userId === member.id && p.shownOnProfile && p.deletedAt === null)
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-  // A collection shows only with at least one publication the member chose to show here.
-  const collections = feedCollections
-    .filter((c) => c.userId === member.id)
-    .map((c) => ({ ...c, count: posts.filter((p) => p.collectionIds.includes(c.id)).length }))
-    .filter((c) => c.count > 0)
-    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name))
-  const selected = collections.find((c) => c.id === params.get('collection'))?.id ?? 'all'
-  const shown = selected === 'all' ? posts : posts.filter((p) => p.collectionIds.includes(selected))
-  // A correction replaces the record it corrects on the profile; the old one stays reachable from the new one.
-  const published = validations
-    .filter((v) => v.memberId === member.id && v.status === 'recorded' && v.published)
+  const validator = validatorRecord
+    ? {
+        since: validatorRecord.approvedAt,
+        role: validatorRecord.showEmployer ? validatorRecord.jobTitle : null,
+        company: validatorRecord.showEmployer ? validatorRecord.company : null,
+      }
+    : null
+  const shownPosts = posts
+    .filter((p) => p.userId === user.id && p.shownOnProfile && p.deletedAt === null)
+    .toSorted((a, b) => b.createdAt.localeCompare(a.createdAt))
+  const publishedValidations = validations
+    .filter((v) => v.memberId === user.id && v.status === 'recorded' && v.published)
     .filter((v) => !validations.some((n) => n.supersedesId === v.id && n.status === 'recorded'))
-    .sort((a, b) => (b.recordedAt ?? '').localeCompare(a.recordedAt ?? ''))
-  const meta = [areaLabels(member.areas), member.city && `${member.city.name} — ${member.city.uf}`].filter(Boolean)
+    .toSorted((a, b) => (b.recordedAt ?? '').localeCompare(a.recordedAt ?? ''))
+  const firstName = user.name.split(' ')[0]
+  const achievements = shownAchievements(
+    allAchievements.filter((item) => item.userId === profile.userId),
+    isOwner,
+  )
+  const achievementProps = { items: achievements, journey: profile.journey, isOwner, firstName }
+
+  const trajectory =
+    entries.length > 0 ? (
+      <TrajectoryGraph graph={graph} forum={{ discussions, isOwner }} />
+    ) : isOwner ? (
+      <div className="public-profile-page__empty">
+        <code>fatal: sua trajetória ainda não tem registros publicados</code>
+        <p>Registre o que você aprendeu e escolha o que aparece aqui.</p>
+      </div>
+    ) : (
+      <p className="public-profile-page__empty">{firstName} ainda não publicou registros na trajetória.</p>
+    )
 
   return (
-    <main className="public-profile">
-      <header className="public-profile__header">
-        <Avatar src={member.photoUrl} name={member.name} size="lg" />
-        <div className="public-profile__identity">
-          <h1 title={member.name}>{member.name}</h1>
-          <p title={`@${member.username}`}>@{member.username}</p>
-          <p title={meta.join(' · ')}>{meta.join(' · ')}</p>
-          <p>Na comunidade desde {MONTH_YEAR.format(new Date(member.onboardedAt!))}</p>
-        </div>
-      </header>
-
-      {(member.bio || member.situation) && (
-        <Card>
-          {member.bio && <p>{member.bio}</p>}
-          {member.situation && <p className="public-profile__muted">{labelOf(SITUATIONS, member.situation)}</p>}
-        </Card>
-      )}
-
-      {member.languages.length > 0 && (
-        <Card>
-          <h2>Linguagens</h2>
-          <ul className="public-profile__stacks">
-            {member.languages.map((language) => (
-              <li key={language}>{language}</li>
-            ))}
-          </ul>
-        </Card>
-      )}
-
-      {links.length > 0 && (
-        <Card>
-          <h2>Redes</h2>
-          <ul className="public-profile__links">
-            {links.map((link) => (
-              <li key={link.label}>
-                <a href={link.href} target="_blank" rel="noopener noreferrer" title={link.href}>
-                  {link.label}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </Card>
-      )}
-
-      {published.length > 0 && (
-        <Card>
-          <h2>Validações</h2>
-          <p className="public-profile__muted">
-            Registradas por validadores de fora do squad. Cada uma aparece inteira, com pontos fortes e de melhoria.
-          </p>
-          {published.map((v) => (
-            <div key={v.id} className="public-profile__validation">
-              {contestations.some((c) => c.validationId === v.id && c.status === 'open') && (
-                <p className="public-profile__muted">Revisão em andamento.</p>
-              )}
-              <ValidationRecord validation={v} projectName={projects.find((p) => p.id === v.projectId)?.name} />
-            </div>
-          ))}
-        </Card>
-      )}
-
-      <Card>
-        <h2>Trajetória</h2>
-        {collections.length > 0 && (
-          <ToggleGroup
-            type="single"
-            variant="chips"
-            value={selected}
-            aria-label="Trilhas"
-            onValueChange={(next) => next && setParams(next === 'all' ? {} : { collection: next }, { replace: true })}
-          >
-            <ToggleGroupItem value="all">
-              Tudo <span className="public-profile__count">{posts.length}</span>
-            </ToggleGroupItem>
-            {collections.map((c) => (
-              <ToggleGroupItem key={c.id} value={c.id} title={c.name}>
-                {c.name} <span className="public-profile__count">{c.count}</span>
-              </ToggleGroupItem>
-            ))}
-          </ToggleGroup>
-        )}
-        {shown.length === 0 ? (
-          <p className="public-profile__muted">Nenhum registro público ainda.</p>
-        ) : (
-          <ol className="public-profile__records">
-            {shown.map((post) => (
-              <li key={post.id}>
-                <time dateTime={post.createdAt}>{formatPostDate(post.createdAt)} · Diário de aprendizado</time>
-                <p>{post.learned}</p>
-                <p className="public-profile__muted">Como aplicou: {post.applied}</p>
-                <p className="public-profile__muted">{labelOf(OBJECTIVE_PROGRESS, post.objectiveProgress)} do objetivo</p>
-              </li>
-            ))}
-          </ol>
-        )}
-      </Card>
-
-      {isOwner ? (
-        <Card className="public-profile__cta">
-          <p>Este é o seu perfil, como os visitantes o veem.</p>
-          <Button asChild variant="secondary">
-            <Link to="/app/settings/profile">Editar perfil</Link>
+    <div className="public-profile-page">
+      <ProfileHeader
+        name={user.name}
+        username={user.username}
+        bio={user.bio}
+        photoUrl={user.photoUrl}
+        links={links}
+        validator={validator}
+        isOwner={isOwner}
+        memberSince={user.createdAt}
+        state={user.city?.uf ?? null}
+        achievements={model === 'cabecalho' ? achievements : []}
+      />
+      {model === 'jornada' && <JourneyBand {...achievementProps} />}
+      {activity.facts.length > 0 && <ContributionFacts facts={activity.facts} />}
+      {isOwner && !user.published && (
+        <Card className="public-profile-page__private">
+          <p>Seu perfil está privado: só você vê esta página.</p>
+          <Button asChild variant="secondary" size="sm">
+            <Link to="/app/settings/profile">Publicar meu perfil</Link>
           </Button>
         </Card>
-      ) : viewerId === null ? (
-        <Card className="public-profile__cta">
-          <p>Entre no Hub para participar de squads, montar sua trajetória e interagir com a comunidade.</p>
-          <div className="public-profile__cta-actions">
-            <Button asChild>
-              <Link to={`/app/login?redirect=${back}`}>Entrar</Link>
-            </Button>
-            <Button asChild variant="secondary">
-              <Link to={`/app/register?redirect=${back}`}>Criar conta</Link>
-            </Button>
+      )}
+      {isOwner && <OwnerNotice missing={missingProfileItems(user, profile, entries.length > 0)} />}
+
+      <Tabs value={activeTab} onValueChange={(value) =>
+          setParams(() => {
+            const next = new URLSearchParams(value === 'visao-geral' ? {} : { aba: value })
+            if (params.has('conquistas')) next.set('conquistas', model)
+            return next
+          })
+        }>
+        <TabsList aria-label="Seções do perfil">
+          {tabs.map((value) => (
+            <TabsTrigger key={value} value={value}>
+              {TABS[value]}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+
+        <div className="public-profile-page__grid">
+          <div className="public-profile-page__side">
+            <ProfileSidebar profile={profile} areas={areaLabels(user.areas)} languages={user.languages} isOwner={isOwner} />
+            {model === 'vitrine' && <AchievementsBox {...achievementProps} />}
           </div>
-        </Card>
-      ) : null}
-    </main>
+
+          <div className="public-profile-page__main">
+            <TabsContent value="visao-geral" className="public-profile-page__tab">
+              <ReadmeCard
+                readme={profile.readme}
+                empty={isOwner ? 'Conte quem você é no texto "Sobre", em Editar perfil.' : `${firstName} ainda não escreveu o texto "Sobre".`}
+              />
+              {publishedValidations.length > 0 && (
+                <ValidationsCard validations={publishedValidations} projects={projects} contestations={contestations} />
+              )}
+              <DiaryCard
+                posts={shownPosts}
+                collections={collections.filter((c) => c.userId === user.id)}
+                empty={isOwner ? 'Escolha no Feed quais publicações aparecem aqui.' : `${firstName} ainda não mostrou publicações do diário.`}
+              />
+            </TabsContent>
+            <TabsContent value="atividade" className="public-profile-page__tab">
+              <Card>
+                <ActivityList
+                  items={activity.items}
+                  group={group}
+                  signedIn={Boolean(sessionUserId)}
+                  onGroupChange={(next) => setParams(next ? { aba: 'atividade', tipo: next } : { aba: 'atividade' })}
+                />
+              </Card>
+            </TabsContent>
+            <TabsContent value="trajetoria" className="public-profile-page__tab">
+              <Card>{trajectory}</Card>
+            </TabsContent>
+            {model === 'aba' && (
+              <TabsContent value="conquistas" className="public-profile-page__tab">
+                <Card>
+                  {achievements.length > 0 ? (
+                    <AchievementList items={achievements} />
+                  ) : (
+                    <p className="public-profile-page__empty">
+                      {isOwner ? 'Suas conquistas aparecem aqui conforme você avança.' : `${firstName} ainda não publicou conquistas.`}
+                    </p>
+                  )}
+                </Card>
+              </TabsContent>
+            )}
+          </div>
+        </div>
+      </Tabs>
+    </div>
   )
 }

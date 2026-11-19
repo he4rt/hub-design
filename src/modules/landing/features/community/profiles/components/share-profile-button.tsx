@@ -14,7 +14,7 @@ export function ShareProfileButton({ handle }: { handle: string }) {
 
   function onOpenChange(open: boolean) {
     setResult(null)
-    if (open) setUrl(`${window.location.origin}/app/members/${handle}`)
+    if (open) setUrl(`${window.location.origin}/members/${handle}`)
   }
 
   async function copyLink() {

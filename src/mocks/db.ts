@@ -393,16 +393,15 @@ export type TechnicalEvidence = {
 }
 
 /** Public profile of a member (Fundação stage: no squads, validations, or XP yet). */
+/**
+ * Trajectory records of a member. Identity (name, photo, bio, areas, languages, links) lives only
+ * in `User`, the shared He4rt account; nothing here copies it.
+ */
 export type MemberProfile = {
   userId: string
-  handle: string
-  bio: string | null
   /** Longer "Sobre mim", shown as the profile's README. Paragraphs are separated by a blank line. */
   readme: string | null
   currentFocus: string | null
-  areas: string[]
-  stacks: string[]
-  links: { id: string; label: string; url: string }[]
   knowledge: DeclaredKnowledge[]
   learnings: LearningRecord[]
   experiences: ExperienceRecord[]
@@ -413,11 +412,6 @@ export type MemberProfile = {
    * records in the mock; then the backend computes them (docs/achievements/entities.md).
    */
   journey: MemberJourney
-  /**
-   * Set when the administration enabled the member as a validator, after the technical test.
-   * Role and company show only when the validator allowed it (squads thread, docs/validation.md).
-   */
-  validator: { since: string; role: string | null; company: string | null } | null
 }
 
 /** Highest kind of evidence a member had in the Hub. Never a seniority, never goes down. */
@@ -674,13 +668,13 @@ const seed: MockDb = {
       ...joined('2025-03-22T12:00:00Z'),
       linkedAccounts: [linked('github', 'ana-souza', '2025-03-22T12:00:00Z')],
       objective: 'get-job',
-      areas: ['front-end'],
+      areas: ['back-end', 'front-end'],
       startingPoint: 'junior',
-      languages: ['JavaScript', 'TypeScript'],
+      languages: ['PHP', 'SQL', 'TypeScript', 'Shell'],
       situation: 'seeking',
       openToOpportunities: true,
       city: { name: 'Recife', uf: 'PE' },
-      bio: 'Front-end em formação, estudando acessibilidade e React.',
+      bio: 'Quatro anos no suporte técnico, onde comecei a automatizar tarefas com scripts. Hoje estudo PHP e Laravel e faço sistemas pequenos para comércios do bairro.',
       published: true,
     }),
     makeUser({
@@ -883,18 +877,9 @@ const seed: MockDb = {
   profiles: [
     {
       userId: 'u2',
-      handle: 'ana-souza',
-      bio: 'Quatro anos no suporte técnico, onde comecei a automatizar tarefas com scripts. Hoje estudo PHP e Laravel e faço sistemas pequenos para comércios do bairro.',
       readme:
         'Passei quatro anos no suporte técnico de um provedor de internet e foi lá que comecei a automatizar tarefas com scripts em Bash.\n\nHoje estudo PHP e Laravel e faço sistemas pequenos para comércios do bairro. Quero trabalhar com back-end em um time que revise código junto.\n\nGosto de entender por que algo quebrou antes de corrigir. É o que mais aparece nas minhas notas do diário.',
       currentFocus: 'Filas e testes de integração em Laravel',
-      areas: ['Back-end', 'Front-end'],
-      stacks: ['PHP', 'Laravel', 'MySQL', 'TypeScript', 'React', 'Docker'],
-      links: [
-        { id: 'l1', label: 'GitHub', url: 'https://github.com/ana-souza-dev' },
-        { id: 'l2', label: 'dev.to', url: 'https://dev.to/ana-souza-dev' },
-        { id: 'l3', label: 'LinkedIn', url: 'https://www.linkedin.com/in/ana-souza-dev' },
-      ],
       knowledge: [
         { id: 'k1', competency: 'PHP', level: 'intermediate', declaredAt: '2025-03-25', isPublic: true },
         { id: 'k2', competency: 'SQL', level: 'basic', declaredAt: '2025-03-25', isPublic: true },
@@ -1047,35 +1032,23 @@ const seed: MockDb = {
         },
       ],
       journey: { stage: 'delivered', publicStage: 'delivered', contributor: false },
-      validator: null,
     },
     {
       userId: 'u3',
-      handle: 'bruno-lima',
-      bio: null,
       readme: null,
       currentFocus: null,
-      areas: ['Front-end'],
-      stacks: ['HTML', 'CSS'],
-      links: [],
       knowledge: [{ id: 'k5', competency: 'HTML e CSS', level: 'basic', declaredAt: '2026-10-28', isPublic: true }],
       learnings: [],
       experiences: [],
       articles: [],
       evidences: [],
       journey: { stage: 'member', publicStage: 'member', contributor: false },
-      validator: null,
     },
     {
       userId: 'u6',
-      handle: 'rafael-costa',
-      bio: null,
       readme:
         'Trabalho com back-end há nove anos, a maior parte em PHP e Go.\n\nComo capitão do squad Loja Comunitária, organizo as entregas e reviso os pull requests. Como validador, leio o trabalho de quem está em outros squads.',
       currentFocus: 'Observabilidade em filas',
-      areas: ['Back-end'],
-      stacks: ['PHP', 'Laravel', 'Go', 'PostgreSQL'],
-      links: [{ id: 'l5', label: 'GitHub', url: 'https://github.com/rafael-costa-dev' }],
       knowledge: [],
       learnings: [],
       experiences: [
@@ -1092,7 +1065,6 @@ const seed: MockDb = {
       articles: [],
       evidences: [],
       journey: { stage: 'delivered', publicStage: 'delivered', contributor: true },
-      validator: { since: '2026-06-10', role: 'Engenheiro de software', company: 'Empresa Exemplo' },
     },
   ],
   memberAchievements: [
@@ -1292,7 +1264,7 @@ function achievementSeed(userId: string, rows: [string, string, boolean, boolean
 }
 
 /** The fake backend. Persisted in localStorage; reset it from the debug sidebar. */
-export const db = createStore(seed, { persist: 'he4rt:mock-db:v15' })
+export const db = createStore(seed, { persist: 'he4rt:mock-db:v16' })
 
 export function useDb<S>(selector: (db: MockDb) => S): S {
   return useStore(db, selector)

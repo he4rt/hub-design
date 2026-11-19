@@ -1,137 +1,81 @@
-.public-profile {
+/* The identity card on top, then a sticky side column and the tabs, each section one card on the page. */
+.public-profile-page {
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
-  max-width: 720px;
+  max-width: 1024px;
   margin: 0 auto;
-  padding: var(--space-12) var(--space-8);
-
-  h2 {
-    font-size: var(--text-md);
-  }
+  padding: var(--space-6) var(--space-6) var(--space-12);
 }
 
-.public-profile__header {
-  display: flex;
-  align-items: center;
-  gap: var(--space-4);
-  margin-bottom: var(--space-4);
+.public-profile-page__grid {
+  display: grid;
+  padding-top: var(--space-4);
+  grid-template-columns: 240px minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-6);
 }
 
-.public-profile__identity {
+.public-profile-page__main {
+  min-width: 0;
+}
+
+.public-profile-page__tab {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
-  min-width: 0;
-
-  h1,
-  p {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  h1 {
-    font-size: var(--text-xl);
-  }
-
-  p {
-    color: var(--color-text-muted);
-    font-size: var(--text-sm);
-  }
-}
-
-.public-profile__stacks {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-
-  li {
-    padding: var(--space-1) var(--space-3);
-    border: 1px solid var(--color-border);
-    border-radius: 999px;
-    font-size: var(--text-sm);
-  }
-}
-
-.public-profile__muted {
-  color: var(--color-text-muted);
-  font-size: var(--text-sm);
-}
-
-.public-profile__links {
-  display: flex;
-  flex-wrap: wrap;
   gap: var(--space-4);
-  margin: 0;
-  padding: 0;
-  list-style: none;
+
+  /* Radix hides inactive panels with the attribute, which display: flex would override. */
+  &[hidden] {
+    display: none;
+  }
 }
 
-.public-profile__cta {
+.public-profile-page__empty {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  color: var(--color-text-muted);
+
+  code {
+    color: var(--color-text-strong);
+    font-size: var(--text-sm);
+  }
+}
+
+@media (max-width: 899px) {
+  /* On one column the summary goes after the tab content, so the tab opens on what it names. */
+  .public-profile-page__side {
+    position: static;
+    order: 1;
+  }
+
+  .public-profile-page__grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-4);
+  }
+}
+
+@media (max-width: 767px) {
+  .public-profile-page {
+    padding: var(--space-3) var(--space-3) var(--space-8);
+  }
+}
+
+/* Side column: the summary box and, in the "vitrine" model, the achievements under it. */
+.public-profile-page__side {
+  position: sticky;
+  top: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.public-profile-page__private {
   flex-direction: row;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-
-  p {
-    flex: 1 1 280px;
-  }
-}
-
-.public-profile__cta-actions {
-  display: flex;
-  gap: var(--space-2);
-}
-
-@media (max-width: 767px) {
-  .public-profile {
-    padding: var(--space-6) var(--space-4);
-  }
-}
-
-.public-profile--private .ui-card {
-  align-items: flex-start;
-}
-
-.public-profile--private h1 {
-  font-size: var(--text-lg);
-}
-
-.public-profile__records {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-
-  li {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-1);
-    padding-left: var(--space-3);
-    border-left: 2px solid var(--color-border);
-    overflow-wrap: anywhere;
-  }
-
-  time {
-    color: var(--color-text-muted);
-    font-size: var(--text-xs);
-    font-variant-numeric: tabular-nums;
-  }
-}
-
-.public-profile__count {
-  margin-left: var(--space-1);
-  color: var(--color-text-muted);
-  font-variant-numeric: tabular-nums;
-}
-
-.public-profile__validation {
-  padding-top: var(--space-4);
-  border-top: 1px solid var(--color-border);
+  gap: var(--space-3);
 }
