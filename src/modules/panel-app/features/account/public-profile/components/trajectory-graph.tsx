@@ -75,19 +75,18 @@ function EntryDetail({ entry, forum }: { entry: TrajectoryEntry; forum: NoteForu
         </p>
       )}
       {entry.notes.map((note) => (
-        <article key={note.id} className="trajectory-graph__note" aria-label={`Nota do diário: ${note.title}`}>
+        <article key={note.id} className="trajectory-graph__note" aria-label="Publicação do diário">
           <p className="trajectory-graph__note-meta">
             <MessageSquareText size={14} aria-hidden />
-            Nota do diário · <time dateTime={note.publishedAt}>{formatDay(note.publishedAt)}</time>
+            Publicação do diário · <time dateTime={note.createdAt}>{formatDay(note.createdAt)}</time>
+            {note.editedAt && <> · editada em {formatDay(note.editedAt)}</>}
           </p>
-          <h4>{note.title}</h4>
           <dl>
             <dt>O que aprendi</dt>
             <dd>{note.learned}</dd>
             <dt>Como apliquei</dt>
             <dd>{note.applied}</dd>
           </dl>
-          <p>{note.body}</p>
           <NoteDiscussions noteId={note.id} forum={forum} />
         </article>
       ))}
@@ -127,7 +126,7 @@ function EntryDetail({ entry, forum }: { entry: TrajectoryEntry; forum: NoteForu
  */
 function NoteDiscussions({ noteId, forum }: { noteId: string; forum: NoteForum }) {
   const related = forum.discussions.filter(
-    (discussion) => discussion.context?.type === 'journal-post' && discussion.context.id === noteId,
+    (discussion) => discussion.context?.type === 'post' && discussion.context.id === noteId,
   )
   if (related.length === 0 && !forum.isOwner) return null
   return (

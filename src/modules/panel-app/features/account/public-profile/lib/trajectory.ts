@@ -1,4 +1,4 @@
-import type { JournalPost, MemberProfile, Project, Squad, SquadMembership, TechnicalEvidence } from '@/mocks/db'
+import type { FeedPost, MemberProfile, Project, Squad, SquadMembership, TechnicalEvidence } from '@/mocks/db'
 import { formatMonth, formatPeriod } from '@/modules/panel-app/lib/dates'
 import { evidenceRef } from '@/modules/panel-app/lib/evidence'
 
@@ -21,7 +21,8 @@ export type TrajectoryEntry = {
   reference: string | null
   /** Squad project of a participation or of an evidence, linked to its page. */
   project: { label: string; path: string } | null
-  notes: JournalPost[]
+  /** Diary publications the member tied to this learning record and showed on the profile. */
+  notes: FeedPost[]
 }
 
 export const kindLabels: Record<TrajectoryEntry['kind'], string> = {
@@ -50,7 +51,12 @@ type Draft = Omit<TrajectoryEntry, 'dateLabel' | 'evidenceKind' | 'url' | 'refer
  */
 export function trajectoryEntries(
   profile: MemberProfile,
-  { squads, projects, memberships }: { squads: Squad[]; projects: Project[]; memberships: SquadMembership[] },
+  {
+    squads,
+    projects,
+    memberships,
+    posts,
+  }: { squads: Squad[]; projects: Project[]; memberships: SquadMembership[]; posts: FeedPost[] },
 ): TrajectoryEntry[] {
   const learnings = profile.learnings.filter((l) => l.isPublic)
   const experiences = profile.experiences.filter((e) => e.isPublic)
@@ -93,9 +99,10 @@ export function trajectoryEntries(
       strength: 'registered' as const,
       detail: l.description,
       origin: l.origin === 'basement' ? 'Concluído na Basement' : 'Registrado pelo membro',
-      notes: profile.journalPosts
-        .filter((post) => post.isPublic && post.learningId === l.id)
-        .toSorted((a, b) => a.publishedAt.localeCompare(b.publishedAt)),
+      notes: posts
+        .filter((post) => post.userId === profile.userId && post.learningId === l.id)
+        .filter((post) => post.shownOnProfile && post.deletedAt === null)
+        .toSorted((a, b) => a.createdAt.localeCompare(b.createdAt)),
     })),
     // One event per experience, on the same line as every other record, dated when it started.
     ...experiences.map((e) => ({

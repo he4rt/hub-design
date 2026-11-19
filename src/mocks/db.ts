@@ -392,21 +392,6 @@ export type TechnicalEvidence = {
   isPublic: boolean
 }
 
-/**
- * Learning journal post (the Feed): what the member learned and how they applied it.
- * Every post belongs to a learning record and shows inside it, like the body of a commit message.
- */
-export type JournalPost = {
-  id: string
-  title: string
-  publishedAt: string
-  learned: string
-  applied: string
-  body: string
-  learningId: string
-  isPublic: boolean
-}
-
 /** Public profile of a member (Fundação stage: no squads, validations, or XP yet). */
 export type MemberProfile = {
   userId: string
@@ -423,7 +408,6 @@ export type MemberProfile = {
   experiences: ExperienceRecord[]
   articles: Article[]
   evidences: TechnicalEvidence[]
-  journalPosts: JournalPost[]
   /**
    * Journey stage milestones. Declared in the seed until squads and validation have member
    * records in the mock; then the backend computes them (docs/achievements/entities.md).
@@ -466,8 +450,8 @@ export type MemberAchievement = {
 
 export type DiscussionCategory = 'question' | 'technical' | 'learning'
 
-/** What a discussion is about: a squad, a squad project, or one of the author's journal posts. */
-export type DiscussionContext = { type: 'squad' | 'project' | 'journal-post'; id: string }
+/** What a discussion is about: a squad, a squad project, or one of the author's diary publications. */
+export type DiscussionContext = { type: 'squad' | 'project' | 'post'; id: string }
 
 export type DiscussionReply = { id: string; authorId: string; body: string; createdAt: string }
 
@@ -514,6 +498,8 @@ export type FeedPost = {
   learned: string
   applied: string
   objectiveProgress: ObjectiveProgress
+  /** Learning record of the author's trajectory this publication belongs to, when they chose one. */
+  learningId: string | null
   /** Members see it in the Feed. On by default in the form. */
   sharedOnFeed: boolean
   /** Visitors see it in the public profile, when the profile is published. Off by default. */
@@ -625,6 +611,7 @@ const post = (
   id,
   userId,
   createdAt,
+  learningId: null,
   sharedOnFeed: true,
   shownOnProfile: false,
   collectionIds: [],
@@ -813,6 +800,27 @@ const seed: MockDb = {
   session: null,
   adminSession: null,
   feedPosts: [
+    post('j4', 'u2', '2026-04-20T21:00:00Z', {
+      learned: 'Ainda não entendi como ler o EXPLAIN do MySQL.',
+      applied: 'Uma consulta de relatório continua lenta; anotei para estudar índices.',
+      objectiveProgress: 'none',
+      learningId: 'a2',
+      sharedOnFeed: false,
+    }),
+    post('j2', 'u2', '2026-05-03T19:30:00Z', {
+      learned: 'Escrever testes antes de refatorar mostra o comportamento atual, inclusive os bugs.',
+      applied: 'Testei o cálculo de frete antes de mexer nele e encontrei dois bugs antigos: peso arredondado errado e CEP de outro estado ignorado.',
+      objectiveProgress: 'a-lot',
+      learningId: 'a3',
+      shownOnProfile: true,
+    }),
+    post('j1', 'u2', '2026-08-12T20:15:00Z', {
+      learned: 'Tarefas lentas, como enviar e-mail, não devem rodar dentro da requisição do usuário.',
+      applied: 'Movi o envio de e-mail do checkout de um cliente para uma fila com três tentativas e aprendi a olhar a failed_jobs antes de culpar o SMTP.',
+      objectiveProgress: 'very-much',
+      learningId: 'a2',
+      shownOnProfile: true,
+    }),
     post('p1', 'u1', '2026-10-02T13:10:00Z', {
       learned: 'Filas no Laravel com retry e backoff: um job que falha não precisa derrubar o resto.',
       applied: 'Mudei o envio de e-mails do Hub para uma fila com 3 tentativas e espera crescente.',
@@ -1038,38 +1046,6 @@ const seed: MockDb = {
           isPublic: true,
         },
       ],
-      journalPosts: [
-        {
-          id: 'j1',
-          title: 'Entendi filas no Laravel quebrando um sistema',
-          publishedAt: '2026-08-12',
-          learned: 'Tarefas lentas, como enviar e-mail, não devem rodar dentro da requisição do usuário.',
-          applied: 'Movi o envio de e-mail do checkout de um cliente para uma fila com retry.',
-          body: 'O checkout de uma loja travava sempre que o servidor de e-mail demorava. Movi o envio para uma fila com três tentativas e aprendi a olhar a tabela failed_jobs antes de culpar o SMTP. O que ainda não sei: como ser avisada quando a fila para. É o próximo passo.',
-          learningId: 'a2',
-          isPublic: true,
-        },
-        {
-          id: 'j2',
-          title: 'Primeiros testes com Pest num projeto real',
-          publishedAt: '2026-05-03',
-          learned: 'Escrever testes antes de refatorar mostra o comportamento atual, inclusive os bugs.',
-          applied: 'Testei o cálculo de frete antes de mexer nele e encontrei dois bugs antigos.',
-          body: 'Comecei com três casos de frete que eu sabia calcular de cabeça. Dois falharam: o código arredondava errado o peso e ignorava o CEP de outro estado. Corrigi os dois antes de refatorar. Ainda não sei testar a integração com os Correios sem deixar o teste lento.',
-          learningId: 'a3',
-          isPublic: true,
-        },
-        {
-          id: 'j4',
-          title: 'Dúvida sobre índices no MySQL',
-          publishedAt: '2026-04-20',
-          learned: 'Ainda não entendi como ler o EXPLAIN.',
-          applied: 'Uma consulta de relatório continua lenta.',
-          body: 'Uma consulta de relatório estava lenta e não entendi o resultado do EXPLAIN.',
-          learningId: 'a2',
-          isPublic: false,
-        },
-      ],
       journey: { stage: 'delivered', publicStage: 'delivered', contributor: false },
       validator: null,
     },
@@ -1087,7 +1063,6 @@ const seed: MockDb = {
       experiences: [],
       articles: [],
       evidences: [],
-      journalPosts: [],
       journey: { stage: 'member', publicStage: 'member', contributor: false },
       validator: null,
     },
@@ -1116,7 +1091,6 @@ const seed: MockDb = {
       ],
       articles: [],
       evidences: [],
-      journalPosts: [],
       journey: { stage: 'delivered', publicStage: 'delivered', contributor: true },
       validator: { since: '2026-06-10', role: 'Engenheiro de software', company: 'Empresa Exemplo' },
     },
@@ -1192,7 +1166,7 @@ const seed: MockDb = {
       authorId: 'u2',
       body: 'Movi os e-mails de um checkout para uma fila com retry e aprendi a olhar a tabela failed_jobs. O que ainda não sei: como descobrir que o worker parou antes de o cliente reclamar. Vocês usam alguma notificação?',
       createdAt: '2026-08-13T14:20:00Z',
-      context: { type: 'journal-post', id: 'j1' },
+      context: { type: 'post', id: 'j1' },
       replies: [
         {
           id: 'r1',
@@ -1216,7 +1190,7 @@ const seed: MockDb = {
       authorId: 'u2',
       body: 'Testei o cálculo de frete com Pest e achei dois bugs. Agora quero testar a chamada aos Correios, mas cada teste leva segundos e às vezes a API cai.',
       createdAt: '2026-05-04T21:10:00Z',
-      context: { type: 'journal-post', id: 'j2' },
+      context: { type: 'post', id: 'j2' },
       replies: [
         {
           id: 'r3',
@@ -1318,7 +1292,7 @@ function achievementSeed(userId: string, rows: [string, string, boolean, boolean
 }
 
 /** The fake backend. Persisted in localStorage; reset it from the debug sidebar. */
-export const db = createStore(seed, { persist: 'he4rt:mock-db:v14' })
+export const db = createStore(seed, { persist: 'he4rt:mock-db:v15' })
 
 export function useDb<S>(selector: (db: MockDb) => S): S {
   return useStore(db, selector)

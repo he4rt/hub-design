@@ -29,6 +29,7 @@ function makeCommunityPosts(count: number, authorIds: string[]): FeedPost[] {
     learned: `Publicação gerada ${i + 1}: aprendi a separar regra de negócio da camada HTTP.`,
     applied: 'Movi a validação do controller para uma classe própria e escrevi um teste para ela.',
     objectiveProgress: PROGRESS_CYCLE[i % PROGRESS_CYCLE.length],
+    learningId: null,
     sharedOnFeed: true,
     shownOnProfile: false,
     collectionIds: [],

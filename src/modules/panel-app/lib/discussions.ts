@@ -1,4 +1,4 @@
-import type { Discussion, DiscussionCategory, MemberProfile, Project, Squad } from '@/mocks/db'
+import type { Discussion, DiscussionCategory, FeedPost, Project, Squad, User } from '@/mocks/db'
 
 export const categoryLabels: Record<DiscussionCategory, string> = {
   question: 'Dúvida',
@@ -19,12 +19,12 @@ export function projectPath(project: Project, squads: Squad[]): string {
 export type ResolvedContext = { kind: string; label: string; path: string | null }
 
 /**
- * What a discussion is about, with a link to it. A journal post links to its author's public
- * profile, where it shows inside its learning record; a private post keeps its title hidden.
+ * What a discussion is about, with a link to it. A publication links to its author's profile;
+ * one that is private or deleted keeps its text hidden.
  */
 export function discussionContext(
   discussion: Discussion,
-  { squads, projects, profiles }: { squads: Squad[]; projects: Project[]; profiles: MemberProfile[] },
+  { squads, projects, posts, users }: { squads: Squad[]; projects: Project[]; posts: FeedPost[]; users: User[] },
 ): ResolvedContext | null {
   const context = discussion.context
   if (!context) return null
@@ -39,8 +39,10 @@ export function discussionContext(
       ? { kind: 'Projeto', label: `${project.name} · squad ${squad?.name ?? ''}`, path: projectPath(project, squads) }
       : null
   }
-  const profile = profiles.find((candidate) => candidate.journalPosts.some((post) => post.id === context.id))
-  const post = profile?.journalPosts.find((candidate) => candidate.id === context.id)
-  if (!profile || !post?.isPublic) return { kind: 'Publicação do diário', label: 'Publicação privada', path: null }
-  return { kind: 'Publicação do diário', label: post.title, path: `/app/members/${profile.handle}` }
+  const post = posts.find((candidate) => candidate.id === context.id)
+  const author = users.find((user) => user.id === post?.userId)
+  if (!post || !author || post.deletedAt || !(post.sharedOnFeed || post.shownOnProfile)) {
+    return { kind: 'Publicação', label: 'Publicação privada', path: null }
+  }
+  return { kind: 'Publicação', label: post.learned, path: `/members/${author.username}` }
 }

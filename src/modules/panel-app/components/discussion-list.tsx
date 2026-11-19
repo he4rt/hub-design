@@ -24,7 +24,7 @@ export function DiscussionList({
   const now = useNow()
   const squads = useDb((db) => db.squads)
   const projects = useDb((db) => db.projects)
-  const profiles = useDb((db) => db.profiles)
+  const posts = useDb((db) => db.feedPosts)
   const users = useDb((db) => db.users)
 
   if (discussions.length === 0) return <p className="discussion-list__empty">{emptyText}</p>
@@ -32,7 +32,7 @@ export function DiscussionList({
   return (
     <ol className="discussion-list">
       {discussions.map((discussion) => {
-        const context = showContext ? discussionContext(discussion, { squads, projects, profiles }) : null
+        const context = showContext ? discussionContext(discussion, { squads, projects, posts, users }) : null
         const author = users.find((user) => user.id === discussion.authorId)
         const activity = lastActivity(discussion)
         const replies = discussion.replies.length

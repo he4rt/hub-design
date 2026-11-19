@@ -1,5 +1,5 @@
 import { track } from '@/mocks/analytics'
-import { db, newId, type Discussion, type DiscussionCategory, type DiscussionContext } from '@/mocks/db'
+import { db, newId, type Discussion, type DiscussionCategory, type DiscussionContext, type FeedPost } from '@/mocks/db'
 import { MockError, mockAction } from '@/mocks/mock-action'
 
 export const TITLE_MIN_LENGTH = 10
@@ -13,12 +13,12 @@ function sessionUserId(message: string): string {
 }
 
 /**
- * Only the author links a discussion to a journal post, and only to a published one:
- * nobody opens a debate on someone else's notes, and nothing private reaches the forum.
+ * Only the author links a discussion to a publication, and only to one others can read (in the
+ * Feed or on the profile): nobody opens a debate on someone else's notes, and nothing private
+ * reaches the forum.
  */
-export function canLinkJournalPost(userId: string | null, postId: string): boolean {
-  const profile = db.get().profiles.find((candidate) => candidate.userId === userId)
-  return !!profile?.journalPosts.some((post) => post.id === postId && post.isPublic)
+export function canLinkPost(userId: string | null, post: FeedPost): boolean {
+  return post.userId === userId && post.deletedAt === null && (post.sharedOnFeed || post.shownOnProfile)
 }
 
 function contextExists(context: DiscussionContext): boolean {
@@ -51,7 +51,8 @@ export function createDiscussion(input: CreateDiscussionInput) {
     if (input.context && !contextExists(input.context)) {
       throw new MockError('Esse squad ou projeto não existe mais.', 'context')
     }
-    if (input.context?.type === 'journal-post' && !canLinkJournalPost(authorId, input.context.id)) {
+    const linkedPost = db.get().feedPosts.find((post) => post.id === input.context?.id)
+    if (input.context?.type === 'post' && !(linkedPost && canLinkPost(authorId, linkedPost))) {
       throw new MockError('Só dá para ligar a discussão a uma publicação sua do diário.', 'context')
     }
 

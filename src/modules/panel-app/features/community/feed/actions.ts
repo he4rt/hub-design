@@ -75,6 +75,7 @@ export function createPost(userId: string, input: PostInput) {
       learned: input.learned.trim(),
       applied: input.applied.trim(),
       objectiveProgress: input.objectiveProgress!,
+      learningId: null,
       sharedOnFeed: input.sharedOnFeed,
       shownOnProfile: input.shownOnProfile,
       collectionIds: ownCollectionIds(userId, input.collectionIds),

@@ -1,4 +1,4 @@
-import type { Discussion, MemberProfile, Project, Squad, SquadDelivery, SquadMembership } from '@/mocks/db'
+import type { Discussion, FeedPost, MemberProfile, Project, Squad, SquadDelivery, SquadMembership } from '@/mocks/db'
 import { formatMonth } from '@/modules/panel-app/lib/dates'
 
 export type ActivityGroup = 'squads' | 'forum' | 'learning'
@@ -27,7 +27,7 @@ export const activityGroupLabels: Record<ActivityGroup, string> = {
 
 /**
  * What the member did on the platform, newest first. Squad work is visible to everyone;
- * forum activity only to signed-in members; journal posts only when the member published them.
+ * forum activity only to signed-in members; publications only when the member showed them on the profile.
  */
 export function memberActivity(
   profile: MemberProfile,
@@ -37,6 +37,7 @@ export function memberActivity(
     memberships,
     deliveries,
     discussions,
+    posts,
     signedIn,
   }: {
     squads: Squad[]
@@ -44,6 +45,7 @@ export function memberActivity(
     memberships: SquadMembership[]
     deliveries: SquadDelivery[]
     discussions: Discussion[]
+    posts: FeedPost[]
     signedIn: boolean
   },
 ): { items: ActivityItem[]; facts: ContributionFact[] } {
@@ -139,16 +141,17 @@ export function memberActivity(
     }
   }
 
-  for (const post of profile.journalPosts.filter((p) => p.isPublic)) {
+  // Only publications the author chose to show on the profile; never their reactions.
+  for (const post of posts.filter((p) => p.userId === userId && p.shownOnProfile && p.deletedAt === null)) {
     items.push({
       id: post.id,
       group: 'learning',
       kind: 'Aprendizado',
-      date: post.publishedAt,
-      title: post.title,
+      date: post.createdAt,
+      title: post.learned,
       href: null,
       external: false,
-      note: post.learned,
+      note: post.applied,
     })
   }
 

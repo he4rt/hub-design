@@ -21,7 +21,8 @@ export default function DiscussionShow() {
   const discussion = useDb((state) => state.discussions.find((candidate) => candidate.id === discussionId))
   const squads = useDb((state) => state.squads)
   const projects = useDb((state) => state.projects)
-  const profiles = useDb((state) => state.profiles)
+  const posts = useDb((state) => state.feedPosts)
+  const users = useDb((state) => state.users)
   const sessionUserId = useDb((state) => state.session?.userId ?? null)
   const authorName = useDb((state) => state.users.find((user) => user.id === discussion?.authorId)?.name)
 
@@ -43,7 +44,7 @@ export default function DiscussionShow() {
 
   if (!discussion) return <NotFound />
 
-  const context = discussionContext(discussion, { squads, projects, profiles })
+  const context = discussionContext(discussion, { squads, projects, posts, users })
   const firstName = authorName?.split(' ')[0] ?? 'o autor'
 
   return (

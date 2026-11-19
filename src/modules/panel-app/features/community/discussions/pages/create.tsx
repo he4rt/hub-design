@@ -13,7 +13,7 @@ import { useDebugActions } from '@/debug/use-debug-actions'
 import { db, useDb, type DiscussionCategory, type DiscussionContext } from '@/mocks/db'
 import { MockError, errorMessage } from '@/mocks/mock-action'
 import { categoryLabels } from '@/modules/panel-app/lib/discussions'
-import { createDiscussion } from '../actions'
+import { canLinkPost, createDiscussion } from '../actions'
 import { SignInPrompt } from '../components/sign-in-prompt'
 import './create.css'
 
@@ -25,7 +25,7 @@ const CATEGORY_HINTS: Record<DiscussionCategory, string> = {
 
 type Result = { ok: false; error: string; field?: string } | null
 
-/** `project:p1` ⇄ `{ type: 'project', id: 'p1' }`, so one picker holds squads, projects, and journal posts. */
+/** `project:p1` ⇄ `{ type: 'project', id: 'p1' }`, so one picker holds squads, projects, and publications. */
 const encode = (context: DiscussionContext) => `${context.type}:${context.id}`
 function decode(value: string | null): DiscussionContext | null {
   if (!value) return null
@@ -37,36 +37,37 @@ function initialContext(params: URLSearchParams): string | null {
   const post = params.get('post')
   const project = params.get('project')
   const squad = params.get('squad')
-  if (post) return encode({ type: 'journal-post', id: post })
+  if (post) return encode({ type: 'post', id: post })
   if (project) return encode({ type: 'project', id: project })
   if (squad) return encode({ type: 'squad', id: squad })
   return null
 }
 
-/** Opens a discussion, optionally about a squad, a project, or one of the member's own journal posts. */
+/** Opens a discussion, optionally about a squad, a project, or one of the member's own publications. */
 export default function DiscussionCreate() {
   const navigate = useNavigate()
   const [params] = useSearchParams()
   const sessionUserId = useDb((state) => state.session?.userId ?? null)
   const squads = useDb((state) => state.squads)
   const projects = useDb((state) => state.projects)
-  const ownProfile = useDb((state) => state.profiles.find((profile) => profile.userId === state.session?.userId))
+  const posts = useDb((state) => state.feedPosts)
 
   const [title, setTitle] = useState('')
   const [category, setCategory] = useState<DiscussionCategory | null>(null)
   const [contextValue, setContextValue] = useState<string | null>(() => initialContext(params))
   const [body, setBody] = useState('')
 
-  // The same rule as the action: only the member's own published journal posts can be linked.
+  // The same rule as the action: only the member's own publications others can read can be linked.
   const options: ComboboxOption[] = [
     ...projects.map((project) => ({
       value: encode({ type: 'project', id: project.id }),
       label: `Projeto · ${project.name} (squad ${squads.find((squad) => squad.id === project.squadId)?.name ?? ''})`,
     })),
     ...squads.map((squad) => ({ value: encode({ type: 'squad', id: squad.id }), label: `Squad · ${squad.name}` })),
-    ...(ownProfile?.journalPosts ?? [])
-      .filter((post) => post.isPublic)
-      .map((post) => ({ value: encode({ type: 'journal-post', id: post.id }), label: `Minha publicação · ${post.title}` })),
+    ...posts
+      .filter((post) => canLinkPost(sessionUserId, post))
+      .toSorted((a, b) => b.createdAt.localeCompare(a.createdAt))
+      .map((post) => ({ value: encode({ type: 'post', id: post.id }), label: `Minha publicação · ${post.learned}` })),
   ]
   const context = options.some((option) => option.value === contextValue) ? contextValue : null
 
