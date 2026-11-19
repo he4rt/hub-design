@@ -40,3 +40,14 @@
   color: var(--color-text-muted);
   font-variant-numeric: tabular-nums;
 }
+
+.diary-card__meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 32px;
+}
+
+.diary-card__menu {
+  margin-left: auto;
+}

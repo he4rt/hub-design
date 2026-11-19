@@ -155,9 +155,9 @@ export default function PublicProfile() {
         company: validatorRecord.showEmployer ? validatorRecord.company : null,
       }
     : null
-  // On the profile, the diary shows what the member chose to show there, whoever reads it.
+  // Others read what the member chose to show here; the owner reads all of theirs, marked.
   const shownPosts = posts
-    .filter((p) => p.userId === user.id && p.shownOnProfile && p.deletedAt === null)
+    .filter((p) => p.userId === user.id && p.deletedAt === null && (asOwner || p.shownOnProfile))
     .toSorted((a, b) => b.createdAt.localeCompare(a.createdAt))
   const publishedValidations = validations
     .filter((v) => v.memberId === user.id && v.status === 'recorded' && v.published)
@@ -243,7 +243,8 @@ export default function PublicProfile() {
               <DiaryCard
                 posts={shownPosts}
                 collections={collections.filter((c) => c.userId === user.id)}
-                empty={asOwner ? 'Escolha no Feed quais publicações aparecem aqui.' : `${firstName} ainda não mostrou publicações do diário.`}
+                empty={asOwner ? 'Publique no Feed o que aprendeu; aqui ficam todas as suas publicações.' : `${firstName} ainda não mostrou publicações do diário.`}
+                ownerView={asOwner}
               />
             </TabsContent>
             <TabsContent value="atividade" className="public-profile-page__tab">
