@@ -47,7 +47,6 @@ export default function Show() {
     { label: 'Staff faz o merge', run: () => run(() => entryTestClosed(userId, true)) },
     { label: 'Staff fecha sem merge', run: () => run(() => entryTestClosed(userId, false)) },
     { label: 'Entrar como Gustavo (PR aberto)', run: () => db.set((s) => ({ ...s, session: { userId: 'u11' } })) },
-    { label: 'Entrar como Bruno (sem GitHub)', run: () => db.set((s) => ({ ...s, session: { userId: 'u3' } })) },
   ])
 
   return (
@@ -79,14 +78,7 @@ export default function Show() {
 
       <Card>
         <h2>Seu teste</h2>
-        {!github ? (
-          <div className="stack-page__row">
-            <p>Vincule o GitHub para fazer o teste. Ele é obrigatório para participar do Hub.</p>
-            <Button asChild variant="secondary">
-              <Link to="/app/settings/profile">Vincular GitHub</Link>
-            </Button>
-          </div>
-        ) : !test ? (
+        {!test ? (
           <p className="stack-page__muted">
             Nenhum PR encontrado da conta <strong>@{github}</strong> em repositórios da He4rt ainda.
           </p>

@@ -17,7 +17,7 @@ import { createStore, useStore } from '@/lib/store'
 import { useDb } from '@/mocks/db'
 import { isActiveValidator } from '@/mocks/validation'
 import { useAccount } from '@/modules/panel-app/hooks/use-account'
-import { logout } from '@/modules/panel-app/features/auth/actions'
+import { logout, needsOnboarding } from '@/modules/panel-app/features/auth/actions'
 import './app-layout.css'
 
 /** Whether the side navigation is collapsed to icons. A browser preference, kept across reloads. */
@@ -38,7 +38,7 @@ export function AppLayout() {
   const wide = useMatches().some((match) => (match.handle as { wide?: boolean } | undefined)?.wide)
 
   if (!account) return <Navigate to={`/app/login?redirect=${encodeURIComponent(pathname + search)}`} replace />
-  if (!account.onboardedAt) return <Navigate to="/app/onboarding" replace />
+  if (needsOnboarding(account)) return <Navigate to="/app/onboarding" replace />
 
   return (
     <div className="app-layout" data-collapsed={collapsed || undefined}>

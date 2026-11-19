@@ -27,7 +27,8 @@ function beginOnboardingIfNeeded(userId: string) {
 function startSession(userId: string) {
   db.set((state) => ({ ...state, session: { userId } }))
   beginOnboardingIfNeeded(userId)
-  return { userId, needsOnboarding: !findUser(userId)?.onboardedAt }
+  const user = findUser(userId)
+  return { userId, needsOnboarding: !user || needsOnboarding(user) }
 }
 
 /**
@@ -166,15 +167,26 @@ export function register(input: RegisterInput) {
   })
 }
 
-export const ONBOARDING_STEPS = ['objective', 'areas', 'startingPoint', 'languages'] as const
+/** The GitHub comes first: it is required for everyone, as the squads' workplace and the source of evidence. */
+export const ONBOARDING_STEPS = ['github', 'objective', 'areas', 'startingPoint', 'languages'] as const
 export type OnboardingStep = (typeof ONBOARDING_STEPS)[number]
+
+export function hasGithub(user: User): boolean {
+  return user.linkedAccounts.some((account) => account.provider === 'github')
+}
+
+/** An account enters the app only with the profile questions answered and the GitHub linked. */
+export function needsOnboarding(user: User): boolean {
+  return !user.onboardedAt || !hasGithub(user)
+}
 
 /** First profile question the member has not answered; the onboarding opens there. */
 export function firstUnansweredStep(user: User): number {
-  if (!user.objective) return 0
-  if (user.areas.length === 0) return 1
-  if (!user.startingPoint) return 2
-  return 3
+  if (!hasGithub(user)) return 0
+  if (!user.objective) return 1
+  if (user.areas.length === 0) return 2
+  if (!user.startingPoint) return 3
+  return 4
 }
 
 /** Only the languages may be skipped. */
@@ -194,6 +206,17 @@ export function answerOnboardingStep(
     const user = findUser(userId)
     if (!user) throw new MockError('Conta não encontrada.')
     if (options.skip && !SKIPPABLE_STEPS.includes(step)) throw new MockError('Esta pergunta não pode ser pulada.')
+    if (step === 'github') {
+      // Stands in for the GitHub OAuth callback, which returns the handle.
+      const owner = db
+        .get()
+        .users.find((u) => u.id !== userId && u.linkedAccounts.some((a) => a.provider === 'github' && a.handle === user.username))
+      if (owner) throw new MockError('Este GitHub já está vinculado a outra conta.', step)
+      linkAccount(userId, 'github', user.username)
+      track('onboarding_step_completed', { userId, step })
+      // A member who answered the questions before the GitHub became required is done now.
+      return { userId, done: !!user.onboardedAt }
+    }
 
     const value = options.skip ? (step === 'languages' ? [] : null) : answer[step]
     if (!options.skip) {

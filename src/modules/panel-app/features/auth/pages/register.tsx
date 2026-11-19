@@ -10,7 +10,7 @@ import { slugify } from '@/lib/text'
 import { newId, useDb, type PendingSocialSignUp } from '@/mocks/db'
 import { errorMessage, MockError } from '@/mocks/mock-action'
 import { useAccount } from '@/modules/panel-app/hooks/use-account'
-import { cancelSocialSignUp, PASSWORD_MIN_LENGTH, providerLabel, register, UNDERAGE_FIELD } from '../actions'
+import { cancelSocialSignUp, needsOnboarding, PASSWORD_MIN_LENGTH, providerLabel, register, UNDERAGE_FIELD } from '../actions'
 import { SocialLogin } from '../components/social-login'
 import { useRedirectTarget } from '../hooks/use-redirect-target'
 import './register.css'
@@ -23,7 +23,7 @@ export default function Register() {
   // Underage: the form unmounts, so nothing typed stays in memory.
   const [blocked, setBlocked] = useState(false)
 
-  if (account) return <Navigate to={account.onboardedAt ? redirectTo : '/app/onboarding'} replace />
+  if (account) return <Navigate to={!needsOnboarding(account) ? redirectTo : '/app/onboarding'} replace />
   if (blocked) {
     return (
       <div className="auth-form">

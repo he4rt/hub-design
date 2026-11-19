@@ -8,7 +8,7 @@ import { useDebugActions } from '@/debug/use-debug-actions'
 import { DEMO_PASSWORD, useDb } from '@/mocks/db'
 import { errorMessage } from '@/mocks/mock-action'
 import { useAccount } from '@/modules/panel-app/hooks/use-account'
-import { login, providerLabel } from '../actions'
+import { login, needsOnboarding, providerLabel } from '../actions'
 import { SocialLogin } from '../components/social-login'
 import { useRedirectTarget } from '../hooks/use-redirect-target'
 import './login.css'
@@ -59,7 +59,7 @@ function LoginForm() {
     { label: 'Preencher senha errada (erro esperado)', run: () => fill('ana@he4rt.dev', 'wrong') },
   ])
 
-  if (account) return <Navigate to={account.onboardedAt ? redirectTo : '/app/onboarding'} replace />
+  if (account) return <Navigate to={!needsOnboarding(account) ? redirectTo : '/app/onboarding'} replace />
 
   const resetDone = params.get('reset') === '1'
 

@@ -17,6 +17,8 @@ import type { DevProfileInput } from '@/modules/panel-app/lib/dev-profile'
 import {
   answerOnboardingStep,
   firstUnansweredStep,
+  hasGithub,
+  needsOnboarding,
   ONBOARDING_STEPS,
   SKIPPABLE_STEPS,
   type OnboardingStep,
@@ -28,11 +30,15 @@ import './onboarding.css'
 export default function Onboarding() {
   const account = useAccount()
   if (!account) return <Navigate to="/app/login" replace />
-  if (account.onboardedAt) return <Navigate to="/app" replace />
+  if (!needsOnboarding(account)) return <Navigate to="/app" replace />
   return <Questions key={account.id} account={account} />
 }
 
 const STEP_COPY: Record<OnboardingStep, { title: string; hint: string }> = {
+  github: {
+    title: 'Vincule o seu GitHub',
+    hint: 'Obrigatório para todos: é onde os squads trabalham e de onde vem a evidência técnica do seu perfil.',
+  },
   objective: { title: 'O que você quer agora?', hint: 'Dá para mudar quando quiser.' },
   areas: { title: 'Quais áreas te interessam?', hint: 'Escolha ao menos uma.' },
   startingPoint: { title: 'Qual é seu ponto de partida?', hint: 'Fica privado: só você vê.' },
@@ -105,6 +111,13 @@ function Questions({ account }: { account: User }) {
         <p className="auth-form__hint">{copy.hint}</p>
       </div>
 
+      {step === 'github' && (
+        <p className="onboarding__note">
+          {hasGithub(account)
+            ? `GitHub vinculado: @${account.linkedAccounts.find((a) => a.provider === 'github')?.handle}.`
+            : 'O Hub só lê o que é público no seu GitHub. Você confirma no GitHub e volta para cá.'}
+        </p>
+      )}
       {step === 'objective' && (
         <ObjectiveField value={answers.objective} onChange={(objective) => update({ objective })} />
       )}
@@ -136,7 +149,11 @@ function Questions({ account }: { account: User }) {
             </Button>
           )}
           <Button type="submit" name="intent" value="answer" loading={pending}>
-            {stepIndex === ONBOARDING_STEPS.length - 1 ? 'Concluir' : 'Continuar'}
+            {step === 'github' && !hasGithub(account)
+              ? 'Vincular GitHub'
+              : stepIndex === ONBOARDING_STEPS.length - 1
+                ? 'Concluir'
+                : 'Continuar'}
           </Button>
         </div>
       </div>
