@@ -5,17 +5,12 @@ import { Avatar } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { formatMonth } from '@/lib/dates'
-import { byRecent, type ShownAchievement } from '../lib/achievements'
-import { AchievementMedal } from './achievement-medal'
-import { AllAchievementsDialog } from './all-achievements-dialog'
 import { ShareProfileButton } from './share-profile-button'
 import './profile-header.css'
 
-const BADGES_IN_HEADER = 10
-
 /**
  * Identity card in the dev.to layout: centered identity over the banner, facts and links, then
- * a row of the most recent achievements. A validator gets a ring and a mark in their own color.
+ * no achievements: they live in one block of the side column. A validator gets a ring and a mark in their own color.
  * No counters, level, or follow button.
  */
 export function ProfileHeader({
@@ -28,7 +23,6 @@ export function ProfileHeader({
   isOwner,
   memberSince,
   state,
-  achievements,
 }: {
   name: string
   username: string
@@ -42,7 +36,6 @@ export function ProfileHeader({
   memberSince: string
   /** UF of the city in the member's account; only the state shows, never the city. */
   state: string | null
-  achievements: ShownAchievement[]
 }) {
   const validatorDetail = validator && [validator.role, validator.company].filter(Boolean).join(' · ')
 
@@ -105,22 +98,6 @@ export function ProfileHeader({
         </div>
       </div>
 
-      {achievements.length > 0 && (
-        <div className="profile-header__badges">
-          <ul aria-label="Conquistas mais recentes">
-            {byRecent(achievements)
-              .slice(0, BADGES_IN_HEADER)
-              .map((item) => (
-                <li key={item.achievement.id}>
-                  <AchievementMedal item={item} />
-                </li>
-              ))}
-          </ul>
-          {achievements.length > BADGES_IN_HEADER && (
-            <AllAchievementsDialog items={achievements} firstName={name.split(' ')[0]} />
-          )}
-        </div>
-      )}
     </Card>
   )
 }

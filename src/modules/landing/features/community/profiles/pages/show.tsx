@@ -5,13 +5,13 @@ import { Card } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useDebugActions } from '@/debug/use-debug-actions'
 import { areaLabels } from '@/lib/member-profile'
+import { useNow } from '@/hooks/use-now'
+import { memberAchievements, memberJourney } from '@/mocks/achievements'
 import { db, useDb } from '@/mocks/db'
-import { AchievementList } from '../components/achievement-list'
 import { AchievementsBox } from '../components/achievements-box'
 import { ActivityList } from '../components/activity-list'
 import { ContributionFacts } from '../components/contribution-facts'
 import { DiaryCard } from '../components/diary-card'
-import { JourneyBand } from '../components/journey-band'
 import { OwnerNotice } from '../components/owner-notice'
 import { ProfileHeader } from '../components/profile-header'
 import { ProfileSidebar } from '../components/profile-sidebar'
@@ -19,14 +19,14 @@ import { ReadmeCard } from '../components/readme-card'
 import { SavedPosts } from '../components/saved-posts'
 import { TrajectoryGraph } from '../components/trajectory-graph'
 import { ValidationsCard } from '../components/validations-card'
-import { achievementsModels, parseAchievementsModel, shownAchievements } from '../lib/achievements'
+import { shownAchievements } from '../lib/achievements'
 import { activityGroupLabels, memberActivity, type ActivityGroup } from '../lib/activity'
 import { missingProfileItems } from '../lib/completeness'
 import { emptyProfile, trajectoryGraph } from '@/lib/trajectory/graph'
 import { viewerOptions, type Viewer } from '@/lib/trajectory/visibility'
 import './show.css'
 
-const TABS = { 'visao-geral': 'Visão geral', atividade: 'Atividade', trajetoria: 'Trajetória', conquistas: 'Conquistas', salvos: 'Salvos' } as const
+const TABS = { 'visao-geral': 'Visão geral', atividade: 'Atividade', trajetoria: 'Trajetória', salvos: 'Salvos' } as const
 type Tab = keyof typeof TABS
 
 /**
@@ -53,11 +53,12 @@ export default function PublicProfile() {
   const posts = useDb((db) => db.feedPosts)
   const validations = useDb((db) => db.validations)
   const discussions = useDb((db) => db.discussions)
-  const allAchievements = useDb((db) => db.memberAchievements)
+  // Achievements and the journey are computed from the facts, like the backend would.
+  const state = useDb((s) => s)
+  const now = useNow()
 
   const tab: Tab = (params.get('aba') as Tab) in TABS ? (params.get('aba') as Tab) : 'visao-geral'
   const tipo = params.get('tipo') as ActivityGroup | null
-  const model = parseAchievementsModel(params.get('conquistas'))
   const group = tipo && tipo in activityGroupLabels ? tipo : null
 
   useDebugActions('Perfil público', [
@@ -69,14 +70,6 @@ export default function PublicProfile() {
       label: 'Esvaziar meus salvos',
       run: () => db.set((s) => ({ ...s, feedBookmarks: s.feedBookmarks.filter((b) => b.userId !== s.session?.userId) })),
     },
-    ...achievementsModels.map((option) => ({
-      label: `Conquistas: ${option.label}`,
-      run: () =>
-        setParams((next) => {
-          next.set('conquistas', option.value)
-          return next
-        }),
-    })),
     { label: 'Ver perfil completo', run: () => navigate('/members/ana-souza') },
     { label: 'Ver perfil sem trajetória', run: () => navigate('/members/leticia-prado') },
     { label: 'Ver perfil de validador', run: () => navigate('/members/diego-ramos') },
@@ -121,11 +114,8 @@ export default function PublicProfile() {
 
   const graph = trajectoryGraph(profile, { squads, projects, memberships, deliveries, validations, posts, viewer })
   const entries = graph.entries
-  // The Conquistas tab exists only in the "aba" achievements model.
-  // Conquistas exists only in the "aba" achievements model; Salvos only for the owner reading as themselves.
-  const tabs = (Object.keys(TABS) as Tab[]).filter(
-    (value) => (value !== 'conquistas' || model === 'aba') && (value !== 'salvos' || asOwner),
-  )
+  // Salvos only for the owner reading as themselves.
+  const tabs = (Object.keys(TABS) as Tab[]).filter((value) => value !== 'salvos' || asOwner)
   const activeTab = tabs.includes(tab) ? tab : 'visao-geral'
   const activity = memberActivity(profile, {
     squads,
@@ -165,11 +155,7 @@ export default function PublicProfile() {
     .filter((v) => !validations.some((n) => n.supersedesId === v.id && n.status === 'recorded'))
     .toSorted((a, b) => (b.recordedAt ?? '').localeCompare(a.recordedAt ?? ''))
   const firstName = user.name.split(' ')[0]
-  const achievements = shownAchievements(
-    allAchievements.filter((item) => item.userId === profile.userId),
-    viewer === 'owner',
-  )
-  const achievementProps = { items: achievements, journey: profile.journey, isOwner: asOwner, firstName }
+  const achievements = shownAchievements(memberAchievements(state, user.id, now), asOwner)
 
   const trajectory =
     entries.length > 0 ? (
@@ -195,9 +181,7 @@ export default function PublicProfile() {
         isOwner={asOwner}
         memberSince={user.createdAt}
         state={user.city?.uf ?? null}
-        achievements={model === 'cabecalho' ? achievements : []}
       />
-      {model === 'jornada' && <JourneyBand {...achievementProps} />}
       {activity.facts.length > 0 && <ContributionFacts facts={activity.facts} />}
       {isOwner && !user.published && (
         <Card className="public-profile-page__private">
@@ -214,7 +198,6 @@ export default function PublicProfile() {
       <Tabs value={activeTab} onValueChange={(value) =>
           setParams(() => {
             const next = new URLSearchParams(value === 'visao-geral' ? {} : { aba: value })
-            if (params.has('conquistas')) next.set('conquistas', model)
             return next
           })
         }>
@@ -229,7 +212,12 @@ export default function PublicProfile() {
         <div className="public-profile-page__grid">
           <div className="public-profile-page__side">
             <ProfileSidebar profile={profile} areas={areaLabels(user.areas)} languages={user.languages} isOwner={asOwner} viewer={viewer} />
-            {model === 'vitrine' && <AchievementsBox {...achievementProps} />}
+            <AchievementsBox
+              items={achievements}
+              journey={memberJourney(state, user.id)}
+              ownerId={asOwner ? user.id : null}
+              firstName={firstName}
+            />
           </div>
 
           <div className="public-profile-page__main">
@@ -264,19 +252,6 @@ export default function PublicProfile() {
             {asOwner && (
               <TabsContent value="salvos" className="public-profile-page__tab">
                 <SavedPosts ownerId={user.id} posts={savedPosts} users={users} />
-              </TabsContent>
-            )}
-            {model === 'aba' && (
-              <TabsContent value="conquistas" className="public-profile-page__tab">
-                <Card>
-                  {achievements.length > 0 ? (
-                    <AchievementList items={achievements} />
-                  ) : (
-                    <p className="public-profile-page__empty">
-                      {asOwner ? 'Suas conquistas aparecem aqui conforme você avança.' : `${firstName} ainda não publicou conquistas.`}
-                    </p>
-                  )}
-                </Card>
               </TabsContent>
             )}
           </div>

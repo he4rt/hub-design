@@ -8,20 +8,6 @@ export type ShownAchievement = {
   privateReason: string | null
 }
 
-/** Layouts under test on the profile, picked by `?conquistas=`. */
-export type AchievementsModel = 'cabecalho' | 'vitrine' | 'jornada' | 'aba'
-
-export const achievementsModels: { value: AchievementsModel; label: string }[] = [
-  { value: 'cabecalho', label: 'Badges no cabeçalho (dev.to)' },
-  { value: 'vitrine', label: 'Vitrine na coluna lateral' },
-  { value: 'jornada', label: 'Faixa da jornada' },
-  { value: 'aba', label: 'Aba Conquistas' },
-]
-
-export function parseAchievementsModel(value: string | null): AchievementsModel {
-  return achievementsModels.some((model) => model.value === value) ? (value as AchievementsModel) : 'cabecalho'
-}
-
 export const groupLabels: Record<AchievementGroup, string> = {
   arrival: 'Chegada e identidade',
   trajectory: 'Trajetória',
@@ -43,14 +29,9 @@ export const journeyStages: { value: JourneyStage; label: string; description: s
   { value: 'validated', label: 'Validado', description: 'Recebeu uma validação' },
 ]
 
-export function stageIndex(stage: JourneyStage): number {
-  return journeyStages.findIndex((item) => item.value === stage)
-}
-
 /**
- * What the reader may see: visitors get only what the member published (and, for a
- * private achievement, whose origin is published); the owner also sees the rest, marked.
- * Revoked achievements never show. Catalog order.
+ * What the reader may see: others get only what the member chose to show (and, for a private
+ * achievement, whose origin is public); the owner sees every unlocked one, marked. Catalog order.
  */
 export function shownAchievements(achievements: MemberAchievement[], isOwner: boolean): ShownAchievement[] {
   return achievementCatalog.flatMap((definition) => {
@@ -60,7 +41,7 @@ export function shownAchievements(achievements: MemberAchievement[], isOwner: bo
       definition.private && !achievement.originPublic
         ? 'O registro que deu esta conquista não está publicado.'
         : !achievement.isPublic
-          ? 'Você ainda não publicou esta conquista.'
+          ? 'Você ainda não mostrou esta conquista no perfil.'
           : null
     if (privateReason && !isOwner) return []
     return [{ achievement, definition, privateReason }]

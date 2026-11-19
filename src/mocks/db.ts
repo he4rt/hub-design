@@ -410,11 +410,6 @@ export type MemberProfile = {
   experiences: ExperienceRecord[]
   articles: Article[]
   evidences: TechnicalEvidence[]
-  /**
-   * Journey stage milestones. Declared in the seed until squads and validation have member
-   * records in the mock; then the backend computes them (docs/achievements/entities.md).
-   */
-  journey: MemberJourney
 }
 
 /** Highest kind of evidence a member had in the Hub. Never a seniority, never goes down. */
@@ -428,7 +423,10 @@ export type MemberJourney = {
   contributor: boolean
 }
 
-/** Achievement a member unlocked (docs/achievements/entities.md). Computed by the platform, never edited. */
+/**
+ * Achievement a member unlocked (docs/achievements/entities.md). Computed by the platform from the
+ * facts (src/mocks/achievements.ts), never stored nor edited; only the member's choice to show it is.
+ */
 export type MemberAchievement = {
   id: string
   userId: string
@@ -564,7 +562,8 @@ export type MockDb = {
   /** What PostHog would receive, newest first. */
   events: AnalyticsEvent[]
   profiles: MemberProfile[]
-  memberAchievements: MemberAchievement[]
+  /** Achievements each member chose to show on the profile. */
+  achievementChoices: { userId: string; key: string }[]
   discussions: Discussion[]
   squads: Squad[]
   projects: Project[]
@@ -1096,7 +1095,6 @@ const seed: MockDb = {
           visibility: 'public',
         },
       ],
-      journey: { stage: 'delivered', publicStage: 'delivered', contributor: false },
     },
     {
       userId: 'u3',
@@ -1107,7 +1105,6 @@ const seed: MockDb = {
       experiences: [],
       articles: [],
       evidences: [],
-      journey: { stage: 'member', publicStage: 'member', contributor: false },
     },
     {
       userId: 'u6',
@@ -1129,71 +1126,12 @@ const seed: MockDb = {
       ],
       articles: [],
       evidences: [],
-      journey: { stage: 'delivered', publicStage: 'delivered', contributor: true },
     },
   ],
-  memberAchievements: [
-    ...achievementSeed('u2', [
-      ['git-init', '2025-03-22', true],
-      ['objective-set', '2025-03-22', true],
-      ['remote-added', '2025-03-22', true],
-      ['accounts-in-order', '2025-04-02', true],
-      ['email-verified', '2025-03-22', false],
-      ['page-live', '2025-04-02', true],
-      ['about-me', '2025-04-02', true],
-      ['profile-complete', '2025-04-05', true],
-      ['living-resume', '2025-04-05', false],
-      ['first-record', '2025-03-25', true],
-      ['studying', '2025-05-20', true],
-      ['basement-student', '2025-05-20', true],
-      ['experience-logged', '2025-03-25', true],
-      ['author', '2026-05-10', true],
-      ['with-proof', '2026-05-02', true],
-      ['three-months-trajectory', '2025-11-02', true],
-      ['one-year-trajectory', '2026-05-20', true],
-      ['dear-diary', '2026-04-20', true],
-      ['shared-learning', '2026-05-03', true],
-      ['on-display', '2026-05-03', true],
-      ['linked-to-trajectory', '2026-05-03', true],
-      ['after-class', '2026-08-12', false],
-      ['pr-opened', '2026-08-28', true],
-      ['merged', '2026-09-02', true],
-      ['second-try', '2026-09-02', false, false],
-      ['applicant', '2026-09-05', false],
-      ['in-squad', '2026-09-14', true],
-      ['first-delivery', '2026-10-20', true],
-      ['technical-delivery', '2026-10-20', true],
-      ['solo', '2026-10-20', true],
-      ['readme-credit', '2026-10-22', true],
-      ['thirty-days-squad', '2026-10-20', true],
-      ['course-to-squad', '2026-10-20', true],
-      ['first-week', '2026-09-28', false],
-      ['one-month-hub', '2025-04-22', true],
-      ['six-months-hub', '2025-09-22', true],
-      ['one-year-hub', '2026-03-22', true],
-    ]),
-    {
-      id: 'ma-u2-event',
-      userId: 'u2',
-      key: 'he4rt-event',
-      unlockedAt: '2026-07-12',
-      source: 'administration',
-      grantReason: 'Entregou a fila de inscrições no Hacktoberfest He4rt 2026.',
-      originPublic: true,
-      isPublic: true,
-      revokedAt: null,
-    },
-    ...achievementSeed('u3', [['git-init', '2025-06-05', true]]),
-    ...achievementSeed('u6', [
-      ['git-init', '2025-02-03', true],
-      ['profile-complete', '2025-02-10', true],
-      ['in-squad', '2026-09-07', true],
-      ['captain', '2026-09-07', true],
-      ['validator', '2026-06-10', true],
-      ['first-validation-given', '2026-07-02', true],
-      ['first-commit-reviewer', '2026-08-20', true],
-      ['one-year-hub', '2026-02-03', true],
-    ]),
+  achievementChoices: [
+    ...['git-init', 'remote-added', 'profile-complete', 'first-record', 'basement-student', 'dear-diary', 'on-display', 'merged', 'in-squad', 'first-delivery', 'technical-delivery', 'pair-programming', 'one-year-hub'].map((key) => ({ userId: 'u2', key })),
+    ...['git-init', 'remote-added', 'in-squad', 'captain', 'code-review', 'one-year-hub'].map((key) => ({ userId: 'u6', key })),
+    ...['validator', 'first-validation-given'].map((key) => ({ userId: 'u9', key })),
   ],
   discussions: [
     {
@@ -1313,23 +1251,8 @@ const seed: MockDb = {
   ...squadsSeed,
 }
 
-/** Seed helper: `[key, unlockedAt, isPublic, originPublic = true]` per achievement. */
-function achievementSeed(userId: string, rows: [string, string, boolean, boolean?][]): MemberAchievement[] {
-  return rows.map(([key, unlockedAt, isPublic, originPublic = true]) => ({
-    id: `ma-${userId}-${key}`,
-    userId,
-    key,
-    unlockedAt,
-    source: 'platform',
-    grantReason: null,
-    originPublic,
-    isPublic,
-    revokedAt: null,
-  }))
-}
-
 /** The fake backend. Persisted in localStorage; reset it from the debug sidebar. */
-export const db = createStore(seed, { persist: 'he4rt:mock-db:v18' })
+export const db = createStore(seed, { persist: 'he4rt:mock-db:v19' })
 
 export function useDb<S>(selector: (db: MockDb) => S): S {
   return useStore(db, selector)

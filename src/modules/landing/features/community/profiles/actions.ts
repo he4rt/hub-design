@@ -1,5 +1,6 @@
 import { track } from '@/mocks/analytics'
 import type { RecordCollection } from '@/lib/trajectory/graph'
+import { findAchievement, memberAchievements } from '@/mocks/achievements'
 import { db, type Visibility } from '@/mocks/db'
 import { MockError, mockAction } from '@/mocks/mock-action'
 
@@ -53,5 +54,26 @@ export function unsavePost(userId: string, postId: string) {
     }))
     track('feed_post_saved', { postId, saved: false })
     return { saved: false }
+  })
+}
+
+/** The member chooses whether an achievement the platform computed shows on the profile. */
+export function updateAchievementVisibility(userId: string, key: string, shown: boolean) {
+  return mockAction('panel-app.members.achievements.update', { userId, key, shown }, () => {
+    if (db.get().session?.userId !== userId) throw new MockError('Só a dona ou o dono do perfil pode mudar isto.')
+    const definition = findAchievement(key)
+    const achievement = memberAchievements(db.get(), userId, Date.now()).find((a) => a.key === key)
+    if (!definition || !achievement) throw new MockError('Esta conquista ainda não foi desbloqueada.')
+    if (shown && definition.private && !achievement.originPublic) {
+      throw new MockError('Publique primeiro o registro que deu esta conquista.')
+    }
+    db.set((state) => ({
+      ...state,
+      achievementChoices: [
+        ...state.achievementChoices.filter((c) => !(c.userId === userId && c.key === key)),
+        ...(shown ? [{ userId, key }] : []),
+      ],
+    }))
+    return { key, shown }
   })
 }

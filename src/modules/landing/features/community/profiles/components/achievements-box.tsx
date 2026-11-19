@@ -7,25 +7,30 @@ import './achievements-box.css'
 
 const SHOWN = 8
 
-/** "Vitrine" model: the stage and the latest medals in the side column, with the rest one tap away. */
+/**
+ * The one achievements block of the profile: the journey stage and the latest medals in the side
+ * column, with the rest one tap away. Computed by the platform; the owner chooses what shows.
+ */
 export function AchievementsBox({
   items,
   journey,
-  isOwner,
+  ownerId,
   firstName,
 }: {
   items: ShownAchievement[]
   journey: MemberJourney
-  isOwner: boolean
+  /** Set while the owner reads as themselves: every medal offers to show or hide it. */
+  ownerId: string | null
   firstName: string
 }) {
+  const isOwner = ownerId !== null
   const stage = journeyStages.find((item) => item.value === (isOwner ? journey.stage : journey.publicStage))
 
   return (
     <Card className="achievements-box" aria-labelledby="achievements-box-title">
       <div className="achievements-box__header">
         <h2 id="achievements-box-title">Conquistas</h2>
-        {items.length > SHOWN && <AllAchievementsDialog items={items} firstName={firstName} />}
+        {items.length > SHOWN && <AllAchievementsDialog items={items} firstName={firstName} ownerId={ownerId} />}
       </div>
       {stage && (
         <p className="achievements-box__stage" title={stage.description}>
@@ -40,13 +45,13 @@ export function AchievementsBox({
             .slice(0, SHOWN)
             .map((item) => (
               <li key={item.achievement.id}>
-                <AchievementMedal item={item} size="sm" />
+                <AchievementMedal item={item} size="sm" ownerId={ownerId} />
               </li>
             ))}
         </ul>
       ) : (
         <p className="achievements-box__empty">
-          {isOwner ? 'Suas conquistas aparecem aqui conforme você avança.' : 'Nenhuma conquista publicada.'}
+          {isOwner ? 'Suas conquistas aparecem aqui conforme você avança.' : `${firstName} ainda não mostrou conquistas.`}
         </p>
       )}
     </Card>

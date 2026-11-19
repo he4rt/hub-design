@@ -4,7 +4,7 @@ import { AchievementMedal } from './achievement-medal'
 import './achievement-list.css'
 
 /** Every achievement the reader may see, by catalog group. No totals, no locked ones. */
-export function AchievementList({ items }: { items: ShownAchievement[] }) {
+export function AchievementList({ items, ownerId }: { items: ShownAchievement[]; ownerId: string | null }) {
   return (
     <div className="achievement-list">
       {groupAchievements(items).map(({ group, items: groupItems }) => (
@@ -15,7 +15,7 @@ export function AchievementList({ items }: { items: ShownAchievement[] }) {
           <ul className="achievement-list__items">
             {groupItems.map((item) => (
               <li key={item.achievement.id} className="achievement-list__item">
-                <AchievementMedal item={item} size="sm" />
+                <AchievementMedal item={item} size="sm" ownerId={ownerId} />
                 <div className="achievement-list__text">
                   <p className="achievement-list__name" title={item.definition.name}>
                     {item.definition.name}

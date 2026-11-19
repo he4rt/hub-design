@@ -1,3 +1,5 @@
+import type { JourneyStage, MemberAchievement, MemberJourney, MockDb } from './db'
+
 /*
  * Achievement catalog (docs/achievements/spec.md). Backend configuration, the
  * same for every member, so it lives outside the persisted mock state.
@@ -177,4 +179,184 @@ export const achievementCatalog: AchievementDefinition[] = [
 
 export function findAchievement(key: string): AchievementDefinition | undefined {
   return achievementCatalog.find((achievement) => achievement.key === key)
+}
+
+/*
+ * What the platform computes from the facts in the mock (docs/achievements/entities.md): the
+ * journey stage and the unlocked achievements. Nothing here is stored or edited by hand; the
+ * member only chooses which achievements show on the profile. Commits outside He4rt never count.
+ */
+
+/** The earliest of a list of ISO dates, or null. */
+function first(dates: (string | null | undefined)[]): string | null {
+  return dates.filter((date): date is string => !!date).sort()[0] ?? null
+}
+
+/** The nth earliest date, counting from 1. */
+function nth(dates: (string | null | undefined)[], n: number): string | null {
+  return dates.filter((date): date is string => !!date).sort()[n - 1] ?? null
+}
+
+function addMonths(iso: string, months: number): string {
+  const date = new Date(iso)
+  date.setUTCMonth(date.getUTCMonth() + months)
+  return date.toISOString()
+}
+
+type Facts = ReturnType<typeof factsOf>
+
+function factsOf(state: MockDb, userId: string) {
+  const user = state.users.find((u) => u.id === userId)
+  const profile = state.profiles.find((p) => p.userId === userId)
+  const github = user?.linkedAccounts.find((a) => a.provider === 'github')
+  const posts = state.feedPosts.filter((p) => p.userId === userId && p.deletedAt === null)
+  const memberships = state.memberships.filter((m) => m.userId === userId)
+  const accepted = state.deliveries.filter((d) => d.status === 'accepted' && d.credits.some((c) => c.userId === userId))
+  const validations = state.validations
+    .filter((v) => v.memberId === userId && v.status === 'recorded')
+    .filter((v, _, all) => !all.some((other) => other.supersedesId === v.id))
+  const test = state.entryTests.find((t) => t.userId === userId)
+  const captainOf = state.squads.filter((s) => s.captainId === userId)
+  const validator = state.validators.find((v) => v.userId === userId && v.suspension === null)
+  const reviewed = state.entryTests.filter((t) => t.status === 'approved' && github && t.reviewer === github.handle)
+  return { user, profile, github, posts, memberships, accepted, validations, test, captainOf, validator, reviewed }
+}
+
+/** One rule per achievement the mock has facts for: when it happened, and whether that fact is public. */
+const rules: Record<string, (f: Facts, state: MockDb, userId: string) => { at: string | null; public?: boolean }> = {
+  'git-init': (f) => ({ at: f.user?.onboardedAt ?? null }),
+  'profile-complete': (f) => ({ at: f.user?.profileCompletedAt ?? null }),
+  'remote-added': (f) => ({ at: f.github?.linkedAt ?? null }),
+  'accounts-in-order': (f) => {
+    const linkedin = f.user?.linkedAccounts.find((a) => a.provider === 'linkedin')
+    return { at: f.github && linkedin ? [f.github.linkedAt, linkedin.linkedAt].sort()[1] : null }
+  },
+  'email-verified': (f) => ({ at: f.user?.emailVerifiedAt ?? null }),
+  'objective-set': (f) => ({ at: f.user?.objective && f.user.areas.length > 0 ? f.user.onboardedAt : null }),
+  'first-record': (f) => ({
+    at: first([
+      ...(f.profile?.knowledge.map((k) => k.declaredAt) ?? []),
+      ...(f.profile?.learnings.map((l) => l.completedAt) ?? []),
+      ...(f.profile?.experiences.map((e) => e.startedAt) ?? []),
+      ...f.posts.map((p) => p.createdAt),
+    ]),
+  }),
+  studying: (f) => ({
+    at: first(f.profile?.learnings.map((l) => l.completedAt) ?? []),
+    public: f.profile?.learnings.some((l) => l.visibility === 'public'),
+  }),
+  'basement-student': (f) => {
+    const courses = f.profile?.learnings.filter((l) => l.origin === 'basement') ?? []
+    return { at: first(courses.map((l) => l.completedAt)), public: courses.some((l) => l.visibility === 'public') }
+  },
+  'experience-logged': (f) => ({ at: first(f.profile?.experiences.map((e) => e.startedAt) ?? []) }),
+  author: (f) => ({ at: first(f.profile?.articles.map((a) => a.publishedAt) ?? []) }),
+  'with-proof': (f) => ({ at: first(f.profile?.evidences.filter((e) => e.projectId !== null).map((e) => e.date) ?? []) }),
+  'dear-diary': (f) => ({ at: first(f.posts.map((p) => p.createdAt)) }),
+  'shared-learning': (f) => ({ at: first(f.posts.filter((p) => p.sharedOnFeed).map((p) => p.createdAt)) }),
+  'on-display': (f) => ({ at: first(f.posts.filter((p) => p.shownOnProfile).map((p) => p.createdAt)) }),
+  'linked-to-trajectory': (f) => ({ at: first(f.posts.filter((p) => p.learningId).map((p) => p.createdAt)) }),
+  'seven-posts': (f) => ({ at: nth(f.posts.map((p) => p.createdAt), 7) }),
+  'pr-opened': (f) => ({ at: f.test?.openedAt ?? null }),
+  merged: (f) => ({ at: f.test?.approvedAt ?? null }),
+  applicant: (_, state, userId) => ({ at: first(state.applications.filter((a) => a.userId === userId).map((a) => a.createdAt)), public: false }),
+  'in-squad': (f) => ({ at: first(f.memberships.map((m) => m.joinedAt)) }),
+  'first-delivery': (f) => ({ at: first(f.accepted.map((d) => d.decidedAt)) }),
+  'technical-delivery': (f) => ({ at: first(f.accepted.filter((d) => d.kind === 'technical').map((d) => d.decidedAt)) }),
+  'beyond-code': (f) => ({ at: first(f.accepted.filter((d) => d.kind === 'non-technical').map((d) => d.decidedAt)) }),
+  solo: (f) => ({ at: first(f.accepted.filter((d) => d.collaboration === 'individual').map((d) => d.decidedAt)) }),
+  'pair-programming': (f) => ({ at: first(f.accepted.filter((d) => d.collaboration === 'pair').map((d) => d.decidedAt)) }),
+  'team-work': (f) => ({ at: first(f.accepted.filter((d) => d.collaboration === 'group').map((d) => d.decidedAt)) }),
+  'code-review': (_, state, userId) => ({
+    at: first(
+      state.deliveries
+        .filter((d) => d.status === 'accepted' && d.evidence.some((e) => e.kind === 'review' && e.authorId === userId))
+        .map((d) => d.decidedAt),
+    ),
+  }),
+  'asked-validation': (_, state, userId) => ({
+    at: first(state.validationRequests.filter((r) => r.memberId === userId).map((r) => r.createdAt)),
+    public: false,
+  }),
+  validated: (f) => ({ at: first(f.validations.map((v) => v.recordedAt)), public: f.validations.some((v) => v.published) }),
+  'open-portfolio': (f) => ({ at: first(f.validations.map((v) => v.publishedAt)), public: true }),
+  'two-competencies': (f) => {
+    const firstOf = [...new Set(f.validations.map((v) => v.competency))].map((c) =>
+      first(f.validations.filter((v) => v.competency === c).map((v) => v.recordedAt)),
+    )
+    return { at: nth(firstOf, 2), public: new Set(f.validations.filter((v) => v.published).map((v) => v.competency)).size >= 2 }
+  },
+  'two-perspectives': (f) => {
+    const firstOf = [...new Set(f.validations.map((v) => v.validatorId))].map((id) =>
+      first(f.validations.filter((v) => v.validatorId === id).map((v) => v.recordedAt)),
+    )
+    return { at: nth(firstOf, 2), public: new Set(f.validations.filter((v) => v.published).map((v) => v.validatorId)).size >= 2 }
+  },
+  captain: (f) => ({
+    at: first(
+      f.captainOf.map(
+        (squad) => first(f.memberships.filter((m) => m.squadId === squad.id).map((m) => m.joinedAt)) ?? squad.createdAt,
+      ),
+    ),
+  }),
+  validator: (f) => ({ at: f.validator?.approvedAt ?? null }),
+  'first-validation-given': (_, state, userId) => ({
+    at: first(state.validations.filter((v) => v.validatorId === userId && v.status === 'recorded').map((v) => v.recordedAt)),
+  }),
+  'first-commit-reviewer': (f) => ({ at: first(f.reviewed.map((t) => t.approvedAt)) }),
+}
+
+const tenure: [string, number][] = [
+  ['one-month-hub', 1],
+  ['six-months-hub', 6],
+  ['one-year-hub', 12],
+]
+
+/** The member's unlocked achievements, computed now; `isPublic` is the member's own choice. */
+export function memberAchievements(state: MockDb, userId: string, now: number): MemberAchievement[] {
+  const facts = factsOf(state, userId)
+  const shown = new Set(state.achievementChoices.filter((c) => c.userId === userId).map((c) => c.key))
+  const unlocked: { key: string; at: string; public: boolean }[] = []
+  for (const [key, rule] of Object.entries(rules)) {
+    const { at, public: isPublicFact } = rule(facts, state, userId)
+    if (at) unlocked.push({ key, at, public: isPublicFact ?? true })
+  }
+  for (const [key, months] of tenure) {
+    const at = facts.user && addMonths(facts.user.createdAt, months)
+    if (at && Date.parse(at) <= now) unlocked.push({ key, at, public: true })
+  }
+  return unlocked.map(({ key, at, public: originPublic }) => ({
+    id: `${userId}-${key}`,
+    userId,
+    key,
+    unlockedAt: at,
+    source: 'platform',
+    grantReason: null,
+    originPublic,
+    isPublic: shown.has(key),
+    revokedAt: null,
+  }))
+}
+
+const STAGE_ORDER: JourneyStage[] = ['member', 'prepared', 'practicing', 'delivered', 'validated']
+
+/**
+ * Highest kind of evidence the member has in the Hub, computed from squads and validation, and
+ * the highest one visitors can see. Never a seniority, never goes down.
+ */
+export function memberJourney(state: MockDb, userId: string): MemberJourney {
+  const f = factsOf(state, userId)
+  const shownProjects = new Set(f.memberships.filter((m) => m.shownOnProfile).map((m) => m.projectId))
+  const reached = (stages: boolean[]) => STAGE_ORDER[stages.lastIndexOf(true)]
+  return {
+    stage: reached([true, f.test?.status === 'approved', f.memberships.length > 0, f.accepted.length > 0, f.validations.length > 0]),
+    publicStage: reached([
+      true,
+      f.test?.status === 'approved',
+      shownProjects.size > 0,
+      f.accepted.some((d) => shownProjects.has(d.projectId)),
+      f.validations.some((v) => v.published),
+    ]),
+    contributor: f.captainOf.length > 0 || !!f.validator || f.reviewed.length > 0,
+  }
 }

@@ -4,7 +4,15 @@ import type { ShownAchievement } from '../lib/achievements'
 import { AchievementList } from './achievement-list'
 
 /** "Ver todas": the full grouped list in a dialog that scrolls inside the viewport. */
-export function AllAchievementsDialog({ items, firstName }: { items: ShownAchievement[]; firstName: string }) {
+export function AllAchievementsDialog({
+  items,
+  firstName,
+  ownerId,
+}: {
+  items: ShownAchievement[]
+  firstName: string
+  ownerId: string | null
+}) {
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -22,7 +30,7 @@ export function AllAchievementsDialog({ items, firstName }: { items: ShownAchiev
           </DialogClose>
         }
       >
-        <AchievementList items={items} />
+        <AchievementList items={items} ownerId={ownerId} />
       </DialogContent>
     </Dialog>
   )

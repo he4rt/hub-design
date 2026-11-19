@@ -17,7 +17,6 @@ export function emptyProfile(userId: string): MemberProfile {
     experiences: [],
     articles: [],
     evidences: [],
-    journey: { stage: 'member', publicStage: 'member', contributor: false },
   }
 }
 

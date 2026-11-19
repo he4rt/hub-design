@@ -127,28 +127,6 @@
   }
 }
 
-/* The badge row, like dev.to's: medals in one line under a rule, "Ver todas" after them. */
-.profile-header__badges {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-2);
-  align-self: stretch;
-  margin-top: var(--space-2);
-  padding-top: var(--space-4);
-  border-top: 1px solid var(--color-border);
-
-  ul {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: var(--space-3);
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-}
-
 @media (max-width: 767px) {
   .profile-header__banner {
     height: 72px;
