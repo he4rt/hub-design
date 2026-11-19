@@ -1,3 +1,4 @@
+import { track } from '@/mocks/analytics'
 import { db, type MemberProfile, type Visibility } from '@/mocks/db'
 import { MockError, mockAction } from '@/mocks/mock-action'
 
@@ -36,5 +37,21 @@ export function updateRecordVisibility(userId: string, collection: RecordCollect
       ),
     }))
     return { recordId, visibility }
+  })
+}
+
+/**
+ * Takes a publication out of the member's saved ones. Saved publications live on the owner's
+ * profile; only the member who saved one removes it.
+ */
+export function unsavePost(userId: string, postId: string) {
+  return mockAction('panel-app.feed.posts.bookmarks.destroy', { userId, postId }, () => {
+    if (db.get().session?.userId !== userId) throw new MockError('Só quem salvou pode tirar dos salvos.')
+    db.set((state) => ({
+      ...state,
+      feedBookmarks: state.feedBookmarks.filter((b) => !(b.userId === userId && b.postId === postId)),
+    }))
+    track('feed_post_saved', { postId, saved: false })
+    return { saved: false }
   })
 }

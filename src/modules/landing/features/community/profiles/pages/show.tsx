@@ -16,6 +16,7 @@ import { OwnerNotice } from '../components/owner-notice'
 import { ProfileHeader } from '../components/profile-header'
 import { ProfileSidebar } from '../components/profile-sidebar'
 import { ReadmeCard } from '../components/readme-card'
+import { SavedPosts } from '../components/saved-posts'
 import { TrajectoryGraph } from '../components/trajectory-graph'
 import { ValidationsCard } from '../components/validations-card'
 import { achievementsModels, parseAchievementsModel, shownAchievements } from '../lib/achievements'
@@ -25,7 +26,7 @@ import { trajectoryGraph } from '../lib/trajectory'
 import { viewerOptions, type Viewer } from '../lib/visibility'
 import './show.css'
 
-const TABS = { 'visao-geral': 'Visão geral', atividade: 'Atividade', trajetoria: 'Trajetória', conquistas: 'Conquistas' } as const
+const TABS = { 'visao-geral': 'Visão geral', atividade: 'Atividade', trajetoria: 'Trajetória', conquistas: 'Conquistas', salvos: 'Salvos' } as const
 type Tab = keyof typeof TABS
 
 /** A member who has not registered any trajectory record yet. */
@@ -56,6 +57,8 @@ export default function PublicProfile() {
   const storedProfile = useDb((s) => s.profiles.find((p) => p.userId === user?.id))
   const validatorRecord = useDb((s) => s.validators.find((v) => v.userId === user?.id && v.suspension === null))
   const collections = useDb((s) => s.feedCollections)
+  const bookmarks = useDb((s) => s.feedBookmarks)
+  const users = useDb((s) => s.users)
   const contestations = useDb((s) => s.contestations)
   const sessionUserId = useDb((db) => db.session?.userId)
   const squads = useDb((db) => db.squads)
@@ -76,6 +79,11 @@ export default function PublicProfile() {
     { label: 'Abrir Visão geral', run: () => setParams({}) },
     { label: 'Abrir Atividade', run: () => setParams({ aba: 'atividade' }) },
     { label: 'Abrir Trajetória', run: () => setParams({ aba: 'trajetoria' }) },
+    { label: 'Abrir Salvos (só o dono)', run: () => setParams({ aba: 'salvos' }) },
+    {
+      label: 'Esvaziar meus salvos',
+      run: () => db.set((s) => ({ ...s, feedBookmarks: s.feedBookmarks.filter((b) => b.userId !== s.session?.userId) })),
+    },
     ...achievementsModels.map((option) => ({
       label: `Conquistas: ${option.label}`,
       run: () =>
@@ -129,7 +137,10 @@ export default function PublicProfile() {
   const graph = trajectoryGraph(profile, { squads, projects, memberships, deliveries, validations, posts, viewer })
   const entries = graph.entries
   // The Conquistas tab exists only in the "aba" achievements model.
-  const tabs = (Object.keys(TABS) as Tab[]).filter((value) => value !== 'conquistas' || model === 'aba')
+  // Conquistas exists only in the "aba" achievements model; Salvos only for the owner reading as themselves.
+  const tabs = (Object.keys(TABS) as Tab[]).filter(
+    (value) => (value !== 'conquistas' || model === 'aba') && (value !== 'salvos' || asOwner),
+  )
   const activeTab = tabs.includes(tab) ? tab : 'visao-geral'
   const activity = memberActivity(profile, {
     squads,
@@ -159,6 +170,11 @@ export default function PublicProfile() {
   const shownPosts = posts
     .filter((p) => p.userId === user.id && p.deletedAt === null && (asOwner || p.shownOnProfile))
     .toSorted((a, b) => b.createdAt.localeCompare(a.createdAt))
+  // The rule of the Feed's save: not deleted, shared on the Feed, and by someone else. Newest save first.
+  const savedPosts = bookmarks
+    .filter((b) => b.userId === user.id)
+    .toSorted((a, b) => b.createdAt.localeCompare(a.createdAt))
+    .flatMap((b) => posts.filter((p) => p.id === b.postId && p.deletedAt === null && p.sharedOnFeed && p.userId !== user.id))
   const publishedValidations = validations
     .filter((v) => v.memberId === user.id && v.status === 'recorded' && v.published)
     .filter((v) => !validations.some((n) => n.supersedesId === v.id && n.status === 'recorded'))
@@ -260,6 +276,11 @@ export default function PublicProfile() {
             <TabsContent value="trajetoria" className="public-profile-page__tab">
               <Card>{trajectory}</Card>
             </TabsContent>
+            {asOwner && (
+              <TabsContent value="salvos" className="public-profile-page__tab">
+                <SavedPosts ownerId={user.id} posts={savedPosts} users={users} />
+              </TabsContent>
+            )}
             {model === 'aba' && (
               <TabsContent value="conquistas" className="public-profile-page__tab">
                 <Card>
