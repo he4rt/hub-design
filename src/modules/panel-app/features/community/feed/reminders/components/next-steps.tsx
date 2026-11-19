@@ -1,5 +1,6 @@
 import { useTransition } from 'react'
 import { Link } from 'react-router'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import type { User } from '@/mocks/db'
@@ -28,7 +29,7 @@ export function NextSteps({ account }: { account: User }) {
               {step.to ? <Link to={step.to}>{step.title}</Link> : <span>{step.title}</span>}
               <p>{step.text}</p>
             </div>
-            {!step.to && <span className="next-steps__soon">Em breve</span>}
+            {!step.to && <Badge variant="neutral">Em breve</Badge>}
           </li>
         ))}
       </ol>

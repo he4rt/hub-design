@@ -1,5 +1,5 @@
 import { Link } from 'react-router'
-import { CheckCircle2, MessagesSquare } from 'lucide-react'
+import { MessagesSquare } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { useNow } from '@/hooks/use-now'
 import { useDb, type Discussion } from '@/mocks/db'
@@ -55,10 +55,7 @@ export function DiscussionList({
             </div>
             <div className="discussion-list__status">
               {discussion.solvedReplyId ? (
-                <span className="discussion-list__solved">
-                  <CheckCircle2 size={14} aria-hidden />
-                  Resolvida
-                </span>
+                <Badge variant="success">Resolvida</Badge>
               ) : (
                 <span className="discussion-list__replies" data-empty={replies === 0 || undefined}>
                   <MessagesSquare size={14} aria-hidden />

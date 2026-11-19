@@ -1,7 +1,7 @@
 .discussion-create {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: var(--space-6);
   max-width: 760px;
   margin: 0 auto;
   padding: var(--space-8) var(--space-6) var(--space-10);
@@ -44,7 +44,7 @@
 
 .discussion-create__hint {
   color: var(--text-muted);
-  font-size: var(--size-caption);
+  font: var(--text-caption);
 }
 
 .discussion-create__actions {

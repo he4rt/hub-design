@@ -2,6 +2,7 @@ import { useActionState, useState } from 'react'
 import { Link, Navigate, useLocation, useNavigate, useSearchParams } from 'react-router'
 import { FormMessage } from '@/components/form-message'
 import { Button } from '@/components/ui/button'
+import { Callout } from '@/components/ui/callout'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useDebugActions } from '@/debug/use-debug-actions'
@@ -10,6 +11,7 @@ import { errorMessage } from '@/mocks/mock-action'
 import { useAccount } from '@/modules/panel-app/hooks/use-account'
 import { login, needsOnboarding, providerLabel } from '../actions'
 import { SocialLogin } from '../components/social-login'
+import { ShieldCheck } from 'lucide-react'
 import { useRedirectTarget } from '../hooks/use-redirect-target'
 import './login.css'
 
@@ -67,9 +69,9 @@ function LoginForm() {
     <div className="auth-form">
       <h1>Entrar no Hub</h1>
       {pendingLink && (
-        <p className="login__link-notice">
+        <Callout icon={<ShieldCheck size={16} aria-hidden />}>
           O {providerLabel(pendingLink.provider)} não confirmou o e-mail desta conta. Entre com a senha para vinculá-lo.
-        </p>
+        </Callout>
       )}
       <SocialLogin verb="Entrar" redirectTo={redirectTo} />
       <p className="auth-form__hint login__shared">Já tem conta na Basement ou no Job Finder? Entre com ela.</p>

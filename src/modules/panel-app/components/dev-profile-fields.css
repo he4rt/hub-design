@@ -11,14 +11,14 @@
 
 .dev-profile-fields__hint {
   color: var(--text-muted);
-  font-size: var(--size-body);
+  font: var(--text-caption);
 }
 
 /* Reserves its line, so choosing an objective never moves the buttons below. */
 .dev-profile-fields__notice {
-  min-height: calc(var(--size-body) * 1.5 * 2);
+  min-height: calc(18px * 2);
   color: var(--text-muted);
-  font-size: var(--size-body);
+  font: var(--text-caption);
 }
 
 .dev-profile-fields__search {
@@ -30,6 +30,6 @@
 .dev-profile-fields__count {
   flex-shrink: 0;
   color: var(--text-muted);
-  font-size: var(--size-body);
+  font: var(--text-caption);
   font-variant-numeric: tabular-nums;
 }

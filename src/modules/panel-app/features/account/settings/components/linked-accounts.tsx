@@ -67,7 +67,7 @@ export function LinkedAccounts({ account }: { account: User }) {
         })}
       </ul>
       {suggestion && (
-        <div className="linked-accounts__suggestion">
+        <Card variant="inset" className="linked-accounts__suggestion">
           <p>
             Pelos seus repositórios no GitHub, sugerimos
             {suggestion.areas.length > 0 && <> as áreas <strong>{areaLabels(suggestion.areas)}</strong></>}
@@ -75,7 +75,12 @@ export function LinkedAccounts({ account }: { account: User }) {
             {suggestion.languages.length > 0 && <> as linguagens <strong>{suggestion.languages.join(', ')}</strong></>}.
           </p>
           <div className="linked-accounts__suggestion-actions">
-            <Button size="sm" disabled={busy} onClick={() => run(() => resolveGithubSuggestion(account.id, true))}>
+            <Button
+              variant="secondary"
+              size="sm"
+              disabled={busy}
+              onClick={() => run(() => resolveGithubSuggestion(account.id, true))}
+            >
               Adicionar ao perfil
             </Button>
             <Button
@@ -87,7 +92,7 @@ export function LinkedAccounts({ account }: { account: User }) {
               Descartar
             </Button>
           </div>
-        </div>
+        </Card>
       )}
       <FormMessage tone="error">{error}</FormMessage>
     </Card>

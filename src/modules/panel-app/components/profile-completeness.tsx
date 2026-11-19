@@ -1,4 +1,3 @@
-import { Progress } from '@/components/ui/progress'
 import { ACTION_LABELS, PROFILE_FIELD_LABELS } from '@/lib/member-profile'
 import type { User } from '@/mocks/db'
 import { actionsUnlockedBy, canDo, type ProfileAction } from '@/mocks/profile-completeness'
@@ -7,7 +6,7 @@ import './profile-completeness.css'
 const ACTIONS: ProfileAction[] = ['join-squad', 'apply-job']
 
 /**
- * Completeness bar computed by the backend, what each action still needs, and
+ * Completeness computed by the backend, as a sentence (a trajectory, never a scoreboard), what each action still needs, and
  * which actions each missing field unlocks. It never decides who sees the profile.
  */
 export function ProfileCompleteness({ user, showMissing = true }: { user: User; showMissing?: boolean }) {
@@ -15,11 +14,9 @@ export function ProfileCompleteness({ user, showMissing = true }: { user: User; 
 
   return (
     <div className="profile-completeness">
-      <div className="profile-completeness__head">
-        <span>Perfil completo</span>
-        <strong>{percent}%</strong>
-      </div>
-      <Progress value={percent} aria-label="Perfil completo" />
+      <p className="profile-completeness__head">
+        Perfil <strong>{percent}%</strong> preenchido
+      </p>
       <ul className="profile-completeness__actions">
         {ACTIONS.map((action) => {
           const { allowed, missing: needed } = canDo(user, action)

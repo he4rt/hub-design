@@ -21,8 +21,7 @@
 
 .member-link__name {
   color: var(--text);
-  font-size: var(--size-body);
-  font-weight: 500;
+  font: var(--text-body-strong);
 }
 
 a.member-link__name {
@@ -43,5 +42,5 @@ a.member-link__name {
 
 .member-link__caption {
   color: var(--text-muted);
-  font-size: var(--size-caption);
+  font: var(--text-caption);
 }

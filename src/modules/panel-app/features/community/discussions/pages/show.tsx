@@ -1,5 +1,5 @@
 import { Link, useNavigate, useParams } from 'react-router'
-import { ArrowLeft, CheckCircle2 } from 'lucide-react'
+import { CheckCircle2 } from 'lucide-react'
 import { NotFound } from '@/components/not-found'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
@@ -50,18 +50,14 @@ export default function DiscussionShow() {
   return (
     <div className="discussion-show">
       <Link to="/app/discussions" className="discussion-show__back">
-        <ArrowLeft size={14} aria-hidden />
-        Fórum
+        Voltar ao Fórum
       </Link>
 
       <header className="discussion-show__header">
         <p className="discussion-show__tags">
           <Badge>{categoryLabels[discussion.category]}</Badge>
           {discussion.solvedReplyId && (
-            <span className="discussion-show__solved">
-              <CheckCircle2 size={14} aria-hidden />
-              Resolvida
-            </span>
+            <Badge variant="success">Resolvida</Badge>
           )}
         </p>
         <h1>{discussion.title}</h1>
@@ -69,8 +65,8 @@ export default function DiscussionShow() {
       </header>
 
       {context && (
-        <p className="discussion-show__context">
-          <span>{context.kind}:</span>
+        <Card variant="inset" className="discussion-show__context">
+          <span>{context.kind}</span>
           {context.path ? (
             <Link to={context.path} title={context.label}>
               {context.label}
@@ -78,7 +74,7 @@ export default function DiscussionShow() {
           ) : (
             <span title={context.label}>{context.label}</span>
           )}
-        </p>
+        </Card>
       )}
 
       <Card className="discussion-show__post">

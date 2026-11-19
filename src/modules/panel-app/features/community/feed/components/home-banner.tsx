@@ -1,4 +1,5 @@
 import { Link } from 'react-router'
+import { Badge } from '@/components/ui/badge'
 import { useDb } from '@/mocks/db'
 import './home-banner.css'
 
@@ -14,9 +15,9 @@ export function HomeBanner() {
   const external = banner.link && /^https?:/.test(banner.link.url)
   return (
     <aside className="home-banner" data-kind={banner.kind} aria-label="Avisos">
-      <span className="home-banner__label">
-        {banner.kind === 'partner' ? `Parceiro · ${banner.partner ?? ''}` : 'Aviso da comunidade'}
-      </span>
+      <Badge variant={banner.kind === 'partner' ? 'tag' : 'info'}>
+        {banner.kind === 'partner' ? `Parceiro: ${banner.partner ?? ''}` : 'Aviso da comunidade'}
+      </Badge>
       <p className="home-banner__text" title={banner.text}>
         {banner.text}
       </p>

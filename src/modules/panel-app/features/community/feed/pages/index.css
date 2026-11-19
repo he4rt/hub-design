@@ -55,11 +55,6 @@
   gap: var(--space-4);
 }
 
-.feed__toolbar {
-  display: flex;
-  overflow-x: auto;
-}
-
 .feed__list {
   display: flex;
   flex-direction: column;
@@ -84,6 +79,11 @@
 
 .feed__end {
   color: var(--text-muted);
-  font-size: var(--size-body);
+  font: var(--text-caption);
   text-align: center;
+}
+
+/* The column's gap already separates the header from the notice line. */
+.feed .page-header {
+  margin-bottom: 0;
 }

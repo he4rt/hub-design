@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router'
 import { Card } from '@/components/ui/card'
+import { TrailLog, TrailLogItem } from '@/components/ui/trail-log'
 import { useNow } from '@/hooks/use-now'
 import { formatShortDate } from '@/lib/feed-post'
 import { emptyProfile, recordTypeLabels, trajectoryGraph } from '@/lib/trajectory/graph'
@@ -111,16 +112,21 @@ export function HomeAside({ account }: { account: User }) {
         {own.length === 0 ? (
           <p className="home-aside__hint">Seu primeiro registro aparece aqui: um aprendizado, um curso ou uma entrega.</p>
         ) : (
-          <ol className="home-aside__trajectory">
-            {own.slice(0, RECENT_RECORDS).map((entry) => (
-              <li key={entry.id}>
-                <time dateTime={entry.date} title={entry.type ? recordTypeLabels[entry.type] : undefined}>
-                  {formatShortDate(entry.date, now)}
-                </time>
-                <p title={entry.title}>{entry.title}</p>
-              </li>
+          <TrailLog className="home-aside__trajectory">
+            {own.slice(0, RECENT_RECORDS).map((entry, i) => (
+              <TrailLogItem
+                key={entry.id}
+                tone={i === 0 ? 'move' : 'past'}
+                title={<p title={entry.title}>{entry.title}</p>}
+                meta={
+                  <>
+                    {entry.type ? `${recordTypeLabels[entry.type]}, ` : ''}
+                    <time dateTime={entry.date}>{formatShortDate(entry.date, now)}</time>
+                  </>
+                }
+              />
             ))}
-          </ol>
+          </TrailLog>
         )}
         {own.length > RECENT_RECORDS && <Link to={`/members/${account.username}?aba=trajetoria`}>Ver toda a trajetória</Link>}
       </Card>

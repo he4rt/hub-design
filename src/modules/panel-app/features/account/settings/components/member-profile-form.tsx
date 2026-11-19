@@ -23,7 +23,7 @@ import {
 import { BIO_MAX_LENGTH, updateMemberProfile, type MemberProfileInput } from '../actions'
 import './member-profile-form.css'
 
-const CITY_OPTIONS = MUNICIPALITIES.map((city) => ({ value: `${city.uf}/${city.name}`, label: `${city.name} — ${city.uf}` }))
+const CITY_OPTIONS = MUNICIPALITIES.map((city) => ({ value: `${city.uf}/${city.name}`, label: `${city.name}, ${city.uf}` }))
 const PHOTO_SIZE = 192
 
 /** Crops the picture to a square and shrinks it before it goes to the action. */

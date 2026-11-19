@@ -10,7 +10,7 @@
 
 .post-card__avatar {
   flex: none;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
 }
 
 .post-card__author {
@@ -33,7 +33,7 @@
     max-width: 100%;
     overflow: hidden;
     color: var(--text);
-    font-weight: 700;
+    font: var(--text-body-strong);
     text-decoration: none;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -45,46 +45,21 @@
   }
 }
 
-/* Badges by kind; the colors come from the status tokens. */
-.post-card__badge {
-  min-height: 20px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-
-  &[data-badge='staff'] {
-    border-color: transparent;
-    background: var(--surface-2);
-    color: var(--danger-text);
-  }
-
-  &[data-badge='captain'],
-  &[data-badge='verified'] {
-    border-color: transparent;
-    background: var(--brand-soft);
-    color: var(--brand-text);
-  }
-
-  &[data-badge='validator'] {
-    border-color: var(--warning-text);
-    color: var(--warning-text);
-  }
-}
-
 .post-card__headline {
   overflow: hidden;
-  color: var(--text);
-  font-size: var(--size-body);
+  color: var(--text-muted);
+  font: var(--text-caption);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .post-card__meta {
   color: var(--text-muted);
-  font-size: var(--size-caption);
+  font: var(--text-caption);
   font-variant-numeric: tabular-nums;
 }
 
+/* The two parts of a publication, each with a field label above its text. */
 .post-card__body {
   display: flex;
   flex-direction: column;
@@ -92,20 +67,20 @@
   margin: 0;
 
   div {
-    padding-left: var(--space-3);
-    border-left: 3px solid var(--brand-soft);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
   }
 
   dt {
-    color: var(--brand-text);
-    font-size: var(--size-body);
-    font-weight: 700;
-    letter-spacing: 0.01em;
+    color: var(--text-muted);
+    font: var(--text-label);
   }
 
   dd {
-    margin: var(--space-1) 0 0;
+    margin: 0;
     color: var(--text);
+    font: var(--text-body);
     overflow-wrap: anywhere;
     white-space: pre-line;
   }
@@ -115,28 +90,6 @@
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2);
-
-  span {
-    max-width: 100%;
-    overflow: hidden;
-    padding: var(--space-1) var(--space-3);
-    border-radius: 999px;
-    font-size: var(--size-caption);
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-}
-
-/* One color for every answer: the progress is a label, never a color scale. */
-.post-card__progress {
-  background: var(--brand-soft);
-  color: var(--brand-text);
-  font-weight: 600;
-}
-
-.post-card__track {
-  border: 1px solid var(--border);
-  color: var(--text);
 }
 
 .post-card__footer {

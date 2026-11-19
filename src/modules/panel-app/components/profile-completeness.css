@@ -4,13 +4,14 @@
   gap: var(--space-2);
 }
 
+/* Progress is a quiet sentence in muted text, never a bar competing for attention. */
 .profile-completeness__head {
-  display: flex;
-  justify-content: space-between;
-  font-size: var(--size-body);
+  color: var(--text-muted);
+  font: var(--text-caption);
 
   strong {
     color: var(--text);
+    font-weight: 600;
     font-variant-numeric: tabular-nums;
   }
 }
@@ -23,7 +24,7 @@
   margin: 0;
   padding: 0;
   list-style: none;
-  font-size: var(--size-body);
+  font: var(--text-caption);
 }
 
 .profile-completeness__actions li {
@@ -31,7 +32,7 @@
 
   strong {
     color: var(--text);
-    font-weight: 500;
+    font-weight: 600;
   }
 
   &[data-allowed] {
@@ -46,8 +47,10 @@
   gap: var(--space-2);
   padding: var(--space-2) 0;
   border-top: 1px solid var(--border);
+  font: var(--text-body);
 }
 
 .profile-completeness__unlocks {
   color: var(--text-muted);
+  font: var(--text-caption);
 }

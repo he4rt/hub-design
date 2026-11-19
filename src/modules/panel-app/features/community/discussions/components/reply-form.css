@@ -6,7 +6,7 @@
 
 .reply-form__hint {
   color: var(--text-muted);
-  font-size: var(--size-caption);
+  font: var(--text-caption);
 }
 
 .reply-form__footer {

@@ -2,6 +2,7 @@ import { useActionState, useState, useTransition } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router'
 import { FormMessage } from '@/components/form-message'
 import { Button } from '@/components/ui/button'
+import { Callout } from '@/components/ui/callout'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -140,18 +141,22 @@ function RegisterForm({
       <p className="auth-form__hint">Uma conta só para o Hub, a Basement e o Job Finder.</p>
 
       {pendingSocial ? (
-        <div className="register__social">
-          <p>Continuando com o {providerLabel(pendingSocial.provider)}. Faltam alguns dados.</p>
-          <Button
+        <Callout
+          className="register__social"
+          action={
+            <Button
             type="button"
             variant="ghost"
             size="sm"
             loading={cancelling}
             onClick={() => startCancel(() => cancelSocialSignUp())}
           >
-            Usar outro jeito
-          </Button>
-        </div>
+              Usar outro jeito
+            </Button>
+          }
+        >
+          Continuando com o {providerLabel(pendingSocial.provider)}. Faltam alguns dados.
+        </Callout>
       ) : (
         <>
           <SocialLogin verb="Cadastrar" redirectTo={redirectTo} />

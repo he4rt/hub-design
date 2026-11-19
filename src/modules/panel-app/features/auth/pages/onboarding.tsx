@@ -2,6 +2,8 @@ import { useActionState, useState } from 'react'
 import { Navigate, useNavigate } from 'react-router'
 import { FormMessage } from '@/components/form-message'
 import { Button } from '@/components/ui/button'
+import { Callout } from '@/components/ui/callout'
+import { GitBranch, Info } from 'lucide-react'
 import { useDebugActions } from '@/debug/use-debug-actions'
 import { ORIGIN_IN } from '@/lib/member-profile'
 import { updateUser, type User } from '@/mocks/db'
@@ -103,20 +105,28 @@ function Questions({ account }: { account: User }) {
           ))}
         </ol>
         {account.origin !== 'hub' && stepIndex === firstUnansweredStep(account) && (
-          <p className="onboarding__note">
+          <Callout icon={<Info size={16} aria-hidden />}>
             Sua conta He4rt foi criada {ORIGIN_IN[account.origin]}. Faltam só algumas perguntas para o Hub.
-          </p>
+          </Callout>
         )}
         <h1>{copy.title}</h1>
         <p className="auth-form__hint">{copy.hint}</p>
       </div>
 
       {step === 'github' && (
-        <p className="onboarding__note">
-          {hasGithub(account)
-            ? `GitHub vinculado: @${account.linkedAccounts.find((a) => a.provider === 'github')?.handle}.`
-            : 'O Hub só lê o que é público no seu GitHub. Você confirma no GitHub e volta para cá.'}
-        </p>
+        <Callout icon={<GitBranch size={16} aria-hidden />}>
+          {hasGithub(account) ? (
+            <>
+              GitHub vinculado:{' '}
+              <span className="onboarding__github">
+                @{account.linkedAccounts.find((a) => a.provider === 'github')?.handle}
+              </span>
+              .
+            </>
+          ) : (
+            'O Hub só lê o que é público no seu GitHub. Você confirma no GitHub e volta para cá.'
+          )}
+        </Callout>
       )}
       {step === 'objective' && (
         <ObjectiveField value={answers.objective} onChange={(objective) => update({ objective })} />

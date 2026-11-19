@@ -5,29 +5,10 @@
   gap: var(--space-2) var(--space-4);
   margin-bottom: var(--space-6);
   padding: var(--space-3) var(--space-4);
-  border: 1px solid var(--brand-soft);
+  border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   background: var(--surface);
-  font-size: var(--size-body);
-
-  &[data-kind='partner'] {
-    border-color: var(--border);
-  }
-}
-
-.home-banner__label {
-  flex: none;
-  padding: 2px var(--space-2);
-  border-radius: var(--radius-sm);
-  background: var(--brand-soft);
-  color: var(--brand-text);
-  font-size: var(--size-caption);
-  font-weight: 600;
-
-  [data-kind='partner'] > & {
-    background: var(--surface-2);
-    color: var(--text-muted);
-  }
+  font: var(--text-body);
 }
 
 .home-banner__text {
@@ -38,5 +19,6 @@
 
 .home-banner__link {
   flex: none;
-  font-weight: 600;
+  color: var(--brand-text);
+  font: var(--text-body-strong);
 }

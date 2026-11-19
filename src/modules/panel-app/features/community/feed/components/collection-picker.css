@@ -14,7 +14,7 @@
 
 .collection-picker__hint {
   color: var(--text-muted);
-  font-size: var(--size-body);
+  font: var(--text-caption);
 }
 
 .collection-picker__new {

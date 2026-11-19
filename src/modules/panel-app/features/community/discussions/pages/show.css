@@ -1,23 +1,20 @@
 .discussion-show {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: var(--space-6);
   max-width: 760px;
   margin: 0 auto;
   padding: var(--space-6) var(--space-6) var(--space-10);
 }
 
 .discussion-show__back {
-  display: inline-flex;
   align-self: flex-start;
-  align-items: center;
-  gap: var(--space-1);
-  color: var(--text-muted);
-  font-size: var(--size-body);
+  color: var(--brand-text);
+  font: var(--text-body-strong);
   text-decoration: none;
 
   &:hover {
-    color: var(--brand-text);
+    text-decoration: underline;
   }
 
   &:focus-visible {
@@ -30,11 +27,11 @@
 .discussion-show__header {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: var(--space-3);
 
   h1 {
-    font-size: var(--size-display);
-    line-height: 1.25;
+    font: var(--text-display);
+    letter-spacing: -0.02em;
     overflow-wrap: anywhere;
     text-wrap: balance;
   }
@@ -44,51 +41,40 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-2) var(--space-3);
+  gap: var(--space-2);
 }
 
-.discussion-show__solved {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-  color: var(--success-text);
-  font-size: var(--size-caption);
-}
-
-/* What the discussion is about, in the /dev/null style of a ref line. */
+/* What the discussion is about: a squad, a project or a publication. */
 .discussion-show__context {
-  display: flex;
+  flex-direction: row;
   align-items: baseline;
   gap: var(--space-2);
-  min-width: 0;
-  padding: var(--space-2) var(--space-3);
-  border-left: 2px solid var(--brand);
-  background: var(--surface);
-  color: var(--text-muted);
-  font-size: var(--size-body);
+  font: var(--text-body);
 
   > :first-child {
     flex-shrink: 0;
+    color: var(--text-muted);
     white-space: nowrap;
   }
 
   > :last-child {
     min-width: 0;
     overflow: hidden;
+    color: var(--text);
     text-overflow: ellipsis;
     white-space: nowrap;
-    color: var(--text);
   }
 
   a {
+    color: var(--brand-text);
     text-underline-offset: 3px;
   }
 }
 
 .discussion-show__post {
-  font-size: var(--size-body);
-  line-height: 1.6;
+  font: var(--text-body);
   overflow-wrap: anywhere;
+  white-space: pre-line;
 }
 
 .discussion-show__replies {
@@ -97,7 +83,7 @@
   gap: var(--space-3);
 
   h2 {
-    font-size: var(--size-body);
+    font: var(--text-subheading);
     font-variant-numeric: tabular-nums;
   }
 }
@@ -114,13 +100,12 @@
 .discussion-show__reply {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
-  padding: var(--space-4);
+  gap: var(--space-3);
+  padding: var(--space-5);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   background: var(--surface);
-  font-size: var(--size-body);
-  line-height: 1.6;
+  font: var(--text-body);
   overflow-wrap: anywhere;
 
   header {
@@ -134,21 +119,21 @@
   time {
     flex-shrink: 0;
     color: var(--text-muted);
-    font-family: var(--font-mono);
-    font-size: var(--size-caption);
+    font: var(--text-caption);
+    font-variant-numeric: tabular-nums;
   }
 
   &[data-solved] {
-    border-color: var(--success-text);
+    border-color: var(--brand-soft-border);
   }
 }
 
 .discussion-show__solved-note {
   display: flex;
   align-items: center;
-  gap: var(--space-1);
+  gap: var(--space-2);
   color: var(--success-text);
-  font-size: var(--size-caption);
+  font: var(--text-caption);
 }
 
 @media (max-width: 767px) {
@@ -156,7 +141,7 @@
     padding: var(--space-4) var(--space-3) var(--space-8);
   }
 
-  .discussion-show__header h1 {
-    font-size: var(--size-heading);
+  .discussion-show__reply {
+    padding: var(--space-4);
   }
 }

@@ -1,7 +1,6 @@
 import { Link } from 'react-router'
 import { Avatar } from '@/components/ui/avatar'
 import { Card } from '@/components/ui/card'
-import { Progress } from '@/components/ui/progress'
 import { areaLabels, labelOf, OBJECTIVES } from '@/lib/member-profile'
 import { useDb, type User } from '@/mocks/db'
 import './profile-card.css'
@@ -24,14 +23,13 @@ export function ProfileCard({ account }: { account: User }) {
     .map((c) => ({ ...c, count: own.filter((p) => p.collectionIds.includes(c.id)).length }))
     .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name))
   const headline = account.bio || areaLabels(account.areas)
-  const city = account.city && `${account.city.name} — ${account.city.uf}`
+  const city = account.city && `${account.city.name}, ${account.city.uf}`
 
   return (
     <Card className="profile-card">
-      <div className="profile-card__cover" aria-hidden />
       <div className="profile-card__identity">
         <Link to={`/members/${account.username}`} aria-hidden tabIndex={-1}>
-          <Avatar src={account.photoUrl} name={account.name} size="xl" />
+          <Avatar src={account.photoUrl} name={account.name} size="lg" />
         </Link>
         <h2 title={account.name}>
           <Link to={`/members/${account.username}`} title="Ver meu perfil">
@@ -47,12 +45,8 @@ export function ProfileCard({ account }: { account: User }) {
           <dt>Objetivo</dt>
           <dd>{account.objective ? labelOf(OBJECTIVES, account.objective) : 'Não definido'}</dd>
         </div>
-        <div>
-          <dt>Perfil completo</dt>
-          <dd className="profile-card__percent">{account.completeness.percent}%</dd>
-        </div>
       </dl>
-      <Progress value={account.completeness.percent} aria-label="Perfil completo" />
+      <p className="profile-card__muted profile-card__percent">Perfil {account.completeness.percent}% preenchido</p>
 
       {collections.length > 0 && (
         <section className="profile-card__section" aria-labelledby="profile-card-collections">

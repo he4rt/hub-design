@@ -144,7 +144,7 @@ export function PostForm({
       <fieldset className="post-form__field">
         <legend id="progress-label">
           Quanto isso aproximou você do objetivo
-          {objective && <span className="post-form__objective"> · {objective}</span>}
+          {objective && <span className="post-form__objective">Seu objetivo: {objective}</span>}
         </legend>
         <RadioCards
           aria-labelledby="progress-label"
@@ -162,7 +162,7 @@ export function PostForm({
 
       <fieldset className="post-form__field">
         <legend>
-          Trilhas <span className="post-form__objective">· opcional</span>
+          Trilhas <span className="post-form__objective">(opcional)</span>
         </legend>
         <CollectionPicker userId={account.id} value={collectionIds} onChange={setCollectionIds} disabled={pending} />
       </fieldset>

@@ -117,7 +117,7 @@ export function PostCard({
               <strong>{name}</strong>
             )}
             {badges.map((badge) => (
-              <Badge key={badge.key} className="post-card__badge" data-badge={badge.tone} title={badge.title}>
+              <Badge key={badge.key} title={badge.title}>
                 {badge.label}
               </Badge>
             ))}
@@ -133,7 +133,7 @@ export function PostCard({
             </time>
             {post.editedAt && (
               <span title="O texto foi corrigido depois de publicado.">
-                {' · '}editado em <time dateTime={post.editedAt}>{formatShortDate(post.editedAt, now)}</time>
+                , editado em <time dateTime={post.editedAt}>{formatShortDate(post.editedAt, now)}</time>
               </span>
             )}
           </p>
@@ -223,13 +223,13 @@ export function PostCard({
       </dl>
 
       <div className="post-card__tags">
-        <span className="post-card__progress" title="Quanto isso aproximou do objetivo">
+        <Badge title="Quanto isso aproximou do objetivo">
           {labelOf(OBJECTIVE_PROGRESS, post.objectiveProgress)} do objetivo
-        </span>
+        </Badge>
         {collections.map((c) => (
-          <span key={c.id} className="post-card__track" title={`Trilha: ${c.name}`}>
-            Trilha · {c.name}
-          </span>
+          <Badge key={c.id} title={`Trilha: ${c.name}`}>
+            Trilha: {c.name}
+          </Badge>
         ))}
       </div>
 

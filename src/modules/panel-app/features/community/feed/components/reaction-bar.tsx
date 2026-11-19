@@ -41,7 +41,7 @@ export function ReactionBar({
   const summary = counted
     .slice(0, 2)
     .map((r) => r.label)
-    .join(' · ')
+    .join(', ')
   const more = counted.length > 2 ? ` e mais ${counted.length - 2}` : ''
 
   function react(type: ReactionType) {
@@ -70,7 +70,7 @@ export function ReactionBar({
           <PopoverTrigger asChild>
             <button type="button" className="reaction-bar__summary" title="Ver as reações">
               {summary}
-              {more} · <span className="reaction-bar__total">{post.reactions.length}</span>
+              {more} <span className="reaction-bar__total">({post.reactions.length})</span>
             </button>
           </PopoverTrigger>
           <PopoverContent align="start" aria-label="Reações">

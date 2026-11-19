@@ -2,7 +2,7 @@
   align-items: flex-start;
 
   h2 {
-    font-size: var(--size-body);
+    font: var(--text-subheading);
   }
 
   > .profile-completeness {
@@ -17,7 +17,7 @@
   margin: 0;
   padding: 0;
   list-style: none;
-  font-size: var(--size-body);
+  font: var(--text-body);
 
   li {
     display: flex;
@@ -28,22 +28,18 @@
     border-top: 1px solid var(--border);
   }
 
+  a,
+  span {
+    font: var(--text-body-strong);
+  }
+
   span {
     color: var(--text);
   }
 
   p {
-    margin-top: var(--space-1);
+    margin-top: 2px;
     color: var(--text-muted);
-    font-size: var(--size-caption);
+    font: var(--text-caption);
   }
-}
-
-.next-steps__soon {
-  flex-shrink: 0;
-  padding: 2px var(--space-2);
-  border-radius: var(--radius-sm);
-  background: var(--surface-2);
-  color: var(--text-muted);
-  font-size: var(--size-caption);
 }

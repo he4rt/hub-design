@@ -21,10 +21,11 @@ export default function Profile() {
   if (!account) return null
   return (
     <>
-      <PageHeader title="Perfil" description="Como você aparece para a comunidade." />
+      <PageHeader title="Perfil" description="O que você preenche aqui é o que a comunidade vê no seu perfil, quando ele está publicado." />
       <div className="profile-page">
         <ProfilePublication account={account} />
         <Card>
+          <h2 className="profile-page__title">O que falta no perfil</h2>
           <ProfileCompleteness user={account} />
         </Card>
         <LinkedAccounts account={account} />
@@ -70,8 +71,8 @@ function AccountForm({ account }: { account: User }) {
         <FormMessage tone={result?.ok === false ? 'error' : 'success'}>
           {result && (result.ok ? 'Conta salva.' : result.error)}
         </FormMessage>
-        <Button type="submit" loading={pending}>
-          Salvar
+        <Button type="submit" variant="secondary" loading={pending}>
+          Salvar conta
         </Button>
       </form>
     </Card>

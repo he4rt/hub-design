@@ -1,8 +1,8 @@
 .usage-data {
-  font-size: var(--size-body);
+  font: var(--text-body);
 
   h2 {
-    font-size: var(--size-body);
+    font: var(--text-subheading);
   }
 
   ul {

@@ -2,14 +2,20 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
+
+  h1 {
+    font: var(--text-display);
+    letter-spacing: -0.02em;
+  }
 }
 
 .onboarding__progress {
   color: var(--text-muted);
-  font-size: var(--size-caption);
+  font: var(--text-caption);
   font-variant-numeric: tabular-nums;
 }
 
+/* A quiet stepper: thin, in border and brand-soft, never a bar competing for attention. */
 .onboarding__steps {
   display: flex;
   gap: var(--space-1);
@@ -19,22 +25,19 @@
 
   li {
     flex: 1;
-    height: 4px;
-    border-radius: 999px;
+    height: 2px;
+    border-radius: var(--radius-pill);
     background: var(--border);
 
     &[data-state='done'] {
-      background: var(--brand);
+      background: var(--brand-soft-border);
     }
   }
 }
 
-.onboarding__note {
-  padding: var(--space-3);
-  border-radius: var(--radius-md);
-  background: var(--brand-soft);
-  color: var(--text);
-  font-size: var(--size-body);
+/* The GitHub handle is a reference to GitHub. */
+.onboarding__github {
+  font: var(--text-mono);
 }
 
 .onboarding__actions {

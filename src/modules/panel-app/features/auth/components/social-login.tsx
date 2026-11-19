@@ -119,7 +119,7 @@ function ProviderDialog({ provider, redirectTo }: { provider: SocialProvider; re
             <RadioCard
               key={identity.key}
               value={identity.key}
-              label={`${identity.name} · ${identity.email}`}
+              label={`${identity.name} (${identity.email})`}
               description={identity.hint}
               title={identity.email}
             />

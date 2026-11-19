@@ -61,13 +61,13 @@ export default function DiscussionCreate() {
   const options: ComboboxOption[] = [
     ...projects.map((project) => ({
       value: encode({ type: 'project', id: project.id }),
-      label: `Projeto · ${project.name} (squad ${squads.find((squad) => squad.id === project.squadId)?.name ?? ''})`,
+      label: `Projeto: ${project.name} (squad ${squads.find((squad) => squad.id === project.squadId)?.name ?? ''})`,
     })),
-    ...squads.map((squad) => ({ value: encode({ type: 'squad', id: squad.id }), label: `Squad · ${squad.name}` })),
+    ...squads.map((squad) => ({ value: encode({ type: 'squad', id: squad.id }), label: `Squad: ${squad.name}` })),
     ...posts
       .filter((post) => canLinkPost(sessionUserId, post))
       .toSorted((a, b) => b.createdAt.localeCompare(a.createdAt))
-      .map((post) => ({ value: encode({ type: 'post', id: post.id }), label: `Minha publicação · ${post.learned}` })),
+      .map((post) => ({ value: encode({ type: 'post', id: post.id }), label: `Minha publicação: ${post.learned}` })),
   ]
   const context = options.some((option) => option.value === contextValue) ? contextValue : null
 

@@ -21,8 +21,7 @@
     margin-bottom: var(--space-2);
     padding: 0;
     color: var(--text);
-    font-size: var(--size-body);
-    font-weight: 500;
+    font: var(--text-body-strong);
   }
 }
 
@@ -35,7 +34,7 @@
 
 .post-form__counter {
   color: var(--text-muted);
-  font-size: var(--size-caption);
+  font: var(--text-caption);
   font-variant-numeric: tabular-nums;
 
   &[data-over] {
@@ -44,8 +43,9 @@
 }
 
 .post-form__objective {
+  display: block;
   color: var(--text-muted);
-  font-weight: 400;
+  font: var(--text-caption);
 }
 
 .post-form__progress {
@@ -66,9 +66,9 @@
 }
 
 .post-form__hint {
-  min-height: calc(var(--size-body) * 3);
+  min-height: calc(18px * 2);
   color: var(--text-muted);
-  font-size: var(--size-body);
+  font: var(--text-caption);
 }
 
 .post-form__actions {

@@ -42,13 +42,13 @@ export function AnnouncementCard({
 
   return (
     <Card className="announcement-card" data-pinned={pinned || undefined}>
-      {pinned && <p className="announcement-card__pinned">Fixado</p>}
+      {pinned && <p className="announcement-card__pinned">Fixado no topo do Feed</p>}
       <header className="announcement-card__header">
         <Avatar src={null} name="He4rt Developers" />
         <div className="announcement-card__author">
           <div className="announcement-card__name">
             <strong>He4rt Developers</strong>
-            <Badge className="announcement-card__badge">Oficial</Badge>
+            <Badge>Oficial</Badge>
           </div>
           <p className="announcement-card__headline">Comunicado oficial da comunidade</p>
           <p className="announcement-card__meta">
