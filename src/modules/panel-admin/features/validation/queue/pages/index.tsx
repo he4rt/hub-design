@@ -3,7 +3,7 @@ import { FormMessage } from '@/components/form-message'
 import { PageHeader } from '@/components/page-header'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
+import { Card, CardHeader } from '@/components/ui/card'
 import { Combobox } from '@/components/ui/combobox'
 import { useDebugActions } from '@/debug/use-debug-actions'
 import { useActionRunner } from '@/hooks/use-action-runner'
@@ -13,7 +13,7 @@ import { formatDate } from '@/mocks/squads'
 import { byQueueOrder, distribute, evaluationCriterion, isEligible, STALLED_DAYS, VALIDATOR_WINDOW } from '@/mocks/validation'
 import { useAdmin } from '@/modules/panel-admin/hooks/use-admin'
 import { reassignValidationRequest } from '../../actions'
-import '@/components/stack-page.css'
+import './index.css'
 
 const DAY = 86_400_000
 
@@ -62,49 +62,59 @@ export default function Index() {
   ])
 
   return (
-    <div className="stack-page">
-      <PageHeader title="Fila de validação" description="Fila única, distribuída automaticamente a quem tem espaço na janela de 3." />
-      <FormMessage tone={error ? 'error' : 'success'}>{error ?? success}</FormMessage>
+    <div className="admin-queue">
+      <div className="admin-queue__head">
+        <PageHeader title="Fila de validação" description="Fila única, distribuída automaticamente a quem tem espaço na janela de 3." />
+        <FormMessage tone={error ? 'error' : 'success'}>{error ?? success}</FormMessage>
+      </div>
       <Card>
-        <div className="stack-page__row">
-          <span>Ocupação</span>
-          <span className="stack-page__actions stack-page__num">
-            {assigned.length}/{capacity} ({occupancy}%)
+        <CardHeader>
+          <h2>Capacidade</h2>
+        </CardHeader>
+        <ul className="admin-queue__list">
+          <li className="admin-queue__line">
+            <span>
+              {assigned.length} de {capacity} lugares ocupados nas janelas dos validadores ({occupancy}%).
+            </span>
             {occupancy > 80 && <Badge variant="warning">Habilite mais validadores</Badge>}
-          </span>
-        </div>
-        <div className="stack-page__row">
-          <span>Na fila</span>
-          <span className="stack-page__actions stack-page__num">
-            {queued.length}
+          </li>
+          <li className="admin-queue__line">
+            <span>
+              {queued.length === 0
+                ? 'Nenhum pedido esperando na fila.'
+                : `${queued.length} ${queued.length === 1 ? 'pedido esperando' : 'pedidos esperando'} na fila.`}
+            </span>
             {capacity > 0 && queued.length > capacity * 2 && <Badge variant="warning">Acima de 2× a capacidade</Badge>}
-          </span>
-        </div>
+          </li>
+        </ul>
       </Card>
       <Card>
-        <h2>
-          Parados há mais de {STALLED_DAYS} dias <span className="stack-page__num">{stalled.length}</span>
-        </h2>
+        <CardHeader>
+          <h2>
+            Parados há mais de {STALLED_DAYS} dias ({stalled.length})
+          </h2>
+        </CardHeader>
         {stalled.length === 0 ? (
-          <p className="stack-page__muted">Nenhum pedido parado.</p>
+          <p className="admin-queue__muted">Nenhum pedido parado.</p>
         ) : (
-          <ul className="stack-page__list">
+          <ul className="admin-queue__list">
             {stalled.map((r) => {
               const options = state.validators
                 .filter((v) => v.userId !== r.validatorId && isEligible(state, v.userId, r))
                 .map((v) => ({ value: v.userId, label: name(v.userId) }))
               return (
-                <li key={r.id}>
-                  <span className="stack-page__title">
-                    {name(r.memberId)} · {evaluationCriterion(state, r)?.competency}
-                  </span>
-                  <span className="stack-page__muted">
-                    Com {name(r.validatorId)} desde {formatDate(r.assignedAt)}
-                  </span>
-                  <div className="stack-page__row">
+                <li key={r.id} className="admin-queue__stalled">
+                  <div className="admin-queue__who">
+                    <span className="admin-queue__name">
+                      {name(r.memberId)} <Badge variant="comp">{evaluationCriterion(state, r)?.competency}</Badge>
+                    </span>
+                    <span className="admin-queue__caption">
+                      Com {name(r.validatorId)} desde {formatDate(r.assignedAt)}.
+                    </span>
+                  </div>
+                  <div className="admin-queue__reassign">
                     <Combobox
                       aria-label="Novo validador"
-                      className="stack-page__grow"
                       options={options}
                       value={targets[r.id] ?? null}
                       onValueChange={(v) => setTargets((t) => ({ ...t, [r.id]: v ?? '' }))}
@@ -112,6 +122,7 @@ export default function Index() {
                     />
                     <Button
                       size="sm"
+                      variant="secondary"
                       disabled={pending || !targets[r.id]}
                       onClick={() => run(() => reassignValidationRequest(admin?.id ?? '', r.id, targets[r.id]), 'Redistribuído.')}
                     >
@@ -125,22 +136,25 @@ export default function Index() {
         )}
       </Card>
       <Card>
-        <h2>Fila</h2>
+        <CardHeader>
+          <h2>Fila ({queued.length})</h2>
+        </CardHeader>
         {queued.length === 0 ? (
-          <p className="stack-page__muted">Fila vazia.</p>
+          <p className="admin-queue__muted">Fila vazia.</p>
         ) : (
-          <ul className="stack-page__list">
+          <ol className="admin-queue__list">
             {queued.slice(0, 20).map((r, i) => (
-              <li key={r.id} className="stack-page__row">
-                <span className="stack-page__title">
-                  <span className="stack-page__num">{i + 1}.</span> {name(r.memberId)} · {evaluationCriterion(state, r)?.competency}
+              <li key={r.id} className="admin-queue__line">
+                <span className="admin-queue__name">
+                  <span className="admin-queue__pos">{i + 1}.</span> {name(r.memberId)}{' '}
+                  <Badge variant="comp">{evaluationCriterion(state, r)?.competency}</Badge>
                 </span>
-                <span className="stack-page__muted">
-                  {r.requeuedAt ? 'devolvido à frente' : `desde ${formatDate(r.createdAt)}`}
+                <span className="admin-queue__caption">
+                  {r.requeuedAt ? 'Devolvido à frente da fila.' : `Na fila desde ${formatDate(r.createdAt)}.`}
                 </span>
               </li>
             ))}
-          </ul>
+          </ol>
         )}
       </Card>
     </div>

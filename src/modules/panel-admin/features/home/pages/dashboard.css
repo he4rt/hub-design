@@ -1,20 +1,32 @@
-.admin-stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: var(--space-4);
+.admin-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  max-width: 720px;
 
-  .ui-card {
-    gap: var(--space-1);
+  .page-header {
+    margin-bottom: 0;
   }
+}
 
-  span {
-    color: var(--text-muted);
-    font-size: var(--size-body);
-  }
+/* A summary is a sentence per line with a hairline between them, never a scoreboard. */
+.admin-dashboard__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-variant-numeric: tabular-nums;
 
-  strong {
-    color: var(--text);
-    font-size: var(--size-display);
-    font-variant-numeric: tabular-nums;
+  li {
+    padding: var(--space-3) 0;
+    border-bottom: 1px solid var(--border);
+
+    &:first-child {
+      padding-top: 0;
+    }
+
+    &:last-child {
+      padding-bottom: 0;
+      border-bottom: none;
+    }
   }
 }

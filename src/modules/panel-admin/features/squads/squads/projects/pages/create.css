@@ -1,3 +1,40 @@
+.project-create {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  max-width: 720px;
+
+  .page-header {
+    margin-bottom: 0;
+  }
+}
+
+.project-create__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+
+  .form-message {
+    margin-bottom: calc(var(--space-6) * -1 + var(--space-2));
+  }
+}
+
+.project-create__muted {
+  color: var(--text-muted);
+}
+
+.project-create__acceptance {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+
+  .ui-input {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
 .project-create__evaluation {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) auto;
@@ -5,11 +42,22 @@
   gap: var(--space-2);
 }
 
+.ui-input.project-create__seats {
+  max-width: 120px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* The repository is a GitHub reference. */
+.ui-input.project-create__repository {
+  font-family: var(--font-mono);
+}
+
+/* On a phone each competency stacks, with a hairline between competencies. */
 @media (max-width: 599px) {
   .project-create__evaluation {
     grid-template-columns: minmax(0, 1fr);
-    padding-left: var(--space-3);
-    border-left: 2px solid var(--border);
+    padding-bottom: var(--space-3);
+    border-bottom: 1px solid var(--border);
 
     .ui-button {
       justify-self: start;

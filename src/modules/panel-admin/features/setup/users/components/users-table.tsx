@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button'
 import type { User } from '@/mocks/db'
-import { ROLE_LABELS } from '@/mocks/squads'
+import { formatDate, ROLE_LABELS } from '@/mocks/squads'
 import { canDeleteUser } from '../actions'
 import './users-table.css'
 
@@ -38,10 +38,10 @@ export function UsersTable({
               <td className="users-table__email" title={user.email}>
                 {user.email}
               </td>
-              <td className="users-table__role">{ROLE_LABELS[user.role]}</td>
-              <td className="users-table__role">{user.openToOpportunities ? 'Sim' : 'Não'}</td>
-              <td className="users-table__date">{user.createdAt.slice(0, 10)}</td>
-              <td className="users-table__actions">
+              <td>{ROLE_LABELS[user.role]}</td>
+              <td className="users-table__muted">{user.openToOpportunities ? 'Sim' : 'Não'}</td>
+              <td className="users-table__date">{formatDate(user.createdAt)}</td>
+              <td>
                 {canDeleteUser(user) && (
                   <Button variant="danger" size="sm" disabled={disabled} onClick={() => onDelete(user)}>
                     Remover

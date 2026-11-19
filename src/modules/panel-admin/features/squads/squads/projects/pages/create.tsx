@@ -5,7 +5,8 @@ import { FormMessage } from '@/components/form-message'
 import { NotFound } from '@/components/not-found'
 import { PageHeader } from '@/components/page-header'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
+import { Callout } from '@/components/ui/callout'
+import { Card, CardHeader } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
@@ -17,7 +18,6 @@ import { useAdmin } from '@/modules/panel-admin/hooks/use-admin'
 import { canCreateProject, createProject, ORG_REPOSITORIES } from '../../actions'
 import { CaptainField } from '../../components/captain-field'
 import './create.css'
-import '@/components/stack-page.css'
 
 type Acceptance = { rowId: string; text: string }
 type Evaluation = { rowId: string; competency: string; description: string }
@@ -84,21 +84,23 @@ export default function Create() {
   if (!squad) return <NotFound />
   if (!canCreateProject(squad.id)) {
     return (
-      <div className="stack-page">
+      <div className="project-create">
         <PageHeader title="Novo projeto" description={squad.name} />
         <Card>
-          <p className="stack-page__muted">Este squad já tem um projeto ativo. Encerre-o antes de encaminhar outro.</p>
+          <p className="project-create__muted">Este squad já tem um projeto ativo. Encerre-o antes de encaminhar outro.</p>
         </Card>
       </div>
     )
   }
 
   return (
-    <div className="stack-page">
-      <PageHeader title="Novo projeto" description={`${squad.name}. O GitHub App cria o repositório e o board com o objetivo e os critérios no README.`} />
-      <form action={submit} className="stack-page">
+    <div className="project-create">
+      <PageHeader title="Novo projeto" description={`Para o squad ${squad.name}.`} />
+      <form action={submit} className="project-create__form">
         <Card>
-          <h2>Objetivo</h2>
+          <CardHeader>
+            <h2>Objetivo</h2>
+          </CardHeader>
           <Field id="name" label="Nome do projeto">
             <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
           </Field>
@@ -107,13 +109,14 @@ export default function Create() {
           </Field>
         </Card>
         <Card>
-          <h2>Critérios de aceite</h2>
-          <p className="stack-page__muted">O capitão aceita as entregas contra estes critérios.</p>
+          <CardHeader>
+            <h2>Critérios de aceite</h2>
+          </CardHeader>
+          <p className="project-create__muted">O capitão aceita as entregas contra estes critérios.</p>
           {acceptance.map((a, i) => (
-            <div key={a.rowId} className="stack-page__row">
+            <div key={a.rowId} className="project-create__acceptance">
               <Input
                 aria-label={`Critério de aceite ${i + 1}`}
-                className="stack-page__grow"
                 value={a.text}
                 onChange={(e) => setAcceptance(acceptance.map((x) => (x.rowId === a.rowId ? { ...x, text: e.target.value } : x)))}
               />
@@ -131,8 +134,10 @@ export default function Create() {
           </div>
         </Card>
         <Card>
-          <h2>Critérios de avaliação</h2>
-          <p className="stack-page__muted">As competências que o validador avalia. O membro escolhe uma ao pedir validação.</p>
+          <CardHeader>
+            <h2>Critérios de avaliação</h2>
+          </CardHeader>
+          <p className="project-create__muted">As competências que o validador avalia. O membro escolhe uma ao pedir validação.</p>
           {evaluation.map((c, i) => (
             <div key={c.rowId} className="project-create__evaluation">
               <Input
@@ -166,7 +171,9 @@ export default function Create() {
           </div>
         </Card>
         <Card>
-          <h2>Time</h2>
+          <CardHeader>
+            <h2>Time</h2>
+          </CardHeader>
           <Field id="stack" label="Stack" hint="Separe por vírgula.">
             <Input id="stack" value={stack} onChange={(e) => setStack(e.target.value)} />
           </Field>
@@ -180,12 +187,15 @@ export default function Create() {
             </ToggleGroup>
           </Field>
           <Field id="seats" label="Lugares" hint="Contam todos os membros, o capitão incluído.">
-            <Input id="seats" type="number" min={2} max={12} className="stack-page__narrow" value={seats} onChange={(e) => setSeats(e.target.value)} />
+            <Input id="seats" type="number" min={2} max={12} className="project-create__seats" value={seats} onChange={(e) => setSeats(e.target.value)} />
           </Field>
           <CaptainField value={captainId} onChange={setCaptainId} />
         </Card>
         <Card>
-          <h2>Repositório</h2>
+          <CardHeader>
+            <h2>Repositório</h2>
+          </CardHeader>
+          <Callout>O GitHub App cria o repositório e o board, com o objetivo e os critérios no README.</Callout>
           <ToggleGroup type="single" value={repositoryMode} aria-label="Repositório" onValueChange={(v) => v && setRepositoryMode(v as 'create' | 'link')}>
             <ToggleGroupItem value="create">Criar do template</ToggleGroupItem>
             <ToggleGroupItem value="link">Vincular existente</ToggleGroupItem>
@@ -193,9 +203,9 @@ export default function Create() {
           <Field
             id="repository"
             label="Repositório na organização"
-            hint={repositoryMode === 'create' ? 'Criado a partir de he4rt/template-squad.' : 'Um repositório que a He4rt já tem.'}
+            hint={repositoryMode === 'create' ? <>Criado a partir de <code>he4rt/template-squad</code>.</> : 'Um repositório que a He4rt já tem.'}
           >
-            <Input id="repository" list="org-repositories" value={repository} onChange={(e) => setRepository(e.target.value)} />
+            <Input id="repository" className="project-create__repository" list="org-repositories" value={repository} onChange={(e) => setRepository(e.target.value)} />
           </Field>
           <datalist id="org-repositories">
             {ORG_REPOSITORIES.map((r) => (
@@ -204,7 +214,7 @@ export default function Create() {
           </datalist>
         </Card>
         <FormMessage tone="error">{result}</FormMessage>
-        <div className="stack-page__actions">
+        <div>
           <Button type="submit" loading={pending}>
             Criar projeto
           </Button>

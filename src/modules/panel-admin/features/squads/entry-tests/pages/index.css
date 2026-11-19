@@ -1,0 +1,85 @@
+.entry-tests {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+
+  .page-header {
+    margin-bottom: 0;
+  }
+}
+
+.entry-tests__head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.entry-tests__muted {
+  color: var(--text-muted);
+}
+
+/* Text with a hairline between items. */
+.entry-tests__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.entry-tests__item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4) 0;
+  border-bottom: 1px solid var(--border);
+
+  &:first-child {
+    padding-top: 0;
+  }
+
+  &:last-child {
+    padding-bottom: 0;
+    border-bottom: none;
+  }
+}
+
+.entry-tests__text {
+  display: flex;
+  flex: 1 1 260px;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.entry-tests__title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.entry-tests__name {
+  min-width: 0;
+  overflow: hidden;
+  font: var(--text-body-strong);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.entry-tests__pr {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  /* What comes from GitHub is in mono, with the whole reference. */
+  code {
+    font: var(--text-mono);
+  }
+}
+
+.entry-tests__caption {
+  color: var(--text-muted);
+  font: var(--text-caption);
+  font-variant-numeric: tabular-nums;
+}

@@ -1,7 +1,8 @@
 import { PageHeader } from '@/components/page-header'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
+import { Card, CardHeader } from '@/components/ui/card'
+import { StateChip } from '@/components/state-chip'
 import { useDebugActions } from '@/debug/use-debug-actions'
 import { useActionRunner } from '@/hooks/use-action-runner'
 import { useNow } from '@/hooks/use-now'
@@ -9,7 +10,7 @@ import { useDb } from '@/mocks/db'
 import { entryTestClosed, entryTestOpened } from '@/mocks/github'
 import { FormMessage } from '@/components/form-message'
 import { formatDate } from '@/mocks/squads'
-import '@/components/stack-page.css'
+import './index.css'
 
 const DAY = 86_400_000
 
@@ -34,38 +35,44 @@ export default function Index() {
   ])
 
   return (
-    <div className="stack-page">
-      <PageHeader
-        title="Testes de entrada"
-        description="Qualquer pessoa da staff revisa, conversa nos comentários e faz o merge no GitHub. Nada é aprovado automaticamente."
-      />
-      <FormMessage tone="error">{error}</FormMessage>
+    <div className="entry-tests">
+      <div className="entry-tests__head">
+        <PageHeader
+          title="Testes de entrada"
+          description="Qualquer pessoa da staff revisa, conversa nos comentários e faz o merge no GitHub. Nada é aprovado automaticamente."
+        />
+        <FormMessage tone="error">{error}</FormMessage>
+      </div>
       <Card>
-        <h2>
-          Esperando revisão <span className="stack-page__num">{open.length}</span>
-        </h2>
+        <CardHeader>
+          <h2>Esperando revisão ({open.length})</h2>
+        </CardHeader>
         {open.length === 0 ? (
-          <p className="stack-page__muted">Nenhum PR esperando. Bom trabalho.</p>
+          <p className="entry-tests__muted">Nenhum PR esperando revisão.</p>
         ) : (
-          <ul className="stack-page__list">
+          <ul className="entry-tests__list">
             {open.map((t) => {
               const days = Math.floor((now - new Date(t.openedAt).getTime()) / DAY)
               return (
-                <li key={t.userId}>
-                  <div className="stack-page__row">
-                    <span className="stack-page__title">{name(t.userId)}</span>
-                    {days >= 7 && <Badge variant="warning">Há {days} dias</Badge>}
+                <li key={t.userId} className="entry-tests__item">
+                  <div className="entry-tests__text">
+                    <div className="entry-tests__title">
+                      <span className="entry-tests__name">{name(t.userId)}</span>
+                      {days >= 7 && <Badge variant="warning">Há {days} dias</Badge>}
+                    </div>
+                    <p className="entry-tests__pr" title={t.pullRequest.title}>
+                      <code>
+                        {t.pullRequest.repository}#{t.pullRequest.number}
+                      </code>{' '}
+                      {t.pullRequest.title}
+                    </p>
+                    <p className="entry-tests__caption">Aberto em {formatDate(t.openedAt)}.</p>
                   </div>
-                  <div className="stack-page__row">
-                    <span className="stack-page__muted">
-                      {t.pullRequest.repository}#{t.pullRequest.number} · {t.pullRequest.title} · aberto em {formatDate(t.openedAt)}
-                    </span>
-                    <Button asChild size="sm" variant="secondary">
-                      <a href={t.pullRequest.url} target="_blank" rel="noreferrer">
-                        Revisar no GitHub
-                      </a>
-                    </Button>
-                  </div>
+                  <Button asChild size="sm" variant="secondary">
+                    <a href={t.pullRequest.url} target="_blank" rel="noreferrer">
+                      Revisar no GitHub
+                    </a>
+                  </Button>
                 </li>
               )
             })}
@@ -73,17 +80,26 @@ export default function Index() {
         )}
       </Card>
       <Card>
-        <h2>Revisados recentemente</h2>
-        <ul className="stack-page__list">
-          {recent.map((t) => (
-            <li key={t.userId} className="stack-page__row">
-              <span className="stack-page__title">{name(t.userId)}</span>
-              <span className="stack-page__muted">
-                {t.status === 'approved' ? `merged por @${t.reviewer} em ${formatDate(t.approvedAt)}` : 'fechado sem merge'}
-              </span>
-            </li>
-          ))}
-        </ul>
+        <CardHeader>
+          <h2>Revisados recentemente</h2>
+        </CardHeader>
+        {recent.length === 0 ? (
+          <p className="entry-tests__muted">Nenhum teste revisado ainda.</p>
+        ) : (
+          <ul className="entry-tests__list">
+            {recent.map((t) => (
+              <li key={t.userId} className="entry-tests__item">
+                <div className="entry-tests__text">
+                  <span className="entry-tests__name">{name(t.userId)}</span>
+                  <p className="entry-tests__caption">
+                    {t.status === 'approved' ? `Merge de @${t.reviewer} em ${formatDate(t.approvedAt)}.` : `Aberto em ${formatDate(t.openedAt)}.`}
+                  </p>
+                </div>
+                <StateChip entity="entry-test" state={t.status} />
+              </li>
+            ))}
+          </ul>
+        )}
       </Card>
     </div>
   )

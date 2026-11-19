@@ -39,7 +39,7 @@ export default function Users() {
     <div className="users-page">
       <PageHeader
         title="Usuários"
-        description={`${users.length} cadastrados`}
+        description={users.length === 1 ? '1 usuário cadastrado.' : `${users.length} usuários cadastrados.`}
         actions={
           <Button loading={pending} onClick={() => run(() => createUsers(1))}>
             Novo usuário

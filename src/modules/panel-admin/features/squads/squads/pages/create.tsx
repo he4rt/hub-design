@@ -12,7 +12,7 @@ import { errorMessage } from '@/mocks/mock-action'
 import { useAdmin } from '@/modules/panel-admin/hooks/use-admin'
 import { createSquad } from '../actions'
 import { CaptainField } from '../components/captain-field'
-import '@/components/stack-page.css'
+import './create.css'
 
 export default function Create() {
   const admin = useAdmin()
@@ -38,10 +38,10 @@ export default function Create() {
   ])
 
   return (
-    <div className="stack-page">
+    <div className="admin-squad-create">
       <PageHeader title="Novo squad" description="O squad nasce inativo e fica ativo quando recebe um projeto." />
       <Card>
-        <form action={submit} className="stack-page">
+        <form action={submit} className="admin-squad-create__form">
           <Field id="name" label="Nome">
             <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
           </Field>
@@ -50,7 +50,7 @@ export default function Create() {
           </Field>
           <CaptainField value={captainId} onChange={setCaptainId} hint="Opcional agora; sem capitão o squad é uma vacancy." />
           <FormMessage tone="error">{result}</FormMessage>
-          <div className="stack-page__actions">
+          <div>
             <Button type="submit" loading={pending}>
               Criar squad
             </Button>

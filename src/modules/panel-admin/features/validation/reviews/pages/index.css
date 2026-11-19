@@ -1,0 +1,26 @@
+.admin-reviews {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  max-width: 880px;
+
+  .page-header {
+    margin-bottom: 0;
+  }
+}
+
+.admin-reviews__head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.admin-reviews__muted {
+  color: var(--text-muted);
+}
+
+.admin-reviews__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}

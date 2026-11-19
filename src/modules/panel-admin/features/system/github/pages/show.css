@@ -1,0 +1,71 @@
+.admin-github {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  max-width: 720px;
+
+  .page-header {
+    margin-bottom: 0;
+  }
+}
+
+.admin-github__head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.admin-github__muted {
+  color: var(--text-muted);
+}
+
+/* Text with a hairline between items. */
+.admin-github__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  > li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2) var(--space-3);
+    padding: var(--space-3) 0;
+    border-bottom: 1px solid var(--border);
+
+    &:first-child {
+      padding-top: 0;
+    }
+
+    &:last-child {
+      padding-bottom: 0;
+      border-bottom: none;
+    }
+  }
+
+  > li.admin-github__divergence {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+}
+
+.admin-github__value {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* What comes from GitHub is in mono. */
+.admin-github__ref {
+  font: var(--text-mono);
+}
+
+.admin-github__caption {
+  color: var(--text-muted);
+  font: var(--text-caption);
+  font-variant-numeric: tabular-nums;
+}

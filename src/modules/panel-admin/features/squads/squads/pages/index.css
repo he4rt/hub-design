@@ -1,3 +1,14 @@
+.admin-squads-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+
+  .page-header {
+    margin-bottom: 0;
+  }
+}
+
+/* A wide table scrolls inside its own box, so the page keeps the phone width. */
 .admin-squads__scroll {
   overflow-x: auto;
 }
@@ -5,23 +16,33 @@
 .admin-squads {
   width: 100%;
   border-collapse: collapse;
-  font-size: var(--size-body);
   white-space: nowrap;
 
   th {
+    padding: 0 var(--space-3) var(--space-2);
+    border-bottom: 1px solid var(--border);
     color: var(--text-muted);
-    font-weight: 500;
+    font: var(--text-label);
     text-align: left;
   }
 
-  th,
   td {
-    height: 45px;
+    height: 52px;
     padding: var(--space-2) var(--space-3);
     border-bottom: 1px solid var(--border);
   }
 
-  tr:last-child td {
+  th:first-child,
+  td:first-child {
+    padding-left: 0;
+  }
+
+  th:last-child,
+  td:last-child {
+    padding-right: 0;
+  }
+
+  tbody tr:last-child td {
     border-bottom: none;
   }
 }
@@ -31,10 +52,22 @@
   max-width: 28ch;
   overflow: hidden;
   color: var(--text);
+  font: var(--text-body-strong);
   text-overflow: ellipsis;
   vertical-align: middle;
 }
 
+.admin-squads__project {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
 .admin-squads__num {
   font-variant-numeric: tabular-nums;
+}
+
+.admin-squads__muted,
+.admin-squads__empty {
+  color: var(--text-muted);
 }
