@@ -1,7 +1,9 @@
+import { ShieldCheck } from 'lucide-react'
 import { useSearchParams } from 'react-router'
 import { NotFound } from '@/components/not-found'
 import { PageHeader } from '@/components/page-header'
 import { StateChip } from '@/components/state-chip'
+import { Callout } from '@/components/ui/callout'
 import { Card } from '@/components/ui/card'
 import { useDebugActions } from '@/debug/use-debug-actions'
 import { db, newId } from '@/mocks/db'
@@ -9,8 +11,7 @@ import { formatDate, freeSeats } from '@/mocks/squads'
 import { SquadTabs } from '../../components/squad-tabs'
 import { useSquadPage } from '../../hooks/use-squad-page'
 import { ApplicationReview } from '../components/application-review'
-import './index.css'
-import '@/components/stack-page.css'
+import '../../components/squad-page.css'
 
 /** Captain's tab: pick applicants by hand, reading each one's profile and answers. */
 export default function Index() {
@@ -51,35 +52,48 @@ export default function Index() {
   const selected = apps.find((a) => a.id === params.get('application')) ?? apps.find((a) => a.status === 'pending') ?? apps[0]
 
   return (
-    <div className="stack-page">
-      <PageHeader
-        title={squad.name}
-        description={project ? `${project.name}: ${freeSeats(state, project)} de ${project.seats} lugares livres` : 'Sem projeto ativo.'}
-      />
-      <SquadTabs squad={squad} manager={manager} counts={counts} />
+    <div className="squad-page">
+      <div className="squad-page__head">
+        <PageHeader
+          title={squad.name}
+          description={
+            project ? `${project.name}: ${freeSeats(state, project)} de ${project.seats} lugares livres. Você decide quem entra.` : 'Sem projeto ativo.'
+          }
+        />
+        <SquadTabs squad={squad} manager={manager} counts={counts} />
+      </div>
+      <Callout icon={<ShieldCheck size={16} aria-hidden />}>
+        Uma candidatura pendente por projeto. A pessoa pode desistir enquanto ela estiver pendente, e toda recusa vai com
+        retorno.
+      </Callout>
       {apps.length === 0 ? (
         <Card>
-          <p className="stack-page__muted">Nenhuma candidatura para este projeto ainda.</p>
+          <p className="squad-page__muted">Nenhuma candidatura para este projeto ainda.</p>
         </Card>
       ) : (
-        <div className="captain-applications">
-          <Card className="captain-applications__list">
+        <div className="squad-page__split">
+          <Card className="squad-page__picker" aria-label="Candidaturas">
             <ul>
-              {apps.map((a) => (
-                <li key={a.id}>
-                  <button
-                    type="button"
-                    aria-current={a.id === selected?.id || undefined}
-                    onClick={() => setParams({ application: a.id }, { replace: true })}
-                  >
-                    <span className="stack-page__title">{state.users.find((u) => u.id === a.userId)?.name}</span>
-                    <span className="captain-applications__meta">
-                      <span className="stack-page__muted stack-page__num">{formatDate(a.createdAt)}</span>
-                      <StateChip entity="application" state={a.status} />
-                    </span>
-                  </button>
-                </li>
-              ))}
+              {apps.map((a) => {
+                const applicant = state.users.find((u) => u.id === a.userId)?.name
+                return (
+                  <li key={a.id}>
+                    <button
+                      type="button"
+                      aria-current={a.id === selected?.id || undefined}
+                      onClick={() => setParams({ application: a.id }, { replace: true })}
+                    >
+                      <span className="squad-page__name" title={applicant}>
+                        {applicant}
+                      </span>
+                      <span className="squad-page__row">
+                        <span className="squad-page__muted squad-page__num">Enviada em {formatDate(a.createdAt)}</span>
+                        <StateChip entity="application" state={a.status} />
+                      </span>
+                    </button>
+                  </li>
+                )
+              })}
             </ul>
           </Card>
           {/* Pins the selection in the URL, so a decision does not jump to another applicant. */}

@@ -6,7 +6,7 @@ import { Card } from '@/components/ui/card'
 import { useDebugActions } from '@/debug/use-debug-actions'
 import { db, useDb } from '@/mocks/db'
 import { activeSquadIds, hasApprovedEntryTest } from '@/mocks/squads'
-import '@/components/stack-page.css'
+import '../components/squad-page.css'
 
 /** The member's squads, current and past, and the next step when there are none. */
 export default function Index() {
@@ -25,7 +25,7 @@ export default function Index() {
   ])
 
   return (
-    <div className="stack-page">
+    <div className="squad-page">
       <PageHeader
         title="Meus squads"
         actions={
@@ -36,7 +36,7 @@ export default function Index() {
       />
       {squads.length === 0 ? (
         <Card>
-          <div className="stack-page__row">
+          <div className="squad-page__row">
             <p>
               {approved
                 ? 'Seu teste de entrada está aprovado. Escolha um projeto e se candidate.'
@@ -51,21 +51,21 @@ export default function Index() {
         </Card>
       ) : (
         <Card>
-          <ul className="stack-page__list">
+          <ul className="squad-page__list">
             {squads.map((squad) => (
               <li key={squad.id}>
-                <div className="stack-page__row">
-                  <Link to={`/app/squads/${squad.slug}`} className="stack-page__title">
+                <div className="squad-page__row">
+                  <Link to={`/app/squads/${squad.slug}`} className="squad-page__name" title={squad.name}>
                     {squad.name}
                   </Link>
-                  <span className="stack-page__actions">
+                  <span className="squad-page__chips">
                     {squad.captainId === userId && <Badge>Capitão</Badge>}
                     <Badge variant={active.includes(squad.id) ? 'success' : 'neutral'}>
                       {active.includes(squad.id) ? 'Participando' : 'Participou'}
                     </Badge>
                   </span>
                 </div>
-                <p className="stack-page__muted">{squad.description}</p>
+                <p className="squad-page__muted">{squad.description}</p>
               </li>
             ))}
           </ul>

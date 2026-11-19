@@ -5,7 +5,7 @@ import { FormMessage } from '@/components/form-message'
 import { NotFound } from '@/components/not-found'
 import { PageHeader } from '@/components/page-header'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
+import { Card, CardHeader } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { useDebugActions } from '@/debug/use-debug-actions'
@@ -15,7 +15,8 @@ import { errorMessage } from '@/mocks/mock-action'
 import { activeMemberships } from '@/mocks/squads'
 import { useSquadPage } from '../../hooks/use-squad-page'
 import { endProject, updateProjectSettings } from '../actions'
-import '@/components/stack-page.css'
+import '../../components/squad-page.css'
+import './edit.css'
 
 type Row = { rowId: string; id: string; text: string; required: boolean }
 
@@ -51,23 +52,25 @@ export default function Edit() {
   if (!squad || !project || !manager) return <NotFound />
 
   return (
-    <div className="stack-page">
-      <PageHeader title={`${project.name}: perguntas e lugares`} description={squad.name} />
+    <div className="squad-page">
+      <PageHeader title={`${project.name}: perguntas e lugares`} description={`Squad ${squad.name}.`} />
       <Card>
-        <form action={submit} className="stack-page">
+        <form action={submit} className="project-settings">
           <Field id="seats" label="Lugares" hint={`Contam todos os membros ativos, você incluído (${activeMemberships(state, project.id).length} agora).`}>
-            <Input id="seats" type="number" min={1} max={12} value={seats} onChange={(e) => setSeats(e.target.value)} className="stack-page__narrow" />
+            <Input id="seats" type="number" min={1} max={12} value={seats} onChange={(e) => setSeats(e.target.value)} className="project-settings__seats" />
           </Field>
-          <h2>Perguntas da candidatura</h2>
+          <CardHeader>
+            <h2>Perguntas da candidatura</h2>
+          </CardHeader>
           {rows.map((row, i) => (
-            <div key={row.rowId} className="stack-page__row">
+            <div key={row.rowId} className="project-settings__question">
               <Input
                 aria-label={`Pergunta ${i + 1}`}
                 value={row.text}
-                className="stack-page__grow"
+                className="project-settings__input"
                 onChange={(e) => setRows(rows.map((r) => (r.rowId === row.rowId ? { ...r, text: e.target.value } : r)))}
               />
-              <label className="stack-page__actions stack-page__muted">
+              <label className="project-settings__check">
                 <Checkbox
                   checked={row.required}
                   onCheckedChange={(c) => setRows(rows.map((r) => (r.rowId === row.rowId ? { ...r, required: c === true } : r)))}
@@ -79,7 +82,7 @@ export default function Edit() {
               </Button>
             </div>
           ))}
-          <div className="stack-page__actions">
+          <div className="squad-page__actions">
             <Button
               type="button"
               variant="secondary"
@@ -90,7 +93,7 @@ export default function Edit() {
             </Button>
           </div>
           <FormMessage tone={result?.tone ?? 'success'}>{result?.text}</FormMessage>
-          <div className="stack-page__actions">
+          <div className="squad-page__actions">
             <Button type="submit" loading={pending}>
               Salvar
             </Button>
@@ -99,8 +102,8 @@ export default function Edit() {
       </Card>
       {project.status === 'active' && (
         <Card>
-          <div className="stack-page__row">
-            <p className="stack-page__muted">
+          <div className="squad-page__row">
+            <p className="squad-page__muted">
               Encerrar o projeto deixa o squad inativo e responde as candidaturas pendentes. O log fica.
             </p>
             <Button

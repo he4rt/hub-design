@@ -6,7 +6,8 @@ import { ProjectSummary } from '@/components/squads/project-summary'
 import { SquadLog } from '@/components/squads/squad-log'
 import { StateChip } from '@/components/state-chip'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Card, CardHeader } from '@/components/ui/card'
 import { useDebugActions } from '@/debug/use-debug-actions'
 import { useActionRunner } from '@/hooks/use-action-runner'
 import { db, type BoardStatus } from '@/mocks/db'
@@ -15,8 +16,8 @@ import { formatDate } from '@/mocks/squads'
 import { SquadTabs } from '../components/squad-tabs'
 import { useSquadPage } from '../hooks/use-squad-page'
 import { canLeave, leaveSquad } from '../members/actions'
+import '../components/squad-page.css'
 import './show.css'
-import '@/components/stack-page.css'
 
 const COLUMNS: { status: BoardStatus; label: string }[] = [
   { status: 'backlog', label: 'Backlog' },
@@ -62,53 +63,59 @@ export default function Show() {
   const name = (id: string) => state.users.find((u) => u.id === id)?.name ?? '?'
 
   return (
-    <div className="stack-page">
-      <PageHeader
-        title={squad.name}
-        description={project ? `Projeto atual: ${project.name}` : 'Sem projeto ativo: o squad está inativo.'}
-        actions={
-          <Button asChild variant="secondary">
-            <Link to={`/squads/${squad.slug}`}>Página pública</Link>
-          </Button>
-        }
-      />
-      <SquadTabs squad={squad} manager={manager} counts={counts} />
-      <FormMessage tone="error">{error}</FormMessage>
+    <div className="squad-page">
+      <div className="squad-page__head">
+        <PageHeader
+          title={squad.name}
+          description={project ? `Projeto atual: ${project.name}.` : 'Sem projeto ativo: o squad está inativo.'}
+          actions={
+            <Button asChild variant="secondary">
+              <Link to={`/squads/${squad.slug}`}>Página pública</Link>
+            </Button>
+          }
+        />
+        <SquadTabs squad={squad} manager={manager} counts={counts} />
+      </div>
 
       {project && (
         <Card>
-          <div className="stack-page__row">
+          <CardHeader>
             <h2>Board</h2>
             {project.board && (
-              <Button asChild variant="secondary" size="sm">
+              <Button asChild variant="ghost" size="sm">
                 <a href={project.board.url} target="_blank" rel="noreferrer">
                   Abrir no GitHub
                 </a>
               </Button>
             )}
-          </div>
-          <p className="stack-page__muted">
+          </CardHeader>
+          <p className="squad-page__muted">
             Cópia só de leitura: o board é editado no GitHub. Atualizado em {formatDate(state.githubSync.lastWebhookAt)}.
           </p>
           <div className="my-squad__board">
             {COLUMNS.map((col) => {
               const items = board.filter((i) => i.status === col.status)
               return (
-                <section key={col.status} className="my-squad__column">
+                <section key={col.status} className="my-squad__column" aria-label={col.label}>
                   <h3>
-                    {col.label} <span className="stack-page__num">{items.length}</span>
+                    {col.label} ({items.length})
                   </h3>
-                  {items.map((item) => (
-                    <a key={item.id} href={item.issue.url} target="_blank" rel="noreferrer" className="my-squad__card" title={item.issue.title}>
-                      <span className="my-squad__card-title">
-                        #{item.issue.number} {item.issue.title}
-                      </span>
-                      <span className="stack-page__muted">
-                        {item.assigneeIds.map(name).join(', ') || 'Sem responsável'}
-                        {item.kind === 'non-technical' && ' · não técnica'}
-                      </span>
-                    </a>
-                  ))}
+                  {items.length === 0 && <p className="my-squad__empty">Nada aqui.</p>}
+                  {items.map((item) => {
+                    const who = item.assigneeIds.map(name).join(', ') || 'Sem responsável'
+                    return (
+                      <a key={item.id} href={item.issue.url} target="_blank" rel="noreferrer" className="my-squad__item" title={item.issue.title}>
+                        <span className="my-squad__item-ref">#{item.issue.number}</span>
+                        <span className="my-squad__item-title">{item.issue.title}</span>
+                        <span className="my-squad__item-who" title={who}>
+                          {who}
+                        </span>
+                        <Badge variant={item.kind === 'technical' ? 'comp' : 'neutral'}>
+                          {item.kind === 'technical' ? 'Técnica' : 'Não técnica'}
+                        </Badge>
+                      </a>
+                    )
+                  })}
                 </section>
               )
             })}
@@ -117,30 +124,32 @@ export default function Show() {
       )}
 
       <Card>
-        <div className="stack-page__row">
+        <CardHeader>
           <h2>Minhas entregas</h2>
           {myDeliveries.some((d) => d.status === 'accepted') && (
             <Button asChild size="sm">
               <Link to={`/app/validation/requests/create?squad=${squad.slug}`}>Pedir validação</Link>
             </Button>
           )}
-        </div>
+        </CardHeader>
         {myDeliveries.length === 0 ? (
-          <p className="stack-page__muted">
+          <p className="squad-page__muted">
             Quando um item seu chega em Feito no board, ele aparece aqui para o capitão aceitar.
           </p>
         ) : (
-          <ul className="stack-page__list">
+          <ul className="squad-page__list">
             {myDeliveries.map((d) => (
               <li key={d.id}>
-                <div className="stack-page__row">
-                  <span className="stack-page__title">{d.title}</span>
+                <div className="squad-page__row">
+                  <span className="squad-page__name" title={d.title}>
+                    {d.title}
+                  </span>
                   <StateChip entity="delivery" state={d.status} />
                 </div>
                 {d.status === 'accepted' && (
-                  <p className="stack-page__muted">Sua parte: {d.credits.find((c) => c.userId === userId)?.part}</p>
+                  <p className="squad-page__muted">Sua parte: {d.credits.find((c) => c.userId === userId)?.part}</p>
                 )}
-                {d.status === 'returned' && <p className="stack-page__quote">Motivo: {d.returnedReason}</p>}
+                {d.status === 'returned' && <p className="squad-page__text">Motivo da devolução: {d.returnedReason}</p>}
               </li>
             ))}
           </ul>
@@ -149,26 +158,32 @@ export default function Show() {
 
       {project && (
         <Card>
-          <h2>Objetivo e critérios</h2>
+          <CardHeader>
+            <h2>Objetivo e critérios</h2>
+          </CardHeader>
           <ProjectSummary project={project} />
         </Card>
       )}
 
       <div className="my-squad__history">
         <Card>
-          <h2>O que foi meu</h2>
+          <CardHeader>
+            <h2>O que foi meu</h2>
+          </CardHeader>
           <SquadLog entries={myLog} projects={state.projects} users={state.users} />
         </Card>
         <Card>
-          <h2>O que foi do time</h2>
+          <CardHeader>
+            <h2>O que foi do time</h2>
+          </CardHeader>
           <SquadLog entries={teamLog} projects={state.projects} users={state.users} />
         </Card>
       </div>
 
       {activeHere && canLeave(squad.captainId, userId) && (
         <Card>
-          <div className="stack-page__row">
-            <p className="stack-page__muted">Sair do squad tira seu acesso ao repositório. O que você fez continua no log.</p>
+          <div className="squad-page__row">
+            <p className="squad-page__muted">Sair do squad tira seu acesso ao repositório. O que você fez continua no log.</p>
             <Button
               variant="danger"
               loading={pending}
@@ -179,6 +194,7 @@ export default function Show() {
           </div>
         </Card>
       )}
+      <FormMessage tone="error">{error}</FormMessage>
     </div>
   )
 }

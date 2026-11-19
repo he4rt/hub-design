@@ -1,4 +1,4 @@
-import { Badge } from '@/components/ui/badge'
+import { StateChip } from '@/components/state-chip'
 import type { Validation } from '@/mocks/db'
 import { formatDate } from '@/mocks/squads'
 import './validation-record.css'
@@ -9,46 +9,60 @@ export function ValidationRecord({ validation, projectName }: { validation: Vali
   return (
     <article className="validation-record">
       <header className="validation-record__header">
-        <div>
-          <p className="validation-record__competency">{validation.competency}</p>
+        <div className="validation-record__who">
+          <h3 className="validation-record__competency">{validation.competency}</h3>
           <p className="validation-record__muted">
-            {projectName && `${projectName} · `}
-            {validation.validator.name}
-            {employer && `, ${employer}`} · {formatDate(validation.recordedAt)}
+            Registrada por {validation.validator.name}
+            {employer && `, ${employer}`}, em {formatDate(validation.recordedAt)}.
+            {projectName && ` Projeto ${projectName}.`}
           </p>
         </div>
-        {validation.insufficientEvidence && <Badge variant="warning">Evidência insuficiente</Badge>}
+        {validation.insufficientEvidence && <StateChip entity="validation" state="insufficient-evidence" />}
       </header>
-      <dl className="validation-record__body">
-        <dt>Contexto</dt>
-        <dd>{validation.context}</dd>
-        <dt>Contribuição observada</dt>
-        <dd>{validation.contribution}</dd>
-        <dt>Pontos fortes</dt>
-        <dd>
+
+      <section className="validation-record__section">
+        <h4>Contexto</h4>
+        <p className="validation-record__text">{validation.context}</p>
+      </section>
+      <section className="validation-record__section">
+        <h4>Contribuição observada</h4>
+        <p className="validation-record__text">{validation.contribution}</p>
+      </section>
+
+      <div className="validation-record__points">
+        <section className="validation-record__section">
+          <h4 data-tone="success">Pontos fortes</h4>
           <ul>
             {validation.strengths.map((p, i) => (
               <li key={i}>
-                {p.text} <span className="validation-record__muted">({p.evidenceRef})</span>
+                <p className="validation-record__text">{p.text}</p>
+                <p className="validation-record__muted">
+                  Evidência: <span className="validation-record__mono">{p.evidenceRef}</span>
+                </p>
               </li>
             ))}
           </ul>
-        </dd>
-        <dt>Pontos de melhoria</dt>
-        <dd>
+        </section>
+        <section className="validation-record__section">
+          <h4 data-tone="warning">Pontos de melhoria</h4>
           <ul>
             {validation.improvements.map((p, i) => (
               <li key={i}>
-                {p.text} <span className="validation-record__muted">({p.evidenceRef})</span>
-                <br />
-                <span className="validation-record__muted">Sugestão: {p.suggestion}</span>
+                <p className="validation-record__text">{p.text}</p>
+                <p className="validation-record__muted">
+                  Evidência: <span className="validation-record__mono">{p.evidenceRef}</span>
+                </p>
+                <p className="validation-record__text">Sugestão: {p.suggestion}</p>
               </li>
             ))}
           </ul>
-        </dd>
-        <dt>Conflito de interesse</dt>
-        <dd>{validation.conflictOfInterest.declared ? validation.conflictOfInterest.description : 'Declarado: nenhum.'}</dd>
-      </dl>
+        </section>
+      </div>
+
+      <p className="validation-record__muted">
+        Conflito de interesse:{' '}
+        {validation.conflictOfInterest.declared ? validation.conflictOfInterest.description : 'nenhum declarado.'}
+      </p>
     </article>
   )
 }

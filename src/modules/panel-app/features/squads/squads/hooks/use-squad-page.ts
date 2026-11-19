@@ -1,6 +1,6 @@
 import { useParams } from 'react-router'
 import { useDb } from '@/mocks/db'
-import { activeProject, canManageSquad, findSquadBySlug } from '@/mocks/squads'
+import { activeMemberships, activeProject, canManageSquad, findSquadBySlug } from '@/mocks/squads'
 
 /** The squad of the URL, its current project and what the signed-in member can do there. */
 export function useSquadPage() {
@@ -14,6 +14,7 @@ export function useSquadPage() {
   const counts = {
     applications: state.applications.filter((a) => a.projectId === project?.id && a.status === 'pending').length,
     deliveries: state.deliveries.filter((d) => d.projectId === project?.id && d.status === 'pending').length,
+    members: project ? activeMemberships(state, project.id).length : 0,
   }
   return { state, userId, squad, project, manager, member, counts }
 }

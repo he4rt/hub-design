@@ -4,16 +4,18 @@ import { Textarea } from '@/components/ui/textarea'
 import { newPoint, type PointRow } from '../actions'
 import './points-editor.css'
 
-
 /** Editable list of points; each one cites its evidence, and points to improve carry a suggestion. */
 export function PointsEditor({
   legend,
+  tone,
   rows,
   onChange,
   evidence,
   withSuggestion,
 }: {
   legend: string
+  /** Title color: strengths in success, points to improve in warning. */
+  tone: 'success' | 'warning'
   rows: PointRow[]
   onChange: (rows: PointRow[]) => void
   evidence: string[]
@@ -22,7 +24,7 @@ export function PointsEditor({
   const update = (rowId: string, patch: Partial<PointRow>) => onChange(rows.map((r) => (r.rowId === rowId ? { ...r, ...patch } : r)))
   return (
     <fieldset className="points-editor">
-      <legend>{legend}</legend>
+      <legend data-tone={tone}>{legend}</legend>
       {rows.map((row, i) => (
         <div key={row.rowId} className="points-editor__row">
           <Textarea aria-label={`${legend} ${i + 1}`} placeholder="O que você observou no trabalho" value={row.text} onChange={(e) => update(row.rowId, { text: e.target.value })} />

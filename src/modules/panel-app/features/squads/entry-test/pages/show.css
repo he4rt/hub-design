@@ -1,0 +1,46 @@
+.entry-test {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  min-width: 0;
+
+  .page-header {
+    margin-bottom: 0;
+  }
+
+  .page-header h1 {
+    font: var(--text-display);
+    letter-spacing: -0.02em;
+  }
+}
+
+/* Steps on the left, the member's PR on the right. */
+.entry-test__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  align-items: start;
+  gap: var(--space-5);
+}
+
+.entry-test__mono {
+  font: var(--text-mono);
+  overflow-wrap: anywhere;
+}
+
+.entry-test__title {
+  overflow: hidden;
+  font: var(--text-body-strong);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.entry-test__muted {
+  color: var(--text-muted);
+  font: var(--text-caption);
+}
+
+@media (max-width: 899px) {
+  .entry-test__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

@@ -1,0 +1,169 @@
+/* Page of a squad and its captain tabs: sections apart by space-6, cards in the design system's type. */
+.squad-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  min-width: 0;
+
+  .page-header {
+    margin-bottom: 0;
+  }
+
+  .page-header h1 {
+    font: var(--text-display);
+    letter-spacing: -0.02em;
+  }
+}
+
+/* Tabs and the page title stay close; the line under the tabs separates them from the content. */
+.squad-page__head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.squad-page__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-width: 0;
+
+  > * {
+    min-width: 0;
+    max-width: 100%;
+  }
+}
+
+.squad-page__muted {
+  color: var(--text-muted);
+  font: var(--text-caption);
+}
+
+.squad-page__name {
+  overflow: hidden;
+  font: var(--text-body-strong);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.squad-page__chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.squad-page__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* List: text with a border line between items. */
+.squad-page__list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  > li {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    min-width: 0;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+
+    &:first-child {
+      padding-top: 0;
+    }
+
+    &:last-child {
+      padding-bottom: 0;
+      border-bottom: none;
+    }
+  }
+}
+
+.squad-page__text {
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+}
+
+.squad-page__num {
+  font-variant-numeric: tabular-nums;
+}
+
+.squad-page__mono {
+  font: var(--text-mono);
+  overflow-wrap: anywhere;
+}
+
+/* Captain's list and detail: list on the left, the selected item on the right. */
+.squad-page__split {
+  display: grid;
+  grid-template-columns: minmax(220px, 300px) minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-5);
+}
+
+.ui-card.squad-page__picker {
+  gap: var(--space-1);
+  max-height: 70dvh;
+  overflow-y: auto;
+  padding: var(--space-2);
+
+  ul {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  button {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    width: 100%;
+    min-width: 0;
+    padding: 10px var(--space-3);
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
+    background: transparent;
+    color: var(--text);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+
+    &:hover {
+      background: var(--surface-2);
+    }
+
+    &[aria-current] {
+      border-color: var(--brand-soft-border);
+      background: var(--brand-soft);
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: var(--focus-ring);
+    }
+  }
+}
+
+@media (max-width: 767px) {
+  .squad-page__split {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-4);
+  }
+
+  .ui-card.squad-page__picker {
+    max-height: 40dvh;
+  }
+}

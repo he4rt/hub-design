@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input'
 import type { SquadMembership } from '@/mocks/db'
 import { errorMessage } from '@/mocks/mock-action'
 import { updateResponsibilities } from '../actions'
+import './responsibilities-form.css'
 
 export function ResponsibilitiesForm({ membership, actorId, label }: { membership: SquadMembership; actorId: string; label: string }) {
   const [value, setValue] = useState(membership.responsibilities)
@@ -18,11 +19,18 @@ export function ResponsibilitiesForm({ membership, actorId, label }: { membershi
   }, null)
 
   return (
-    <form action={submit} className="stack-page__row">
-      <Input aria-label={`Responsabilidades de ${label}`} value={value} onChange={(e) => setValue(e.target.value)} className="stack-page__grow" />
-      <Button type="submit" variant="secondary" size="sm" loading={pending}>
-        Salvar
-      </Button>
+    <form action={submit} className="responsibilities-form">
+      <div className="responsibilities-form__row">
+        <Input
+          aria-label={`Responsabilidades de ${label}`}
+          placeholder="Responsabilidades a definir"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+        />
+        <Button type="submit" variant="secondary" loading={pending}>
+          Salvar
+        </Button>
+      </div>
       <FormMessage tone={result?.tone ?? 'success'}>{result?.text}</FormMessage>
     </form>
   )

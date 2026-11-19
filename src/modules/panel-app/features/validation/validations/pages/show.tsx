@@ -5,17 +5,18 @@ import { FormMessage } from '@/components/form-message'
 import { NotFound } from '@/components/not-found'
 import { PageHeader } from '@/components/page-header'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
+import { Card, CardHeader } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
+import { TrailLog, TrailLogItem } from '@/components/ui/trail-log'
 import { ValidationRecord } from '@/components/validation/validation-record'
 import { useDebugActions } from '@/debug/use-debug-actions'
 import { useDb } from '@/mocks/db'
 import { errorMessage } from '@/mocks/mock-action'
 import { formatDate } from '@/mocks/squads'
 import { contestValidation, hasOpenContestation } from '../actions'
-import '@/components/stack-page.css'
+import '@/components/validation/validation-page.css'
 
-const OUTCOME = { open: 'Em andamento', upheld: 'Mantida', corrected: 'Corrigida por um novo registro' } as const
+const OUTCOME = { open: 'Revisão em andamento', upheld: 'Mantida', corrected: 'Corrigida por um novo registro' } as const
 
 /** One validation whole, the records it corrected, and its contestations. */
 export default function Show() {
@@ -46,7 +47,7 @@ export default function Show() {
   const project = state.projects.find((p) => p.id === validation.projectId)
 
   return (
-    <div className="stack-page">
+    <div className="validation-page">
       <PageHeader
         title={validation.competency}
         actions={
@@ -60,28 +61,41 @@ export default function Show() {
       </Card>
       {previous && (
         <Card>
-          <h2>Registro anterior</h2>
-          <p className="stack-page__muted">Esta validação corrige a anterior, que continua visível.</p>
+          <CardHeader>
+            <h2>Registro anterior</h2>
+          </CardHeader>
+          <p className="validation-page__muted">Esta validação corrige a anterior, que continua visível.</p>
           <ValidationRecord validation={previous} projectName={project?.name} />
         </Card>
       )}
       <Card>
-        <h2>Contestação</h2>
-        {contestations.map((c) => (
-          <p key={c.id} className="stack-page__quote">
-            {formatDate(c.createdAt)}: {c.reason} · <strong>{OUTCOME[c.status]}</strong>
-            {c.decision && ` · ${c.decision.note}`}
-          </p>
-        ))}
+        <CardHeader>
+          <h2>Contestação</h2>
+        </CardHeader>
+        {contestations.length > 0 && (
+          <TrailLog>
+            {contestations.map((c) => (
+              <TrailLogItem
+                key={c.id}
+                tone={c.status === 'open' ? 'warning' : c.status === 'corrected' ? 'success' : 'past'}
+                title={OUTCOME[c.status]}
+                meta={`Aberta em ${formatDate(c.createdAt)}.`}
+              >
+                <p className="validation-page__text">{c.reason}</p>
+                {c.decision && <p className="validation-page__muted">Decisão: {c.decision.note}</p>}
+              </TrailLogItem>
+            ))}
+          </TrailLog>
+        )}
         {hasOpenContestation(state.contestations, validation.id) ? (
-          <p className="stack-page__muted">Enquanto a contestação está aberta, a validação publicada mostra "revisão em andamento".</p>
+          <p className="validation-page__muted">Enquanto a contestação está aberta, a validação publicada mostra "revisão em andamento".</p>
         ) : (
-          <form action={submit} className="stack-page">
+          <form action={submit} className="validation-page__form">
             <Field id="reason" label="Motivo" hint="Quem decide é alguém de fora do caso, nunca o validador.">
               <Textarea id="reason" value={reason} onChange={(e) => setReason(e.target.value)} />
             </Field>
             <FormMessage tone={result?.tone ?? 'success'}>{result?.text}</FormMessage>
-            <div className="stack-page__actions">
+            <div className="validation-page__actions">
               <Button type="submit" variant="secondary" loading={pending}>
                 Contestar
               </Button>

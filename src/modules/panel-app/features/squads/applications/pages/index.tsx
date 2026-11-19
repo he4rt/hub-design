@@ -1,9 +1,11 @@
+import { ShieldCheck } from 'lucide-react'
 import { useState, useTransition } from 'react'
 import { Link } from 'react-router'
 import { FormMessage } from '@/components/form-message'
 import { PageHeader } from '@/components/page-header'
 import { StateChip } from '@/components/state-chip'
 import { Button } from '@/components/ui/button'
+import { Callout } from '@/components/ui/callout'
 import { Card } from '@/components/ui/card'
 import { useDebugActions } from '@/debug/use-debug-actions'
 import { db, useDb } from '@/mocks/db'
@@ -12,7 +14,7 @@ import { errorMessage } from '@/mocks/mock-action'
 import { formatDate } from '@/mocks/squads'
 import { useAccount } from '@/modules/panel-app/hooks/use-account'
 import { canWithdraw, withdrawApplication } from '../actions'
-import '@/components/stack-page.css'
+import './index.css'
 
 /** The member's applications, the captain's notes and the feedback of a decline. */
 export default function Index() {
@@ -48,56 +50,68 @@ export default function Index() {
   ])
 
   return (
-    <div className="stack-page">
-      <PageHeader title="Minhas candidaturas" description="Toda candidatura recebe resposta do capitão." />
-      <FormMessage tone="error">{error}</FormMessage>
+    <div className="my-applications">
+      <PageHeader title="Minhas candidaturas" description="Toda candidatura recebe resposta do capitão, e toda recusa vem com retorno." />
+      <Callout icon={<ShieldCheck size={16} aria-hidden />}>
+        Uma candidatura pendente por projeto. Você pode desistir enquanto ela estiver pendente.
+      </Callout>
       <Card>
         {mine.length === 0 ? (
-          <div className="stack-page__row">
-            <p className="stack-page__muted">Você ainda não se candidatou a nenhum projeto.</p>
+          <div className="my-applications__row">
+            <p className="my-applications__muted">Você ainda não se candidatou a nenhum projeto.</p>
             <Button asChild variant="secondary">
               <Link to="/squads">Ver squads</Link>
             </Button>
           </div>
         ) : (
-          <ul className="stack-page__list">
+          <ul className="my-applications__list">
             {mine.map((app) => {
               const project = state.projects.find((p) => p.id === app.projectId)
               const squad = state.squads.find((s) => s.id === project?.squadId)
               return (
                 <li key={app.id}>
-                  <div className="stack-page__row">
-                    <Link to={`/squads/${squad?.slug}`} className="stack-page__title">
-                      {squad?.name} · {project?.name}
+                  <div className="my-applications__row">
+                    <Link to={`/squads/${squad?.slug}`} className="my-applications__name" title={`${project?.name}, squad ${squad?.name}`}>
+                      {project?.name}
                     </Link>
                     <StateChip entity="application" state={app.status} />
                   </div>
-                  <p className="stack-page__muted">Enviada em {formatDate(app.createdAt)}</p>
+                  <p className="my-applications__muted">
+                    Squad {squad?.name}. Enviada em {formatDate(app.createdAt)}.
+                  </p>
                   {app.status === 'accepted' && app.githubInvite === 'pending' && (
-                    <p className="stack-page__quote">
+                    <p className="my-applications__text">
                       Aceite o convite da organização He4rt no GitHub para ter acesso ao repositório e ao board.
                     </p>
                   )}
                   {app.decision && (
-                    <>
-                      <p className="stack-page__quote">
-                        <strong>Por que agora não:</strong> {app.decision.reason}
-                      </p>
-                      <p className="stack-page__quote">
-                        <strong>O que fortalecer para a próxima:</strong> {app.decision.nextSteps}
-                      </p>
-                    </>
+                    <div className="my-applications__feedback">
+                      <div>
+                        <h3>Por que agora não</h3>
+                        <p className="my-applications__text">{app.decision.reason}</p>
+                      </div>
+                      <div>
+                        <h3>O que fortalecer para a próxima</h3>
+                        <p className="my-applications__text">{app.decision.nextSteps}</p>
+                      </div>
+                    </div>
                   )}
                   {app.notes && (
-                    <p className="stack-page__quote">
-                      <strong>Anotações do capitão.</strong> Pontos fortes: {app.notes.strengths} Pontos de melhoria:{' '}
-                      {app.notes.improvements}
-                    </p>
+                    <div className="my-applications__feedback">
+                      <div>
+                        <h3 className="my-applications__strengths">Pontos fortes, nas anotações do capitão</h3>
+                        <p className="my-applications__text">{app.notes.strengths}</p>
+                      </div>
+                      <div>
+                        <h3 className="my-applications__improvements">Pontos de melhoria</h3>
+                        <p className="my-applications__text">{app.notes.improvements}</p>
+                      </div>
+                    </div>
                   )}
                   {canWithdraw(app.status) && (
-                    <div className="stack-page__actions">
+                    <div className="my-applications__actions">
                       <Button
-                        variant="ghost"
+                        variant="secondary"
                         size="sm"
                         disabled={pending}
                         onClick={() => run(() => withdrawApplication(account?.id ?? '', app.id))}
@@ -112,6 +126,7 @@ export default function Index() {
           </ul>
         )}
       </Card>
+      <FormMessage tone="error">{error}</FormMessage>
     </div>
   )
 }

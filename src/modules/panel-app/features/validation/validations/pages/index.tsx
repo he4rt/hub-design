@@ -1,10 +1,12 @@
+import { ShieldCheck } from 'lucide-react'
 import { Link } from 'react-router'
 import { FormMessage } from '@/components/form-message'
 import { PageHeader } from '@/components/page-header'
 import { Badge } from '@/components/ui/badge'
 import { StateChip } from '@/components/state-chip'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
+import { Callout } from '@/components/ui/callout'
+import { Card, CardHeader } from '@/components/ui/card'
 import { Switch } from '@/components/ui/switch'
 import { useDebugActions } from '@/debug/use-debug-actions'
 import { useActionRunner } from '@/hooks/use-action-runner'
@@ -14,7 +16,7 @@ import { evaluationCriterion } from '@/mocks/validation'
 import { useAccount } from '@/modules/panel-app/hooks/use-account'
 import { cancelValidationRequest } from '../../requests/actions'
 import { canPublish, hasOpenContestation, setValidationPublished } from '../actions'
-import '@/components/stack-page.css'
+import '@/components/validation/validation-page.css'
 
 function fakeValidation(memberId: string, insufficient: boolean, i = 0): Validation {
   return {
@@ -78,7 +80,7 @@ export default function Index() {
   const publishable = canPublish(account?.published ?? false)
 
   return (
-    <div className="stack-page">
+    <div className="validation-page">
       <PageHeader
         title="Minhas validações"
         description="Chegam privadas. Você escolhe quais mostrar no perfil, e cada uma aparece inteira."
@@ -88,64 +90,70 @@ export default function Index() {
           </Button>
         }
       />
-      <FormMessage tone="error">{error}</FormMessage>
 
       <Card>
-        <h2>Pedidos</h2>
+        <CardHeader>
+          <h2>Pedidos ({requests.length})</h2>
+        </CardHeader>
         {requests.length === 0 ? (
-          <p className="stack-page__muted">Nenhum pedido aberto. Peça validação em Meu squad, a partir de uma entrega aceita.</p>
+          <p className="validation-page__muted">Nenhum pedido aberto. Peça validação em Meu squad, a partir de uma entrega aceita.</p>
         ) : (
-          <ul className="stack-page__list">
-            {requests.map((r) => (
-              <li key={r.id}>
-                <div className="stack-page__row">
-                  <span className="stack-page__title">
-                    {evaluationCriterion(state, r)?.competency} · {state.projects.find((p) => p.id === r.projectId)?.name}
-                  </span>
-                  <StateChip entity="validation-request" state={r.status} />
-                </div>
-                <div className="stack-page__row">
-                  <p className="stack-page__muted">
-                    Pedido em {formatDate(r.createdAt)}. Validadores são voluntários; não há prazo prometido.
-                  </p>
-                  {r.status === 'queued' && (
-                    <Button variant="ghost" size="sm" disabled={pending} onClick={() => run(() => cancelValidationRequest(memberId, r.id))}>
-                      Cancelar
-                    </Button>
-                  )}
-                </div>
-              </li>
-            ))}
+          <ul className="validation-page__list">
+            {requests.map((r) => {
+              const competency = evaluationCriterion(state, r)?.competency
+              return (
+                <li key={r.id}>
+                  <div className="validation-page__row">
+                    <Badge variant="comp">{competency}</Badge>
+                    <StateChip entity="validation-request" state={r.status} />
+                  </div>
+                  <div className="validation-page__row">
+                    <p className="validation-page__muted">
+                      Projeto {state.projects.find((p) => p.id === r.projectId)?.name}, pedido em {formatDate(r.createdAt)}.
+                      Validadores são voluntários; não há prazo prometido.
+                    </p>
+                    {r.status === 'queued' && (
+                      <Button variant="ghost" size="sm" disabled={pending} onClick={() => run(() => cancelValidationRequest(memberId, r.id))}>
+                        Cancelar pedido
+                      </Button>
+                    )}
+                  </div>
+                </li>
+              )
+            })}
           </ul>
         )}
       </Card>
 
       <Card>
-        <h2>Recebidas</h2>
+        <CardHeader>
+          <h2>Recebidas ({validations.length})</h2>
+        </CardHeader>
         {!publishable && validations.length > 0 && (
-          <p className="stack-page__muted">
-            Seu perfil público está desligado. <Link to="/app/settings/profile">Ligue o perfil</Link> para publicar validações.
-          </p>
+          <Callout icon={<ShieldCheck size={16} aria-hidden />}>
+            Publicar só com o perfil ligado. <Link to="/app/settings/profile">Ligue o perfil público</Link> para mostrar
+            validações.
+          </Callout>
         )}
         {validations.length === 0 ? (
-          <p className="stack-page__muted">Nenhuma validação ainda.</p>
+          <p className="validation-page__muted">Nenhuma validação ainda.</p>
         ) : (
-          <ul className="stack-page__list">
+          <ul className="validation-page__list">
             {validations.map((v) => (
               <li key={v.id}>
-                <div className="stack-page__row">
-                  <Link to={`/app/validation/${v.id}`} className="stack-page__title">
+                <div className="validation-page__row">
+                  <Link to={`/app/validation/${v.id}`} className="validation-page__name" title={v.competency}>
                     {v.competency}
                   </Link>
-                  <span className="stack-page__actions">
-                    {v.insufficientEvidence && <Badge variant="warning">Evidência insuficiente</Badge>}
-                    {hasOpenContestation(state.contestations, v.id) && <Badge>Revisão em andamento</Badge>}
+                  <span className="validation-page__chips">
+                    {v.insufficientEvidence && <StateChip entity="validation" state="insufficient-evidence" />}
+                    {hasOpenContestation(state.contestations, v.id) && <StateChip entity="contestation" state="open" />}
                   </span>
                 </div>
-                <p className="stack-page__muted">
-                  {v.validator.name} · {formatDate(v.recordedAt)}
+                <p className="validation-page__muted">
+                  Registrada por {v.validator.name} em {formatDate(v.recordedAt)}.
                 </p>
-                <label className="stack-page__actions stack-page__muted">
+                <label className="validation-page__check">
                   <Switch
                     checked={v.published}
                     disabled={pending || (!v.published && !publishable)}
@@ -158,6 +166,7 @@ export default function Index() {
           </ul>
         )}
       </Card>
+      <FormMessage tone="error">{error}</FormMessage>
     </div>
   )
 }

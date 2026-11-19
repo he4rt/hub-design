@@ -1,3 +1,4 @@
+import { TriangleAlert } from 'lucide-react'
 import { useActionState, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { Field } from '@/components/field'
@@ -7,7 +8,8 @@ import { PageHeader } from '@/components/page-header'
 import { ProjectSummary } from '@/components/squads/project-summary'
 import { StateChip } from '@/components/state-chip'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
+import { Callout } from '@/components/ui/callout'
+import { Card, CardHeader } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Textarea } from '@/components/ui/textarea'
 import { useDebugActions } from '@/debug/use-debug-actions'
@@ -16,8 +18,8 @@ import { errorMessage } from '@/mocks/mock-action'
 import { evaluationCriterion, needsReview } from '@/mocks/validation'
 import { declareConflict, newPoint, recordValidation, saveValidationDraft, type PointRow, type ValidationDraft } from '../actions'
 import { PointsEditor } from '../components/points-editor'
+import '@/components/validation/validation-page.css'
 import './show.css'
-import '@/components/stack-page.css'
 
 type Result = { tone: 'error' | 'success'; text: string } | null
 
@@ -98,48 +100,57 @@ export default function Show() {
   const name = (id: string) => state.users.find((u) => u.id === id)?.name ?? '?'
 
   return (
-    <div className="stack-page">
+    <div className="validation-page">
       <PageHeader
         title={`${member?.name}: ${evaluationCriterion(state, request)?.competency}`}
         description={needsReview(state, userId) ? 'Suas primeiras validações passam por revisão da staff antes do registro.' : undefined}
         actions={
           <Button asChild variant="secondary">
-            <Link to="/app/validation/queue">Fila</Link>
+            <Link to="/app/validation/queue">Voltar para a fila</Link>
           </Button>
         }
       />
       <div className="validation-record-page">
-        <div className="stack-page">
+        <div className="validation-record-page__context">
           {project && (
             <Card>
-              <h2>Projeto {project.name}</h2>
+              <CardHeader>
+                <h2>Projeto {project.name}</h2>
+              </CardHeader>
               <ProjectSummary project={project} />
             </Card>
           )}
           <Card>
-            <h2>Entregas e contexto do capitão</h2>
-            <ul className="stack-page__list">
+            <CardHeader>
+              <h2>Entregas e contexto do capitão</h2>
+            </CardHeader>
+            <ul className="validation-page__list">
               {deliveries.map((d) => (
                 <li key={d.id}>
-                  <span className="stack-page__title">{d.title}</span>
-                  <ul className="stack-page__muted">
+                  <span className="validation-page__name" title={d.title}>
+                    {d.title}
+                  </span>
+                  <ul className="validation-record-page__credits">
                     {d.credits.map((c) => (
                       <li key={c.userId}>
-                        {name(c.userId)}: {c.part}
+                        <strong>{name(c.userId)}:</strong> {c.part}
                       </li>
                     ))}
                   </ul>
-                  <p className="stack-page__quote">{d.context}</p>
-                  <p className="stack-page__muted">
-                    {d.evidence.map((e, i) => (
-                      <span key={e.ref}>
-                        {i > 0 && ' · '}
-                        <a href={e.url} target="_blank" rel="noreferrer">
-                          {e.ref}
-                        </a>
-                      </span>
-                    ))}
-                  </p>
+                  <Card variant="inset">
+                    <p className="validation-page__text">{d.context}</p>
+                    {d.evidence.length > 0 && (
+                      <ul className="validation-record-page__evidence" aria-label="Evidências no GitHub">
+                        {d.evidence.map((e) => (
+                          <li key={e.ref}>
+                            <a href={e.url} target="_blank" rel="noreferrer" className="validation-page__mono">
+                              {e.ref}
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </Card>
                 </li>
               ))}
             </ul>
@@ -147,9 +158,14 @@ export default function Show() {
         </div>
 
         <Card>
-          {inReview && <StateChip entity="validation" state="in-review" />}
-          {draft?.review?.decision === 'returned' && <p className="stack-page__quote">Devolvida pela revisão: {draft.review.note}</p>}
-          <form action={submit} className="stack-page">
+          <CardHeader>
+            <h2>Sua validação</h2>
+            {inReview && <StateChip entity="validation" state="in-review" />}
+          </CardHeader>
+          {draft?.review?.decision === 'returned' && (
+            <p className="validation-page__text">Devolvida pela revisão: {draft.review.note}</p>
+          )}
+          <form action={submit} className="validation-page__form">
             <datalist id="validation-evidence">
               {evidence.map((ref) => (
                 <option key={ref} value={ref} />
@@ -162,13 +178,13 @@ export default function Show() {
               <Field id="contribution" label="Contribuição observada" hint="O que foi desta pessoa, separado do que foi do time.">
                 <Textarea id="contribution" value={contribution} onChange={(e) => setContribution(e.target.value)} />
               </Field>
-              <PointsEditor legend="Pontos fortes" rows={strengths} onChange={setStrengths} evidence={evidence} />
-              <PointsEditor legend="Pontos de melhoria" rows={improvements} onChange={setImprovements} evidence={evidence} withSuggestion />
-              <label className="stack-page__actions">
+              <PointsEditor legend="Pontos fortes" tone="success" rows={strengths} onChange={setStrengths} evidence={evidence} />
+              <PointsEditor legend="Pontos de melhoria" tone="warning" rows={improvements} onChange={setImprovements} evidence={evidence} withSuggestion />
+              <label className="validation-page__check">
                 <Checkbox checked={insufficientEvidence} onCheckedChange={(c) => setInsufficientEvidence(c === true)} />
                 Evidência insuficiente: registre o que faltou como ponto de melhoria
               </label>
-              <label className="stack-page__actions">
+              <label className="validation-page__check">
                 <Checkbox checked={conflictDeclared} onCheckedChange={(c) => setConflictDeclared(c === true)} />
                 Tenho um conflito que não impede a validação
               </label>
@@ -178,9 +194,14 @@ export default function Show() {
                 </Field>
               )}
             </fieldset>
+            {!inReview && (
+              <Callout variant="warning" icon={<TriangleAlert size={16} aria-hidden />}>
+                Registrada, a validação fica imutável. Correção só por novo registro, que não oculta o anterior.
+              </Callout>
+            )}
             <FormMessage tone={result?.tone ?? 'success'}>{result?.text}</FormMessage>
             {!inReview && (
-              <div className="stack-page__actions">
+              <div className="validation-page__actions">
                 <Button type="submit" name="intent" value="record" loading={pending}>
                   Registrar validação
                 </Button>

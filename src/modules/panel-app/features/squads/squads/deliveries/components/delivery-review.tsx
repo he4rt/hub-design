@@ -3,6 +3,7 @@ import { Field } from '@/components/field'
 import { FormMessage } from '@/components/form-message'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
@@ -33,29 +34,32 @@ export function DeliveryReview({ state, delivery, actorId }: { state: MockDb; de
 
   return (
     <form action={submit} className="delivery-review">
-      <div className="stack-page__row">
-        <span className="stack-page__title">{delivery.title}</span>
+      <header className="delivery-review__head">
+        <h2 className="delivery-review__title">{delivery.title}</h2>
         <Badge variant={delivery.kind === 'technical' ? 'comp' : 'neutral'}>
           {delivery.kind === 'technical' ? 'Técnica' : 'Não técnica'}
         </Badge>
-      </div>
-      <p className="stack-page__muted">
-        Critério: {criterion?.text ?? 'nenhum critério ligado no board'}
-        {delivery.evidence.length > 0 && ' · '}
-        {delivery.evidence.map((e, i) => (
-          <span key={e.ref}>
-            {i > 0 && ', '}
-            <a href={e.url} target="_blank" rel="noreferrer">
-              {e.ref}
-            </a>
-          </span>
-        ))}
-      </p>
-      {delivery.returnedReason && <p className="stack-page__quote">Devolvida antes: {delivery.returnedReason}</p>}
+      </header>
+
+      <Card variant="inset">
+        <p>Critério de aceite: {criterion?.text ?? 'nenhum critério ligado no board.'}</p>
+        {delivery.evidence.length > 0 && (
+          <ul className="delivery-review__evidence" aria-label="Evidências no GitHub">
+            {delivery.evidence.map((e) => (
+              <li key={e.ref}>
+                <a href={e.url} target="_blank" rel="noreferrer" className="squad-page__mono">
+                  {e.ref}
+                </a>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Card>
+      {delivery.returnedReason && <p className="squad-page__text">Devolvida antes: {delivery.returnedReason}</p>}
 
       <fieldset className="delivery-review__credits">
         <legend>Quem fez o quê</legend>
-        <p className="stack-page__muted">Pré-preenchido pelo GitHub (autor, co-autores e responsáveis). Deixe em branco quem não participou.</p>
+        <p className="squad-page__muted">Pré-preenchido pelo GitHub (autor, co-autores e responsáveis). Deixe em branco quem não participou.</p>
         {credits.map((c, i) => (
           <Field key={c.userId} id={`credit-${delivery.id}-${c.userId}`} label={name(c.userId)}>
             <Input
@@ -68,32 +72,52 @@ export function DeliveryReview({ state, delivery, actorId }: { state: MockDb; de
         ))}
       </fieldset>
 
-      <ToggleGroup
-        type="single"
-        value={collaboration}
-        aria-label="Como foi feito"
-        onValueChange={(v) => v && setCollaboration(v as SquadDelivery['collaboration'])}
-      >
-        <ToggleGroupItem value="individual">Individual</ToggleGroupItem>
-        <ToggleGroupItem value="pair">Em dupla</ToggleGroupItem>
-        <ToggleGroupItem value="group">Em grupo</ToggleGroupItem>
-      </ToggleGroup>
+      <div className="delivery-review__group">
+        <span className="delivery-review__label" id={`collaboration-${delivery.id}`}>
+          Como foi feito
+        </span>
+        <ToggleGroup
+          type="single"
+          value={collaboration}
+          aria-labelledby={`collaboration-${delivery.id}`}
+          onValueChange={(v) => v && setCollaboration(v as SquadDelivery['collaboration'])}
+        >
+          <ToggleGroupItem value="individual">Individual</ToggleGroupItem>
+          <ToggleGroupItem value="pair">Em dupla</ToggleGroupItem>
+          <ToggleGroupItem value="group">Em grupo</ToggleGroupItem>
+        </ToggleGroup>
+      </div>
 
       <Field id={`context-${delivery.id}`} label="Contexto para o validador" hint="Separe o que foi de cada pessoa e o que foi do time.">
         <Textarea id={`context-${delivery.id}`} value={context} onChange={(e) => setContext(e.target.value)} />
       </Field>
-      <Field id={`reason-${delivery.id}`} label="Motivo, se for devolver">
-        <Input id={`reason-${delivery.id}`} value={reason} onChange={(e) => setReason(e.target.value)} />
-      </Field>
-      <FormMessage tone="error">{result}</FormMessage>
-      <div className="stack-page__actions">
+      <div className="squad-page__actions">
         <Button type="submit" name="intent" value="accept" loading={pending}>
           Aceitar entrega
         </Button>
-        <Button type="submit" name="intent" value="return" variant="secondary" disabled={pending || reason.trim().length < 10}>
-          Devolver
-        </Button>
       </div>
+
+      <div className="delivery-review__return">
+        <Field
+          id={`reason-${delivery.id}`}
+          label="O que falta para aceitar"
+          required
+          hint="Só se for devolver. A pessoa lê e a entrega volta para o board."
+        >
+          <Textarea
+            id={`reason-${delivery.id}`}
+            value={reason}
+            placeholder="Aponte o que falta no critério de aceite"
+            onChange={(e) => setReason(e.target.value)}
+          />
+        </Field>
+        <div className="squad-page__actions">
+          <Button type="submit" name="intent" value="return" variant="danger" disabled={pending || reason.trim().length < 10}>
+            Devolver
+          </Button>
+        </div>
+      </div>
+      <FormMessage tone="error">{result}</FormMessage>
     </form>
   )
 }

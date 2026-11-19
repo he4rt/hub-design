@@ -9,19 +9,28 @@
 
   legend {
     margin-bottom: var(--space-2);
-    color: var(--text);
-    font-size: var(--size-body);
-    font-weight: 500;
+    padding: 0;
+    font: var(--text-subheading);
+
+    &[data-tone='success'] {
+      color: var(--success-text);
+    }
+
+    &[data-tone='warning'] {
+      color: var(--warning-text);
+    }
   }
 }
 
+/* Each point is a block on surface-2; no colored left border. */
 .points-editor__row {
   display: flex;
   flex-direction: column;
   align-items: stretch;
   gap: var(--space-2);
-  padding-left: var(--space-3);
-  border-left: 2px solid var(--border);
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
 
   > .ui-button {
     align-self: flex-start;

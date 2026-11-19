@@ -1,0 +1,111 @@
+/* Page of the validation screens: sections apart by space-6, cards in the design system's type. */
+.validation-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  min-width: 0;
+
+  .page-header {
+    margin-bottom: 0;
+  }
+
+  .page-header h1 {
+    font: var(--text-display);
+    letter-spacing: -0.02em;
+  }
+}
+
+.validation-page__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  min-width: 0;
+}
+
+.validation-page__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-width: 0;
+
+  > * {
+    min-width: 0;
+    max-width: 100%;
+  }
+}
+
+.validation-page__muted {
+  color: var(--text-muted);
+  font: var(--text-caption);
+}
+
+.validation-page__name {
+  overflow: hidden;
+  font: var(--text-body-strong);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.validation-page__text {
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+}
+
+.validation-page__mono {
+  font: var(--text-mono);
+  overflow-wrap: anywhere;
+}
+
+.validation-page__num {
+  font-variant-numeric: tabular-nums;
+}
+
+.validation-page__chips,
+.validation-page__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.validation-page__check {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  cursor: pointer;
+
+  > .ui-checkbox,
+  > .ui-switch {
+    flex: none;
+    margin-top: 1px;
+  }
+}
+
+/* List: text with a border line between items. */
+.validation-page__list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  > li {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    min-width: 0;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+
+    &:first-child {
+      padding-top: 0;
+    }
+
+    &:last-child {
+      padding-bottom: 0;
+      border-bottom: none;
+    }
+  }
+}

@@ -3,13 +3,16 @@ import { NotFound } from '@/components/not-found'
 import { PageHeader } from '@/components/page-header'
 import { StateChip } from '@/components/state-chip'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Card, CardHeader } from '@/components/ui/card'
+import { Progress } from '@/components/ui/progress'
 import { useDebugActions } from '@/debug/use-debug-actions'
 import { useNow } from '@/hooks/use-now'
 import { db, newId, useDb } from '@/mocks/db'
 import { formatDate } from '@/mocks/squads'
 import { distribute, evaluationCriterion, isActiveValidator, VALIDATOR_WINDOW } from '@/mocks/validation'
-import '@/components/stack-page.css'
+import '@/components/validation/validation-page.css'
+import './index.css'
 
 const DAY = 86_400_000
 
@@ -54,49 +57,61 @@ export default function Index() {
   if (!isActiveValidator(state, userId)) return <NotFound />
 
   return (
-    <div className="stack-page">
+    <div className="validation-page">
       <PageHeader
         title="Fila do validador"
         description={`Até ${VALIDATOR_WINDOW} validações abertas por vez. Quando você registra uma, a próxima da fila chega sozinha.`}
       />
-      <Card>
-        <div className="stack-page__row">
-          <h2>
-            Abertas <span className="stack-page__num">{mine.length}/{VALIDATOR_WINDOW}</span>
-          </h2>
-          <span className="stack-page__muted">
-            <span className="stack-page__num">{queued}</span> na fila única
+      <div className="validator-queue">
+        <Card className="validator-queue__occupancy">
+          <span className="validation-page__muted">Sua janela</span>
+          <span className="validator-queue__stat">
+            {mine.length} de {VALIDATOR_WINDOW} abertas
           </span>
-        </div>
-        {mine.length === 0 ? (
-          <p className="stack-page__muted">Nada com você agora. Pedidos chegam aqui quando entram na fila.</p>
-        ) : (
-          <ul className="stack-page__list">
-            {mine.map((r) => {
-              const draft = state.validations.find((v) => v.requestId === r.id)
-              const days = Math.floor((now - new Date(r.assignedAt ?? r.createdAt).getTime()) / DAY)
-              return (
-                <li key={r.id}>
-                  <div className="stack-page__row">
-                    <span className="stack-page__title">
-                      {state.users.find((u) => u.id === r.memberId)?.name} · {evaluationCriterion(state, r)?.competency}
-                    </span>
-                    {draft && <StateChip entity="validation" state={draft.status} />}
-                  </div>
-                  <div className="stack-page__row">
-                    <span className="stack-page__muted">
-                      Com você desde {formatDate(r.assignedAt)} (<span className="stack-page__num">{days}</span> dias)
-                    </span>
-                    <Button asChild size="sm">
-                      <Link to={`/app/validation/queue/${r.id}`}>{draft ? 'Continuar' : 'Abrir'}</Link>
-                    </Button>
-                  </div>
-                </li>
-              )
-            })}
-          </ul>
-        )}
-      </Card>
+          <Progress value={(mine.length / VALIDATOR_WINDOW) * 100} aria-label="Ocupação da sua janela" />
+          <span className="validation-page__muted">
+            {queued === 0 ? 'Ninguém esperando na fila única.' : `${queued} ${queued === 1 ? 'pedido espera' : 'pedidos esperam'} na fila única.`}
+          </span>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <h2>Com você ({mine.length})</h2>
+          </CardHeader>
+          {mine.length === 0 ? (
+            <p className="validation-page__muted">Nada com você agora. Pedidos chegam aqui quando entram na fila.</p>
+          ) : (
+            <ul className="validation-page__list">
+              {mine.map((r) => {
+                const draft = state.validations.find((v) => v.requestId === r.id)
+                const days = Math.floor((now - new Date(r.assignedAt ?? r.createdAt).getTime()) / DAY)
+                const memberName = state.users.find((u) => u.id === r.memberId)?.name
+                return (
+                  <li key={r.id}>
+                    <div className="validation-page__row">
+                      <span className="validation-page__name" title={memberName}>
+                        {memberName}
+                      </span>
+                      <span className="validation-page__chips">
+                        <Badge variant="comp">{evaluationCriterion(state, r)?.competency}</Badge>
+                        {draft && <StateChip entity="validation" state={draft.status} />}
+                      </span>
+                    </div>
+                    <div className="validation-page__row">
+                      <span className="validation-page__muted validation-page__num">
+                        Com você desde {formatDate(r.assignedAt)}, há {days} {days === 1 ? 'dia' : 'dias'}.
+                      </span>
+                      <Button asChild variant="secondary" size="sm">
+                        <Link to={`/app/validation/queue/${r.id}`}>{draft ? 'Continuar' : 'Abrir'}</Link>
+                      </Button>
+                    </div>
+                  </li>
+                )
+              })}
+            </ul>
+          )}
+        </Card>
+      </div>
     </div>
   )
 }

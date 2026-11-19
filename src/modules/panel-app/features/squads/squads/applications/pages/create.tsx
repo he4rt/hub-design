@@ -1,3 +1,4 @@
+import { ShieldCheck } from 'lucide-react'
 import { useActionState, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { Field } from '@/components/field'
@@ -6,7 +7,8 @@ import { NotFound } from '@/components/not-found'
 import { PageHeader } from '@/components/page-header'
 import { ProjectSummary } from '@/components/squads/project-summary'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
+import { Callout } from '@/components/ui/callout'
+import { Card, CardHeader } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
 import { useDebugActions } from '@/debug/use-debug-actions'
 import { db, useDb } from '@/mocks/db'
@@ -14,7 +16,8 @@ import { errorMessage, MockError } from '@/mocks/mock-action'
 import { applyBlocker, findSquadBySlug } from '@/mocks/squads'
 import { useAccount } from '@/modules/panel-app/hooks/use-account'
 import { applyToProject } from '../actions'
-import '@/components/stack-page.css'
+import '../../components/squad-page.css'
+import './create.css'
 
 type Result = { ok: false; error: string; field?: string } | null
 
@@ -66,14 +69,20 @@ export default function Create() {
   const blocker = applyBlocker(state, account.id, project)
 
   return (
-    <div className="stack-page">
+    <div className="squad-page">
       <PageHeader title={`Candidatura: ${project.name}`} description={`Squad ${squad.name}. O capitão responde a todas.`} />
       <Card>
+        <CardHeader>
+          <h2>Objetivo e critérios</h2>
+        </CardHeader>
         <ProjectSummary project={project} />
       </Card>
+      <Callout icon={<ShieldCheck size={16} aria-hidden />}>
+        Uma candidatura pendente por projeto. Você pode desistir enquanto ela estiver pendente.
+      </Callout>
       <Card>
         {blocker && !pending ? (
-          <div className="stack-page__row">
+          <div className="squad-page__row">
             <p>{blocker}</p>
             <Button asChild variant="secondary">
               <Link to={blocker.includes('teste') ? '/app/squads/entry-test' : '/app/squads/applications'}>
@@ -82,7 +91,10 @@ export default function Create() {
             </Button>
           </div>
         ) : (
-          <form action={submit} className="stack-page">
+          <form action={submit} className="application-form">
+            <CardHeader>
+              <h2>Perguntas do capitão</h2>
+            </CardHeader>
             {project.applicationQuestions.map((q) => (
               <Field key={q.id} id={q.id} label={q.text} hint={q.required ? undefined : 'Opcional'}>
                 <Textarea
@@ -95,7 +107,7 @@ export default function Create() {
               </Field>
             ))}
             <FormMessage tone="error">{result?.error}</FormMessage>
-            <div className="stack-page__actions">
+            <div className="squad-page__actions">
               <Button type="submit" loading={pending}>
                 Enviar candidatura
               </Button>

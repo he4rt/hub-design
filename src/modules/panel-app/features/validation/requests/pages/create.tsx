@@ -11,8 +11,8 @@ import { db, useDb } from '@/mocks/db'
 import { errorMessage } from '@/mocks/mock-action'
 import { MEMBER_OPEN_REQUESTS } from '@/mocks/validation'
 import { openRequests, requestValidation, validatableDeliveries } from '../actions'
+import '@/components/validation/validation-page.css'
 import './create.css'
-import '@/components/stack-page.css'
 
 /** "Pedir validação": accepted deliveries of one project and one competency from its evaluation criteria. */
 export default function Create() {
@@ -52,23 +52,23 @@ export default function Create() {
   ])
 
   return (
-    <div className="stack-page">
+    <div className="validation-page">
       <PageHeader
         title="Pedir validação"
-        description="Uma pessoa de fora do squad, já no mercado, registra o que viu no seu trabalho. Não há prazo prometido."
+        description="Uma pessoa de fora do squad, já no mercado, registra o que viu no seu trabalho. Validadores são voluntários: não há prazo prometido."
       />
       <Card>
         {deliveries.length === 0 ? (
-          <p className="stack-page__muted">Você ainda não tem entregas aceitas. Elas aparecem aqui quando o capitão aceita.</p>
+          <p className="validation-page__muted">Você ainda não tem entregas aceitas. Elas aparecem aqui quando o capitão aceita.</p>
         ) : blocked ? (
-          <div className="stack-page__row">
+          <div className="validation-page__row">
             <p>Você já tem {MEMBER_OPEN_REQUESTS} pedidos abertos. Espere um ser registrado para pedir outro.</p>
             <Button asChild variant="secondary">
               <Link to="/app/validation">Minhas validações</Link>
             </Button>
           </div>
         ) : (
-          <form action={submit} className="stack-page">
+          <form action={submit} className="validation-page__form">
             <fieldset className="validation-request__group">
               <legend>Entregas</legend>
               {deliveries.map((d) => {
@@ -84,9 +84,9 @@ export default function Create() {
                         if (next.length === 0) setCriterionId('')
                       }}
                     />
-                    <span>
-                      {d.title}
-                      <span className="stack-page__muted"> · {state.projects.find((p) => p.id === d.projectId)?.name}</span>
+                    <span className="validation-request__text">
+                      <span>{d.title}</span>
+                      <span className="validation-page__muted">Projeto {state.projects.find((p) => p.id === d.projectId)?.name}</span>
                     </span>
                   </label>
                 )
@@ -101,11 +101,11 @@ export default function Create() {
                   ))}
                 </RadioCards>
               ) : (
-                <p className="stack-page__muted">Escolha uma entrega para ver as competências do projeto.</p>
+                <p className="validation-page__muted">Escolha uma entrega para ver as competências do projeto.</p>
               )}
             </fieldset>
             <FormMessage tone="error">{result}</FormMessage>
-            <div className="stack-page__actions">
+            <div className="validation-page__actions">
               <Button type="submit" loading={pending} disabled={selected.length === 0 || !criterionId}>
                 Entrar na fila
               </Button>

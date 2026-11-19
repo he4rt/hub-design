@@ -4,7 +4,7 @@ import { FormMessage } from '@/components/form-message'
 import { PageHeader } from '@/components/page-header'
 import { StateChip } from '@/components/state-chip'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
+import { Card, CardHeader } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
@@ -13,7 +13,7 @@ import { db, useDb } from '@/mocks/db'
 import { errorMessage } from '@/mocks/mock-action'
 import { formatDate } from '@/mocks/squads'
 import { applyAsValidator, updateValidatorProfile } from '../actions'
-import '@/components/stack-page.css'
+import '@/components/validation/validation-page.css'
 
 /** "Quero validar": the request with technical proof, its state and the staff's feedback. */
 export default function Show() {
@@ -58,22 +58,24 @@ export default function Show() {
   ])
 
   return (
-    <div className="stack-page">
+    <div className="validation-page">
       <PageHeader
         title={validator ? 'Perfil de validador' : 'Quero validar'}
         description="Validadores são pessoas já no mercado que registram o que viram no trabalho de quem está nos squads."
       />
       {history.length > 0 && (
         <Card>
-          <h2>Seus pedidos</h2>
-          <ul className="stack-page__list">
+          <CardHeader>
+            <h2>Seus pedidos ({history.length})</h2>
+          </CardHeader>
+          <ul className="validation-page__list">
             {history.map((a) => (
               <li key={a.id}>
-                <div className="stack-page__row">
-                  <span className="stack-page__muted">Enviado em {formatDate(a.createdAt)}</span>
+                <div className="validation-page__row">
+                  <span className="validation-page__muted">Enviado em {formatDate(a.createdAt)}.</span>
                   <StateChip entity="validator-application" state={a.status} />
                 </div>
-                {a.decision && a.status === 'declined' && <p className="stack-page__quote">{a.decision.reason}</p>}
+                {a.decision && a.status === 'declined' && <p className="validation-page__text">Retorno da staff: {a.decision.reason}</p>}
               </li>
             ))}
           </ul>
@@ -81,13 +83,16 @@ export default function Show() {
       )}
       {!pendingRequest && (
         <Card>
-          <form action={submit} className="stack-page">
+          <form action={submit} className="validation-page__form">
+            <CardHeader>
+              <h2>{validator ? 'Como você aparece nas validações' : 'Seu pedido'}</h2>
+            </CardHeader>
             {!validator && (
               <>
                 <Field id="summary" label="Sua experiência" hint="O que você faz, há quanto tempo, e onde já revisou ou orientou o trabalho de outras pessoas.">
                   <Textarea id="summary" value={form.summary} onChange={(e) => set({ summary: e.target.value })} />
                 </Field>
-                <Field id="links" label="Links" hint="GitHub, LinkedIn, portfólio, certificações, contribuições. Separe por espaço.">
+                <Field id="links" label="Links" hint="GitHub, LinkedIn, portfólio, contribuições. Separe por espaço.">
                   <Input id="links" value={form.links} onChange={(e) => set({ links: e.target.value })} />
                 </Field>
               </>
@@ -98,12 +103,12 @@ export default function Show() {
             <Field id="company" label="Empresa atual">
               <Input id="company" value={form.company} onChange={(e) => set({ company: e.target.value })} />
             </Field>
-            <label className="stack-page__actions">
+            <label className="validation-page__check">
               <Switch checked={form.showEmployer} onCheckedChange={(showEmployer) => set({ showEmployer })} />
               Mostrar cargo e empresa nas validações que eu registrar
             </label>
             <FormMessage tone={result?.tone ?? 'success'}>{result?.text}</FormMessage>
-            <div className="stack-page__actions">
+            <div className="validation-page__actions">
               <Button type="submit" loading={pending}>
                 {validator ? 'Salvar' : 'Enviar pedido'}
               </Button>

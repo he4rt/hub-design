@@ -1,0 +1,24 @@
+/* Occupancy beside the list: 4/8 on wide screens, stacked on narrow ones. */
+.validator-queue {
+  display: grid;
+  grid-template-columns: minmax(0, 4fr) minmax(0, 8fr);
+  align-items: start;
+  gap: var(--space-5);
+}
+
+.ui-card.validator-queue__occupancy {
+  gap: var(--space-2);
+}
+
+/* The validator's capacity is content, so it may use the stat style. */
+.validator-queue__stat {
+  font: var(--text-stat);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+@media (max-width: 899px) {
+  .validator-queue {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
