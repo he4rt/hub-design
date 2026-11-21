@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "api": "bun --watch server/index.ts",
+    "db:fresh": "bun server/database/seed.ts"
   },
   "dependencies": {
     "lucide-react": "^1.75.0",
@@ -21,6 +23,7 @@
     "@babel/core": "^7.29.7",
     "@rolldown/plugin-babel": "^0.3.0",
     "@types/babel__core": "^7.20.5",
+    "@types/bun": "latest",
     "@types/node": "^24.19.2",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",

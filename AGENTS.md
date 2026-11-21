@@ -11,8 +11,9 @@ SPA em Vite + React 19 (React Compiler) + TypeScript + React Router, servida em 
 | `/app`     | `src/modules/panel-app`    | `app-modules/panel-app/resources/js`  |
 | `/admin`   | `src/modules/panel-admin`  | `app-modules/panel-admin/resources/js`|
 
-**Tudo é mockado.** Não existe backend, API nem `fetch`. Toda ação “acontece” no banco fake em memória
-(`src/mocks/db.ts`, persistido no localStorage) e aparece no painel de debug.
+**O backend é exploratório.** As ações dos `actions.ts` rodam numa API em Bun + SQLite (`server/`), que
+grava no banco relacional e devolve o estado que a tela lê com `useDb`. Toda ação aparece no painel de
+debug. O modelo e as regras continuam sendo os do protótipo, para portar ao Laravel.
 
 O objetivo é que cada tela daqui seja portada para o Laravel sem redesenho: mesma estrutura de pastas,
 mesmos recursos e o mesmo comportamento. Na dúvida, faça como o Laravel faria.
@@ -27,12 +28,39 @@ bun run dev          # dev server
 bun run build        # typecheck (tsc -b) + build
 bun run lint         # oxlint
 bun add <pkg>        # nova dependência
+bun run api          # API (server/) em watch, na porta 3001
+bun run db:fresh     # recria o SQLite com o seed do protótipo
 ```
 
 Antes de concluir uma mudança, rode `bun run build` e `bun run lint`.
 
 No orb, `amp orb services ensure` sobe o dev server declarado em `.amp/services.yaml` com portais para
 `/`, `/app` e `/admin`.
+
+## Backend (`server/`)
+
+A API em Bun + SQLite (`bun:sqlite`) roda ao lado do Vite, que faz proxy de `/api` (mesma origem, cookies
+de primeira parte).
+
+- `server/database/schema.sql` é o modelo relacional de todo o `MockDb`, com nomes de tabela e coluna do
+  Laravel (cada tabela vira uma migration). Mudou um tipo em `db.ts`? Mude o schema, o `write-state.ts`
+  e o `read-state.ts` juntos. Valores calculados (completude, conquistas, jornada) não são gravados.
+- Ações: o plugin do `vite.config.ts` envolve cada export dos `actions.ts` (e de `src/mocks/github.ts`)
+  com `remote` (`src/mocks/api.ts`). No navegador, `mockAction` aplica latência, falha simulada e log,
+  e manda a chamada para `POST /api/actions/<nome>`. A API (`server/actions.ts`) lê o estado do banco,
+  roda a mesma função com o mesmo handler e grava o resultado numa transação. Então as checagens
+  continuam na ação, e não há segunda implementação delas.
+- A API confere quem age: ações do `panel-admin` exigem a sessão de admin da staff; o primeiro parâmetro
+  `userId`, `actorId`, `memberId` ou `validatorId` tem de ser o usuário logado.
+- Leitura: `GET /api/state` e cada resposta trazem o estado recortado para quem está logado (a staff vê
+  tudo; o membro, o que é dele e o que os outros mostram à comunidade; o visitante, o público). Hash de
+  senha nunca sai da API.
+- Autenticação como os guards do Laravel: `web` (/app) e `admin` (/admin) com sessões e cookies
+  separados, sessões na tabela `sessions`, senhas em bcrypt. Senha do seed: `password`.
+- Modo debug (`HUB_DEBUG=1`, ligado no `.amp/services.yaml`): os atalhos de debug que mudam o store
+  direto (“Entrar como Rafael”, “Esvaziar o fórum”) viram um patch em `POST /api/debug/state`, e
+  “Resetar dados mockados” recarrega o seed. Sem ele, a API recusa os dois e os webhooks simulados.
+- `/api` abre um explorador das tabelas.
 
 ## Estrutura
 
@@ -48,7 +76,7 @@ src
 ├── debug                     # sidebar de debug e useDebugActions
 ├── hooks                     # hooks compartilhados
 ├── lib                       # utilitários sem React (cn, store…)
-├── mocks                     # backend fake: db.ts e mock-action.ts
+├── mocks                     # store (db.ts), mockAction e o cliente da API (api.ts)
 ├── styles                    # tokens.css (design tokens) e base.css
 └── modules
     └── <módulo>              # landing | panel-app | panel-admin
@@ -194,14 +222,16 @@ Nada pisca, pula, corta ou se reorganiza no primeiro carregamento, na navegaçã
 
 ## Mocks
 
-- O banco fake é `db` em `src/mocks/db.ts`. Os tipos dele espelham as Data classes do Laravel que a
-  página vai receber (mesmos campos; datas em ISO 8601).
+- O store é `db` em `src/mocks/db.ts`, com o estado que a API mandou. Os tipos dele espelham as Data
+  classes do Laravel que a página vai receber (mesmos campos; datas em ISO 8601).
 - Leitura é síncrona, como as props de uma página Inertia: use `useDb(selector)`. O selector deve
   devolver um valor que já existe no estado (filtre e conte fora dele) para não re-renderizar em loop.
   Nunca carregue dados num efeito de montagem.
 - Busca, filtro e paginação ficam na URL (`useSearchParams`) e são aplicados no cliente.
-- Toda escrita fica no `actions.ts` da feature e passa por `mockAction(nome, input, handler)`. Ela aplica
-  a latência configurada, falha quando “Falhar próxima ação” está ligado e registra a chamada no log.
+- Toda escrita fica numa função exportada do `actions.ts` da feature e passa por
+  `mockAction(nome, input, handler)`, chamado antes de qualquer `await`. Ela aplica a latência
+  configurada, falha quando “Falhar próxima ação” está ligado, registra a chamada no log e roda o
+  handler na API. O handler só usa o que vem nos argumentos e no `db`, porque roda no servidor.
 - Uma intenção do usuário é uma ação mockada.
 
 ### Ações mockadas = controllers
@@ -218,8 +248,8 @@ Nada pisca, pula, corta ou se reorganiza no primeiro carregamento, na navegaçã
   nunca aparecer para uma ação que será recusada.
 - Um botão que dispara uma ação fica desabilitado enquanto ela roda, para um duplo clique não enviar
   duas vezes.
-- Novos dados de seed entram em `seed` no `db.ts`. Quem já abriu o app precisa clicar em “Resetar dados
-  mockados” para ver o novo seed.
+- Novos dados de seed entram em `seed` no `db.ts`. Rode `bun run db:fresh` (ou clique em “Resetar dados
+  mockados”) para ver o novo seed.
 
 ## Sidebar de debug
 

@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>He4rt Hub API</title>
+<style>
+  :root { color-scheme: light dark; --bg: #f6f6f4; --surface: #fff; --border: #e2e2dd; --text: #1d1d1b; --muted: #6b6b66; --brand: #7c3aed; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #141413; --surface: #1d1d1b; --border: #2f2f2c; --text: #ededea; --muted: #9a9a94; } }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 system-ui, sans-serif; }
+  main { max-width: 1280px; margin: 0 auto; padding: 24px 16px 48px; display: grid; gap: 16px; }
+  h1 { font-size: 22px; margin: 0; } h2 { font-size: 16px; margin: 0 0 12px; }
+  p { margin: 0; color: var(--muted); }
+  a { color: var(--brand); }
+  section { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; min-width: 0; }
+  .layout { display: grid; gap: 16px; grid-template-columns: 260px minmax(0, 1fr); align-items: start; }
+  @media (max-width: 760px) { .layout { grid-template-columns: minmax(0, 1fr); } }
+  nav { display: grid; max-height: 70dvh; overflow: auto; }
+  nav button { all: unset; cursor: pointer; display: flex; justify-content: space-between; gap: 8px; padding: 4px 8px; border-radius: 6px; font: 13px ui-monospace, monospace; }
+  nav button:hover { background: var(--bg); }
+  nav button[aria-current='true'] { background: var(--brand); color: #fff; }
+  nav span:last-child { font-variant-numeric: tabular-nums; opacity: .7; }
+  .rows { overflow: auto; max-height: 70dvh; border: 1px solid var(--border); border-radius: 8px; }
+  table { border-collapse: collapse; font: 12px ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+  th, td { padding: 4px 8px; border-bottom: 1px solid var(--border); text-align: left; white-space: nowrap; max-width: 320px; overflow: hidden; text-overflow: ellipsis; }
+  th { position: sticky; top: 0; background: var(--surface); }
+  td.null { color: var(--muted); }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>He4rt Hub API</h1>
+    <p>Bun + SQLite. As telas de <a href="/app">/app</a>, <a href="/admin">/admin</a> e <a href="/">/</a> leem e gravam aqui. Senha das contas do seed: <code>password</code>.</p>
+  </header>
+  <div class="layout">
+    <section>
+      <h2>Tabelas</h2>
+      <nav id="tables"></nav>
+    </section>
+    <section>
+      <h2 id="title">Escolha uma tabela</h2>
+      <div class="rows"><table id="rows"></table></div>
+    </section>
+  </div>
+</main>
+<script>
+  const nav = document.getElementById('tables')
+  async function show(name) {
+    const { rows } = await fetch(`/api/tables/${name}`).then((r) => r.json())
+    document.getElementById('title').textContent = `${name} (${rows.length} linhas)`
+    for (const button of nav.children) button.setAttribute('aria-current', String(button.dataset.name === name))
+    const columns = rows.length ? Object.keys(rows[0]) : []
+    const table = document.getElementById('rows')
+    table.replaceChildren()
+    const head = table.createTHead().insertRow()
+    for (const c of columns) head.appendChild(Object.assign(document.createElement('th'), { textContent: c }))
+    const body = table.createTBody()
+    for (const row of rows) {
+      const tr = body.insertRow()
+      for (const c of columns) {
+        const td = tr.insertCell()
+        td.textContent = row[c] === null ? 'null' : String(row[c])
+        td.title = td.textContent
+        if (row[c] === null) td.className = 'null'
+      }
+    }
+    history.replaceState(null, '', `#${name}`)
+  }
+  fetch('/api/tables').then((r) => r.json()).then(({ tables }) => {
+    for (const t of tables) {
+      const button = document.createElement('button')
+      button.dataset.name = t.name
+      button.innerHTML = `<span>${t.name}</span><span>${t.rows}</span>`
+      button.onclick = () => show(t.name)
+      nav.appendChild(button)
+    }
+    show(location.hash.slice(1) || 'users')
+  })
+</script>
+</body>
+</html>

@@ -1251,8 +1251,14 @@ const seed: MockDb = {
   ...squadsSeed,
 }
 
-/** The fake backend. Persisted in localStorage; reset it from the debug sidebar. */
-export const db = createStore(seed, { persist: 'he4rt:mock-db:v19' })
+/** The seed, also loaded into the API's database. */
+export const seedState = seed
+
+/**
+ * What the signed-in user can see, as the API sent it (src/mocks/api.ts). Starts as the seed until
+ * the first state arrives; reset it from the debug sidebar.
+ */
+export const db = createStore(seed)
 
 export function useDb<S>(selector: (db: MockDb) => S): S {
   return useStore(db, selector)

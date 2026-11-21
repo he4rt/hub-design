@@ -2,6 +2,9 @@
   "files": [],
   "references": [
     { "path": "./tsconfig.app.json" },
-    { "path": "./tsconfig.node.json" }
-  ]
+    { "path": "./tsconfig.node.json" },
+    { "path": "./tsconfig.server.json" }
+  ],
+  // Bun reads only this file to resolve `@/` when it runs server/.
+  "compilerOptions": { "paths": { "@/*": ["./src/*"] } }
 }

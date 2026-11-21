@@ -6,7 +6,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Switch } from '@/components/ui/switch'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { useStore } from '@/lib/store'
-import { db } from '@/mocks/db'
+import { resetDb } from '@/mocks/api'
 import { debugStore, type DebugLogEntry } from './debug-store'
 import './debug-sidebar.css'
 
@@ -106,7 +106,7 @@ export function DebugSidebar() {
               onCheckedChange={(checked) => debugStore.set((s) => ({ ...s, failNext: checked }))}
             />
           </div>
-          <Button variant="danger" size="sm" onClick={() => db.reset()}>
+          <Button variant="danger" size="sm" onClick={() => resetDb()}>
             Resetar dados mockados
           </Button>
         </section>

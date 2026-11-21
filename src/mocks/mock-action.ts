@@ -1,4 +1,5 @@
 import { debugStore, logFinish, logStart } from '@/debug/debug-store'
+import { callServer } from './api'
 
 /**
  * Expected failure of a mocked action, such as a validation error. `field`
@@ -13,16 +14,22 @@ export class MockError extends Error {
   }
 }
 
+/** Set by the API (server/) before it loads the action modules: there the handler runs for real. */
+const onServer = (globalThis as { __HUB_SERVER__?: boolean }).__HUB_SERVER__ === true
+
 /**
- * Runs a mocked backend action: waits the latency set in the debug sidebar,
- * fails when "fail next action" is on, and records the call in the debug log.
- * Every action that would hit the backend goes through here.
+ * Runs a backend action. In the browser it waits the latency set in the debug sidebar, fails when
+ * "fail next action" is on, records the call in the debug log, and sends it to the API, which runs
+ * this same handler against the database and answers with the new state. On the API it runs the
+ * handler. Every action that would hit the backend goes through here.
  */
 export async function mockAction<T>(
   name: string,
   input: unknown,
   handler: () => T | Promise<T>,
 ): Promise<T> {
+  if (onServer) return handler()
+  const call = callServer(name)
   const id = logStart(name, input)
   const { latencyMs, failNext } = debugStore.get()
   await new Promise((resolve) => setTimeout(resolve, latencyMs))
@@ -32,7 +39,7 @@ export async function mockAction<T>(
       debugStore.set((state) => ({ ...state, failNext: false }))
       throw new MockError('Falha simulada pelo painel de debug.')
     }
-    const output = await handler()
+    const output = (await call()) as T
     logFinish(id, { status: 'success', output })
     return output
   } catch (error) {

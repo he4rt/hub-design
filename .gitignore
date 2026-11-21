@@ -26,3 +26,6 @@ dist-ssr
 # Amp orb state
 .amp/portals/
 .amp/in/
+
+# API database (recreate with bun run db:fresh)
+server/database/*.sqlite*
