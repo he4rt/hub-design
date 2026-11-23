@@ -24,6 +24,8 @@
 @media (max-width: 767px) {
   .admin-layout {
     grid-template-columns: minmax(0, 1fr);
+    /* A short page grows its content, never the top bar. */
+    grid-template-rows: auto 1fr;
   }
 
   .admin-layout__content {

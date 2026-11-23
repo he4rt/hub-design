@@ -1,4 +1,5 @@
-import type { ComponentProps, ReactNode } from 'react'
+import { useEffect, useRef, type ComponentProps, type ReactNode } from 'react'
+import { useLocation } from 'react-router'
 import { cn } from '@/lib/cn'
 import './sidebar-nav.css'
 
@@ -18,7 +19,20 @@ export function SidebarTop({ children }: { children: ReactNode }) {
 
 /** The groups, between the top row and the footer. */
 export function SidebarGroups({ children }: { children: ReactNode }) {
-  return <nav className="sidebar-nav__groups">{children}</nav>
+  const nav = useRef<HTMLElement>(null)
+  const { pathname } = useLocation()
+  // On a phone the row scrolls sideways: bring the current page's item into view after navigating.
+  useEffect(() => {
+    const row = nav.current
+    const active = row?.querySelector<HTMLElement>('.sidebar-nav__item.active')
+    if (!row || !active || row.scrollWidth <= row.clientWidth) return
+    row.scrollTo({ left: row.scrollLeft + active.getBoundingClientRect().left - row.getBoundingClientRect().left - 16 })
+  }, [pathname])
+  return (
+    <nav ref={nav} className="sidebar-nav__groups">
+      {children}
+    </nav>
+  )
 }
 
 /** A group with its label in normal case; contextual groups (captain, validator) only render for the role. */

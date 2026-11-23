@@ -89,14 +89,22 @@
   .app-layout,
   .app-layout[data-collapsed] {
     grid-template-columns: minmax(0, 1fr);
+    /* A short page grows its content, never the top bar. */
+    grid-template-rows: auto 1fr;
   }
 
   .app-layout__logout {
     flex-basis: auto;
+
+    /* Icon only in the top bar; the button keeps its aria-label. */
+    span {
+      display: none;
+    }
   }
 
-  /* Its own `display` would beat `.sidebar-nav__hide-mobile`; the top bar has no room for it. */
-  .app-layout__invite {
+  /* Their own `display` would beat `.sidebar-nav__hide-mobile`; the top bar has no room for them. */
+  .app-layout__invite,
+  .app-layout__who {
     display: none;
   }
 
