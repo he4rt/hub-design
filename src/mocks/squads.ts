@@ -1,4 +1,4 @@
-import { db, newId, type MockDb, type Squad, type SquadLogEntry, type Project, type User } from './db'
+import { db, newId, type MockDb, type Squad, type SquadLogEntry, type Project, type SquadApplication, type User } from './db'
 import { MockError } from './mock-action'
 
 /**
@@ -64,6 +64,18 @@ export function applyBlocker(state: MockDb, userId: string, project: Project): s
   }
   if (freeSeats(state, project) <= 0) return 'O projeto está sem lugares livres.'
   return null
+}
+
+/** The application that says most about where the member is: invite pending, then pending, then the latest decline. */
+export function currentApplication(state: MockDb, userId: string): SquadApplication | undefined {
+  const mine = state.applications
+    .filter((a) => a.userId === userId)
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+  return (
+    mine.find((a) => a.status === 'accepted' && a.githubInvite === 'pending') ??
+    mine.find((a) => a.status === 'pending') ??
+    mine.find((a) => a.status === 'declined')
+  )
 }
 
 /** Squad ids where the member is active right now. */
