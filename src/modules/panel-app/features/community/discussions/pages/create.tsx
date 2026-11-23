@@ -111,6 +111,22 @@ export default function DiscussionCreate() {
         setBody('Não consigo rodar o projeto e não sei por onde começar.')
       },
     },
+    {
+      label: 'Preencher título ofensivo (moderação)',
+      run: () => {
+        setTitle('Você é um idiota, não sabe nada')
+        setCategory('question')
+        setBody('Quero entender como rodar os testes deste projeto.')
+      },
+    },
+    {
+      label: 'Preencher texto ofensivo (moderação)',
+      run: () => {
+        setTitle('Como rodar os testes do projeto?')
+        setCategory('question')
+        setBody('Você é um idiota, não sabe fazer nada.')
+      },
+    },
     { label: 'Abrir a partir de uma publicação do diário', run: () => navigate('/app/discussions/new?post=j1') },
     { label: 'Abrir a partir de um projeto', run: () => navigate('/app/discussions/new?project=p1') },
     {
@@ -204,7 +220,7 @@ export default function DiscussionCreate() {
                 onChange={(event) => setBody(event.target.value)}
               />
               <p id="discussion-body-hint" className="discussion-create__hint">
-                Conte o que você tentou e o que ainda não sabe.
+                Conte o que você tentou e o que ainda não sabe. Título e texto passam pela moderação automática.
               </p>
             </div>
           </fieldset>

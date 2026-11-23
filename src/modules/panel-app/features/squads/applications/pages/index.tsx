@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Callout } from '@/components/ui/callout'
 import { Card } from '@/components/ui/card'
 import { useDebugActions } from '@/debug/use-debug-actions'
+import { GITHUB_ORG } from '@/lib/github'
 import { db, useDb } from '@/mocks/db'
 import { inviteAccepted } from '@/mocks/github'
 import { errorMessage } from '@/mocks/mock-action'
@@ -80,9 +81,21 @@ export default function Index() {
                     Squad {squad?.name}. Enviada em {formatDate(app.createdAt)}.
                   </p>
                   {app.status === 'accepted' && app.githubInvite === 'pending' && (
-                    <p className="my-applications__text">
-                      Aceite o convite da organização He4rt no GitHub para ter acesso ao repositório e ao board.
-                    </p>
+                    <div className="my-applications__feedback">
+                      <p className="my-applications__text">
+                        Aceite o convite da organização {GITHUB_ORG} no GitHub. Sua participação será confirmada após a sincronização do convite.
+                      </p>
+                      <Button asChild variant="secondary" size="sm">
+                        <a href={`https://github.com/orgs/${GITHUB_ORG}/invitation`} target="_blank" rel="noreferrer">Ver convite no GitHub</a>
+                      </Button>
+                    </div>
+                  )}
+                  {app.status === 'accepted' && app.githubInvite === 'accepted' && squad && (
+                    <div className="my-applications__actions">
+                      <Button asChild variant="secondary" size="sm">
+                        <Link to={`/app/squads/${squad.slug}`}>Abrir meu squad</Link>
+                      </Button>
+                    </div>
                   )}
                   {app.decision && (
                     <div className="my-applications__feedback">

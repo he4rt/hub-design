@@ -2,7 +2,7 @@ import { track } from '@/mocks/analytics'
 import { db, newId } from '@/mocks/db'
 import { MockError, mockAction } from '@/mocks/mock-action'
 import { isStaff, isSuperAdmin, requireText } from '@/mocks/squads'
-import { distribute, isEligible } from '@/mocks/validation'
+import { distribute, isEligible, reviewBlocker } from '@/mocks/validation'
 
 function staff(actorId: string) {
   if (!isStaff(db.get().users.find((u) => u.id === actorId))) throw new MockError('Só a staff faz isso.')
@@ -96,6 +96,7 @@ export function reassignValidationRequest(actorId: string, requestId: string, va
       validations: s.validations.filter((v) => !(v.requestId === requestId && v.status !== 'recorded')),
       validators: s.validators.map((v) => (v.userId === validatorId ? { ...v, lastAssignedAt: now } : v)),
     }))
+    track('validation_assigned', { requestId })
     distribute()
   })
 }
@@ -103,19 +104,26 @@ export function reassignValidationRequest(actorId: string, requestId: string, va
 /** Review of a new validator's validation before it is recorded; the reviewer is outside the case. */
 export function decideReview(actorId: string, validationId: string, decision: 'approved' | 'returned', note: string) {
   return mockAction('panel-admin.validation-reviews.update', { validationId, decision, note }, () => {
-    staff(actorId)
-    const v = db.get().validations.find((x) => x.id === validationId && x.status === 'in-review')
+    const state = db.get()
+    const v = state.validations.find((x) => x.id === validationId)
     if (!v) throw new MockError('Validação não encontrada em revisão.')
-    if (actorId === v.validatorId || actorId === v.memberId) throw new MockError('Quem revisa não pode ser o validador nem o membro.')
+    const blocker = reviewBlocker(state, actorId, v)
+    if (blocker) throw new MockError(blocker)
     const text = decision === 'returned' ? requireText(note, 10, 'Diga ao validador o que reescrever.', 'note') : note.trim()
     const now = new Date().toISOString()
     const review = { reviewerId: actorId, decision, note: text, at: now }
+    const validator = state.validators.find((x) => x.userId === v.validatorId)
+    const snapshot = {
+      name: state.users.find((u) => u.id === v.validatorId)?.name ?? v.validator.name,
+      jobTitle: validator?.showEmployer ? validator.jobTitle : null,
+      company: validator?.showEmployer ? validator.company : null,
+    }
     db.set((s) => ({
       ...s,
       validations: s.validations.map((x) =>
         x.id === validationId
           ? decision === 'approved'
-            ? { ...x, status: 'recorded' as const, recordedAt: now, review }
+            ? { ...x, validator: snapshot, status: 'recorded' as const, recordedAt: now, review }
             : { ...x, status: 'draft' as const, review }
           : x,
       ),

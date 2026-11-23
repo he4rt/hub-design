@@ -29,6 +29,7 @@ export function ReplyForm({ discussionId }: { discussionId: string }) {
       run: () => setBody('Passei pelo mesmo problema. O que resolveu foi rodar o teste com o worker parado e olhar o log.'),
     },
     { label: 'Preencher resposta curta (erro esperado)', run: () => setBody('Valeu!') },
+    { label: 'Preencher resposta ofensiva (moderação)', run: () => setBody('Você é um idiota, não sabe fazer nada.') },
   ])
 
   return (
@@ -44,7 +45,7 @@ export function ReplyForm({ discussionId }: { discussionId: string }) {
         onChange={(event) => setBody(event.target.value)}
       />
       <p id="reply-body-hint" className="reply-form__hint">
-        Explique o caminho, não só a resposta: quem perguntou está aprendendo.
+        Explique o caminho, não só a resposta: quem perguntou está aprendendo. O texto passa pela moderação automática.
       </p>
       <div className="reply-form__footer">
         <FormMessage tone={result?.ok === false ? 'error' : 'success'}>

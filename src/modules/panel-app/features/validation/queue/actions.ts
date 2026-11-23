@@ -18,6 +18,9 @@ function assigned(validatorId: string, requestId: string) {
   const state = db.get()
   const request = state.validationRequests.find((r) => r.id === requestId && r.validatorId === validatorId && r.status === 'assigned')
   if (!request) throw new MockError('Este pedido não está com você.')
+  if (state.validations.some((v) => v.requestId === requestId && v.status === 'in-review')) {
+    throw new MockError('Esta avaliação está em revisão. Aguarde a decisão da staff.')
+  }
   return { state, request }
 }
 
@@ -96,8 +99,10 @@ export function recordValidation(validatorId: string, requestId: string, draft: 
     for (const p of [...strengths, ...improvements]) {
       moderate(p.text)
       if (!p.evidenceRef.trim()) throw new MockError('Cite a evidência de cada ponto.', 'evidence')
+      moderate(p.evidenceRef, 'evidence')
     }
     if (improvements.some((p) => !p.suggestion.trim())) throw new MockError('Cada ponto de melhoria traz uma sugestão do que fazer.', 'improvements')
+    for (const p of improvements) moderate(p.suggestion, 'improvements')
     if (draft.conflictDeclared) requireText(draft.conflictDescription, 10, 'Descreva o conflito declarado.', 'conflict')
     const review = needsReview(state, validatorId)
     const validation = {

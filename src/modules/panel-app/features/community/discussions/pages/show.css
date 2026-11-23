@@ -132,6 +132,17 @@
   list-style: none;
 }
 
+.discussion-show__solutions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.discussion-show__solution-button {
+  align-self: flex-start;
+  min-width: 12rem;
+}
+
 .discussion-show__reply {
   display: flex;
   flex-direction: column;
@@ -159,7 +170,7 @@
   }
 
   &[data-solved] {
-    border-color: var(--brand-soft-border);
+    border-color: var(--success-text);
   }
 }
 
@@ -167,8 +178,13 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
+  min-height: 2lh;
   color: var(--success-text);
   font: var(--text-caption);
+
+  svg {
+    flex-shrink: 0;
+  }
 }
 
 @media (max-width: 767px) {

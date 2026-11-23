@@ -3,6 +3,7 @@ import { FormMessage } from '@/components/form-message'
 import { NotFound } from '@/components/not-found'
 import { PageHeader } from '@/components/page-header'
 import { ProjectSummary } from '@/components/squads/project-summary'
+import { DeliveryHistory } from '@/components/squads/delivery-history'
 import { SquadLog } from '@/components/squads/squad-log'
 import { StateChip } from '@/components/state-chip'
 import { Button } from '@/components/ui/button'
@@ -56,7 +57,8 @@ export default function Show() {
   if (!member && !manager) return <Navigate to={`/squads/${squad.slug}`} replace />
 
   const board = state.boardItems.filter((i) => i.projectId === project?.id)
-  const myDeliveries = state.deliveries.filter((d) => d.credits.some((c) => c.userId === userId))
+  const projectIds = new Set(state.projects.filter((p) => p.squadId === squad.id).map((p) => p.id))
+  const myDeliveries = state.deliveries.filter((d) => projectIds.has(d.projectId) && d.credits.some((c) => c.userId === userId))
   const myLog = state.squadLog.filter((e) => e.squadId === squad.id && e.subjectId === userId)
   const teamLog = state.squadLog.filter((e) => e.squadId === squad.id)
   const activeHere = state.memberships.some((m) => m.squadId === squad.id && m.userId === userId && m.leftAt === null)
@@ -150,6 +152,7 @@ export default function Show() {
                   <p className="squad-page__muted">Sua parte: {d.credits.find((c) => c.userId === userId)?.part}</p>
                 )}
                 {d.status === 'returned' && <p className="squad-page__text">Motivo da devolução: {d.returnedReason}</p>}
+                <DeliveryHistory delivery={d} users={state.users} />
               </li>
             ))}
           </ul>

@@ -263,6 +263,7 @@ export const squadsSeed: Pick<
     log('l10', 's1', 'p1', 'delivery-accepted', 'u6', 'u2', 'Calcular frete por CEP', '2026-10-02T12:00:00Z'),
   ],
   githubSync: {
+    repositories: ['he4rt/loja-checkout', 'he4rt/loja-catalogo', 'he4rt/agenda', 'he4rt/bot-discord', 'he4rt/hub-design'],
     lastWebhookAt: '2026-11-18T10:42:00Z',
     lastSweepAt: '2026-11-18T06:00:00Z',
     divergences: [],

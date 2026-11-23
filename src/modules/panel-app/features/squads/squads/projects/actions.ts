@@ -1,6 +1,6 @@
 import { db, newId, type ApplicationQuestion } from '@/mocks/db'
 import { MockError, mockAction } from '@/mocks/mock-action'
-import { activeMemberships, appendLog, canManageSquad, isStaff, requireText } from '@/mocks/squads'
+import { activeMemberships, appendLog, canManageSquad, isStaff, requireText, reservedSeats } from '@/mocks/squads'
 
 export type ProjectSettings = { seats: number; questions: (ApplicationQuestion & { rowId?: string })[] }
 
@@ -19,9 +19,11 @@ function managed(actorId: string, projectId: string) {
 export function updateProjectSettings(actorId: string, projectId: string, input: ProjectSettings) {
   return mockAction('panel-app.squads.projects.update', input, () => {
     const { project, state } = managed(actorId, projectId)
-    const members = activeMemberships(state, project.id).length
+    if (!canManageSquad(state, project.squadId, actorId)) throw new MockError('Só o capitão ou o super admin configuram as candidaturas.')
+    if (project.status !== 'active') throw new MockError('O projeto não está ativo.')
+    const members = activeMemberships(state, project.id).length + reservedSeats(state, project.id)
     if (!Number.isInteger(input.seats) || input.seats < members) {
-      throw new MockError(`Os lugares não podem ficar abaixo dos ${members} membros ativos.`, 'seats')
+      throw new MockError(`Os lugares não podem ficar abaixo dos ${members} membros e convites reservados.`, 'seats')
     }
     if (input.seats > 12) throw new MockError('Um squad tem no máximo 12 lugares.', 'seats')
     const questions = input.questions
@@ -37,10 +39,11 @@ export function updateProjectSettings(actorId: string, projectId: string, input:
 }
 
 /** Ending the only project leaves the squad inactive; nothing is deleted. */
-export function endProject(actorId: string, projectId: string) {
-  return mockAction('panel-app.squads.projects.update', { projectId, status: 'ended' }, () => {
+export function endProject(actorId: string, projectId: string, options = { archiveRepository: false }) {
+  return mockAction('panel-app.squads.projects.update', { projectId, status: 'ended', ...options }, () => {
     const { project } = managed(actorId, projectId)
     if (project.status !== 'active') throw new MockError('O projeto não está ativo.')
+    if (!options || typeof options.archiveRepository !== 'boolean') throw new MockError('Escolha se o repositório deve ser arquivado.')
     const now = new Date().toISOString()
     db.set((s) => ({
       ...s,
@@ -48,7 +51,7 @@ export function endProject(actorId: string, projectId: string) {
       memberships: s.memberships.map((m) => (m.projectId === projectId && m.leftAt === null ? { ...m, leftAt: now, leftReason: 'Projeto encerrado' } : m)),
       squads: s.squads.map((sq) => (sq.id === project.squadId ? { ...sq, status: 'inactive' as const } : sq)),
       applications: s.applications.map((a) =>
-        a.projectId === projectId && a.status === 'pending'
+        a.projectId === projectId && (a.status === 'pending' || (a.status === 'accepted' && a.githubInvite === 'pending'))
           ? {
               ...a,
               status: 'declined' as const,

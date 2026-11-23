@@ -15,7 +15,8 @@ import { useDb, type StartingPoint } from '@/mocks/db'
 import { errorMessage } from '@/mocks/mock-action'
 import { findSquadBySlug, LEVEL_LABELS } from '@/mocks/squads'
 import { useAdmin } from '@/modules/panel-admin/hooks/use-admin'
-import { canCreateProject, createProject, ORG_REPOSITORIES } from '../../actions'
+import { GITHUB_ORG } from '@/lib/github'
+import { canCreateProject, createProject } from '../../actions'
 import { CaptainField } from '../../components/captain-field'
 import './create.css'
 
@@ -30,6 +31,7 @@ export default function Create() {
   const navigate = useNavigate()
   const admin = useAdmin()
   const squad = useDb((s) => findSquadBySlug(s, slug))
+  const captain = useDb((s) => s.users.find((u) => u.id === squad?.captainId))
   const [name, setName] = useState('')
   const [goal, setGoal] = useState('')
   const [acceptance, setAcceptance] = useState<Acceptance[]>([{ rowId: row(), text: '' }])
@@ -39,7 +41,8 @@ export default function Create() {
   const [seats, setSeats] = useState('5')
   const [captainId, setCaptainId] = useState<string | null>(squad?.captainId ?? null)
   const [repositoryMode, setRepositoryMode] = useState<'create' | 'link'>('create')
-  const [repository, setRepository] = useState('he4rt/')
+  const [repository, setRepository] = useState(`${GITHUB_ORG}/`)
+  const repositories = useDb((s) => s.githubSync.repositories)
 
   const [result, submit, pending] = useActionState(async () => {
     try {
@@ -51,7 +54,7 @@ export default function Create() {
         stack,
         expectedLevel: levels,
         seats: Number(seats),
-        captainId: captainId ?? '',
+        captainId: squad?.captainId ?? captainId ?? '',
         repositoryMode,
         repository,
       })
@@ -74,11 +77,11 @@ export default function Create() {
         setSeats('4')
         setCaptainId('u7')
         setRepositoryMode('create')
-        setRepository('he4rt/hub-bot')
+        setRepository(`${GITHUB_ORG}/hub-bot`)
       },
     },
     { label: 'Sem critério de aceite (erro esperado)', run: () => setAcceptance([{ rowId: row(), text: '' }]) },
-    { label: 'Criar repositório que já existe (erro esperado)', run: () => { setRepositoryMode('create'); setRepository('he4rt/agenda') } },
+    { label: 'Criar repositório que já existe (erro esperado)', run: () => { setRepositoryMode('create'); setRepository(repositories[0] ?? `${GITHUB_ORG}/agenda`) } },
   ])
 
   if (!squad) return <NotFound />
@@ -189,7 +192,11 @@ export default function Create() {
           <Field id="seats" label="Lugares" hint="Contam todos os membros, o capitão incluído.">
             <Input id="seats" type="number" min={2} max={12} className="project-create__seats" value={seats} onChange={(e) => setSeats(e.target.value)} />
           </Field>
-          <CaptainField value={captainId} onChange={setCaptainId} />
+          {squad.captainId ? (
+            <p className="project-create__muted">Capitão: {captain?.name}. Para trocar, use a gestão do squad com motivo registrado.</p>
+          ) : (
+            <CaptainField value={captainId} onChange={setCaptainId} />
+          )}
         </Card>
         <Card>
           <CardHeader>
@@ -203,12 +210,12 @@ export default function Create() {
           <Field
             id="repository"
             label="Repositório na organização"
-            hint={repositoryMode === 'create' ? <>Criado a partir de <code>he4rt/template-squad</code>.</> : 'Um repositório que a He4rt já tem.'}
+            hint={repositoryMode === 'create' ? <>Criado a partir de <code>{GITHUB_ORG}/template-squad</code>.</> : 'Um repositório que a He4rt já tem.'}
           >
             <Input id="repository" className="project-create__repository" list="org-repositories" value={repository} onChange={(e) => setRepository(e.target.value)} />
           </Field>
           <datalist id="org-repositories">
-            {ORG_REPOSITORIES.map((r) => (
+            {repositories.map((r) => (
               <option key={r} value={r} />
             ))}
           </datalist>

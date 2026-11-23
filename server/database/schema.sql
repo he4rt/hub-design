@@ -528,6 +528,23 @@ CREATE TABLE board_item_pull_request_co_authors (
   PRIMARY KEY (pull_request_id, user_id)
 );
 
+CREATE TABLE profile_revisions (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL REFERENCES users (id),
+  actor_id TEXT NOT NULL REFERENCES users (id),
+  collection TEXT NOT NULL CHECK (collection IN ('presentation', 'knowledge', 'learnings', 'experiences', 'articles', 'evidences')),
+  record_id TEXT NOT NULL,
+  operation TEXT NOT NULL CHECK (operation IN ('update', 'delete')),
+  snapshot TEXT NOT NULL CHECK (json_valid(snapshot)),
+  at TEXT NOT NULL
+);
+
+CREATE TABLE board_item_pull_request_reviewers (
+  pull_request_id INTEGER NOT NULL REFERENCES board_item_pull_requests (id) ON DELETE CASCADE,
+  user_id TEXT NOT NULL REFERENCES users (id),
+  PRIMARY KEY (pull_request_id, user_id)
+);
+
 -- A board item the captain checks against the acceptance criteria and credits to who did it.
 CREATE TABLE squad_deliveries (
   id TEXT PRIMARY KEY,
@@ -564,6 +581,15 @@ CREATE TABLE squad_delivery_evidence (
   author_id TEXT NOT NULL REFERENCES users (id)
 );
 
+CREATE TABLE squad_delivery_decisions (
+  id TEXT PRIMARY KEY,
+  delivery_id TEXT NOT NULL REFERENCES squad_deliveries (id) ON DELETE CASCADE,
+  decision TEXT NOT NULL CHECK (decision IN ('accepted', 'returned')),
+  actor_id TEXT NOT NULL REFERENCES users (id),
+  reason TEXT NOT NULL,
+  at TEXT NOT NULL
+);
+
 -- Permanent record of what the squad did, project by project.
 CREATE TABLE squad_log_entries (
   id TEXT PRIMARY KEY,
@@ -586,6 +612,12 @@ CREATE TABLE github_sync_state (
   id INTEGER PRIMARY KEY CHECK (id = 1),
   last_webhook_at TEXT,
   last_sweep_at TEXT
+);
+
+-- Repositories of the organization, as the GitHub App last saw them.
+CREATE TABLE github_repositories (
+  full_name TEXT PRIMARY KEY,
+  position INTEGER NOT NULL
 );
 
 CREATE TABLE github_sync_divergences (

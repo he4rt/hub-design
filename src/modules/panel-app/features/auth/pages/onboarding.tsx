@@ -16,6 +16,7 @@ import {
 } from '@/modules/panel-app/components/dev-profile-fields'
 import { useAccount } from '@/modules/panel-app/hooks/use-account'
 import type { DevProfileInput } from '@/modules/panel-app/lib/dev-profile'
+import { githubOAuthUrl } from '@/modules/panel-app/lib/github-oauth'
 import {
   answerOnboardingStep,
   firstUnansweredStep,
@@ -82,6 +83,11 @@ function Questions({ account }: { account: User }) {
 
   useDebugActions('Perguntas do perfil', [
     { label: 'Responder esta pergunta', run: () => update(SAMPLE_ANSWERS) },
+    {
+      label: 'Vincular GitHub simulado',
+      description: 'Vincula o usuário do Hub como GitHub, sem passar pelo GitHub.',
+      run: () => answerOnboardingStep(account.id, 'github', answers).then(() => setStepIndex(1)),
+    },
     {
       label: 'Recomeçar as perguntas',
       description: 'Apaga as respostas salvas desta conta.',
@@ -161,13 +167,15 @@ function Questions({ account }: { account: User }) {
               Pular
             </Button>
           )}
-          <Button type="submit" name="intent" value="answer" loading={pending}>
-            {step === 'github' && !hasGithub(account)
-              ? 'Vincular GitHub'
-              : stepIndex === ONBOARDING_STEPS.length - 1
-                ? 'Concluir'
-                : 'Continuar'}
-          </Button>
+          {step === 'github' && !hasGithub(account) ? (
+            <Button asChild>
+              <a href={githubOAuthUrl('link', '/app/onboarding')}>Vincular GitHub</a>
+            </Button>
+          ) : (
+            <Button type="submit" name="intent" value="answer" loading={pending}>
+              {stepIndex === ONBOARDING_STEPS.length - 1 ? 'Concluir' : 'Continuar'}
+            </Button>
+          )}
         </div>
       </div>
     </form>

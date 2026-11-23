@@ -1,10 +1,16 @@
 import { StateChip } from '@/components/state-chip'
-import type { Validation } from '@/mocks/db'
+import { Button } from '@/components/ui/button'
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
+import { useDb, type Validation } from '@/mocks/db'
 import { formatDate } from '@/mocks/squads'
+import { validationHistory } from '@/mocks/validation'
 import './validation-record.css'
 
 /** A validation shown whole: strengths and points to improve always together, never a grade. */
-export function ValidationRecord({ validation, projectName }: { validation: Validation; projectName?: string }) {
+export function ValidationRecord({ validation, projectName, showHistory = true }: { validation: Validation; projectName?: string; showHistory?: boolean }) {
+  const validations = useDb((s) => s.validations)
+  const profilePublic = useDb((s) => s.users.find((u) => u.id === validation.memberId)?.published)
+  const history = showHistory && profilePublic ? validationHistory(validations, validation) : []
   const employer = [validation.validator.jobTitle, validation.validator.company].filter(Boolean).join(' na ')
   return (
     <article className="validation-record">
@@ -63,6 +69,16 @@ export function ValidationRecord({ validation, projectName }: { validation: Vali
         Conflito de interesse:{' '}
         {validation.conflictOfInterest.declared ? validation.conflictOfInterest.description : 'nenhum declarado.'}
       </p>
+      {history.length > 0 && (
+        <Collapsible>
+          <CollapsibleTrigger asChild>
+            <Button variant="secondary" size="sm">Ver registro anterior</Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="validation-record__history">
+            {history.map((previous) => <ValidationRecord key={previous.id} validation={previous} projectName={projectName} showHistory={false} />)}
+          </CollapsibleContent>
+        </Collapsible>
+      )}
     </article>
   )
 }

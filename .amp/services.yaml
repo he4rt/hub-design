@@ -4,9 +4,13 @@ services:
     port: 3001
     env:
       HUB_DEBUG: '1'
+      HUB_PORTAL_URL: ${services.web.publicURL}
+      VITE_GITHUB_ORG: he4rt-stuff
     health: /api/health
   web:
     command: bun run dev --host 0.0.0.0 --port "$PORT" --strictPort
+    env:
+      VITE_GITHUB_ORG: he4rt-stuff
     portal:
       url: /
       title: Landing

@@ -22,7 +22,7 @@ export default function Index() {
   const now = useNow()
   const userId = state.session?.userId ?? ''
   const mine = state.validationRequests.filter((r) => r.validatorId === userId && r.status === 'assigned')
-  const queued = state.validationRequests.filter((r) => r.status === 'queued').length
+  const queued = state.validationQueueSize ?? state.validationRequests.filter((r) => r.status === 'queued').length
 
   useDebugActions('Fila do validador', [
     {

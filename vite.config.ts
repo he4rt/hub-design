@@ -38,6 +38,12 @@ export default defineConfig({
   },
   // The API (server/) runs beside Vite; one origin keeps its session cookies first-party.
   server: {
-    proxy: { '/api': `http://127.0.0.1:${process.env.API_PORT ?? 3001}` },
+    proxy: {
+      '/api': {
+        target: `http://127.0.0.1:${process.env.API_PORT ?? 3001}`,
+        changeOrigin: false,
+        xfwd: true,
+      },
+    },
   },
 })

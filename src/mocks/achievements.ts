@@ -322,7 +322,11 @@ export function memberAchievements(state: MockDb, userId: string, now: number): 
     if (at) unlocked.push({ key, at, public: isPublicFact ?? true })
   }
   for (const [key, months] of tenure) {
-    const at = facts.user && addMonths(facts.user.createdAt, months)
+    const joinedAt = facts.user?.onboardedAt
+    // The first milestone is 30 days; the others are calendar months since joining the Hub.
+    const at = joinedAt && (months === 1
+      ? new Date(Date.parse(joinedAt) + 30 * 24 * 60 * 60 * 1000).toISOString()
+      : addMonths(joinedAt, months))
     if (at && Date.parse(at) <= now) unlocked.push({ key, at, public: true })
   }
   return unlocked.map(({ key, at, public: originPublic }) => ({

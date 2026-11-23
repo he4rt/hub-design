@@ -4,7 +4,7 @@ import { Card } from '@/components/ui/card'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { useDebugActions } from '@/debug/use-debug-actions'
 import { db, newId, useDb } from '@/mocks/db'
-import { activeMemberships } from '@/mocks/squads'
+import { freeSeats } from '@/mocks/squads'
 import './index.css'
 
 type Filter = 'all' | 'active' | 'inactive'
@@ -81,7 +81,7 @@ export default function Index() {
           {squads.map((squad) => {
             const project = state.projects.find((p) => p.squadId === squad.id && p.status !== 'ended')
             const captain = state.users.find((u) => u.id === squad.captainId)
-            const free = project ? project.seats - activeMemberships(state, project.id).length : 0
+            const free = project ? freeSeats(state, project) : 0
             return (
               <li key={squad.id}>
                 <Link to={`/squads/${squad.slug}`} className="squads-index__item">

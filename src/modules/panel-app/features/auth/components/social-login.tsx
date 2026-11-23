@@ -8,25 +8,38 @@ import { ORIGIN_IN, PROVIDERS } from '@/lib/member-profile'
 import { slugify } from '@/lib/text'
 import { newId, useDb, type SocialProvider } from '@/mocks/db'
 import { errorMessage } from '@/mocks/mock-action'
+import { githubOAuthUrl } from '@/modules/panel-app/lib/github-oauth'
 import { providerLabel, socialLogin, type SocialIdentity } from '../actions'
 import { ProviderIcon } from './provider-icon'
 import './social-login.css'
 
-/** Discord, GitHub and Google buttons. Each opens a dialog that stands in for the provider's consent screen. */
+/**
+ * Discord, GitHub and Google buttons. GitHub goes to GitHub for real; Discord and Google open a dialog
+ * that stands in for the provider's consent screen.
+ */
 export function SocialLogin({ verb, redirectTo }: { verb: 'Entrar' | 'Cadastrar'; redirectTo: string }) {
   return (
     <div className="social-login">
-      {PROVIDERS.map(({ value, label }) => (
-        <Dialog key={value}>
-          <DialogTrigger asChild>
-            <Button type="button" variant="secondary" className="social-login__button">
+      {PROVIDERS.map(({ value, label }) =>
+        value === 'github' ? (
+          <Button key={value} asChild variant="secondary" className="social-login__button">
+            <a href={githubOAuthUrl('login', redirectTo)}>
               <ProviderIcon provider={value} />
               {verb} com {label}
-            </Button>
-          </DialogTrigger>
-          <ProviderDialog provider={value} redirectTo={redirectTo} />
-        </Dialog>
-      ))}
+            </a>
+          </Button>
+        ) : (
+          <Dialog key={value}>
+            <DialogTrigger asChild>
+              <Button type="button" variant="secondary" className="social-login__button">
+                <ProviderIcon provider={value} />
+                {verb} com {label}
+              </Button>
+            </DialogTrigger>
+            <ProviderDialog provider={value} redirectTo={redirectTo} />
+          </Dialog>
+        ),
+      )}
     </div>
   )
 }

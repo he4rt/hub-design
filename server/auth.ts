@@ -1,5 +1,8 @@
 import type { User } from '@/mocks/db'
 import { first, insert, now, sql, update } from './database/connection'
+import { initializeAuthMail } from './mail-auth'
+
+initializeAuthMail()
 
 /*
  * Sessions, like Laravel's session guards. The member area (/app) and the administration (/admin)

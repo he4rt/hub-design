@@ -33,8 +33,14 @@ export function activeMemberships(state: MockDb, projectId: string) {
   return state.memberships.filter((m) => m.projectId === projectId && m.leftAt === null)
 }
 
+/** Accepted invitations reserve capacity without exposing their candidates to other viewers. */
+export function reservedSeats(state: MockDb, projectId: string): number {
+  const active = new Set(activeMemberships(state, projectId).map((m) => m.userId))
+  return new Set(state.applications.filter((a) => a.projectId === projectId && a.status === 'accepted' && a.githubInvite === 'pending' && !active.has(a.userId)).map((a) => a.userId)).size
+}
+
 export function freeSeats(state: MockDb, project: Project): number {
-  return project.seats - activeMemberships(state, project.id).length
+  return Math.max(0, project.seats - activeMemberships(state, project.id).length - (project.reservedSeats ?? reservedSeats(state, project.id)))
 }
 
 export function isCaptain(squad: Squad | undefined, userId: string | undefined): boolean {
@@ -59,8 +65,8 @@ export function applyBlocker(state: MockDb, userId: string, project: Project): s
   if (!hasApprovedEntryTest(state, userId)) return 'Conclua o teste de entrada antes de se candidatar.'
   if (project.status !== 'active') return 'Este projeto não está recebendo candidaturas.'
   if (activeMemberships(state, project.id).some((m) => m.userId === userId)) return 'Você já está neste projeto.'
-  if (state.applications.some((a) => a.projectId === project.id && a.userId === userId && a.status === 'pending')) {
-    return 'Você já tem uma candidatura aguardando o capitão.'
+  if (state.applications.some((a) => a.projectId === project.id && a.userId === userId && (a.status === 'pending' || (a.status === 'accepted' && a.githubInvite === 'pending')))) {
+    return 'Você já tem uma candidatura ou convite aguardando confirmação.'
   }
   if (freeSeats(state, project) <= 0) return 'O projeto está sem lugares livres.'
   return null

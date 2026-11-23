@@ -5,6 +5,7 @@ import { MockError, mockAction } from '@/mocks/mock-action'
 import { MUNICIPALITIES } from '@/mocks/municipalities'
 import { validateDevProfile, type DevProfileInput } from '@/modules/panel-app/lib/dev-profile'
 import { canUnlink, linkAccount } from '@/modules/panel-app/lib/linked-accounts'
+import { assertProfileOwner, moderateProfileText } from '@/mocks/member-profile'
 
 export const BIO_MAX_LENGTH = 280
 /** A photo arrives resized to a small JPEG data URL; this caps it. */
@@ -13,9 +14,12 @@ const PORTFOLIO_PATTERN = /^https?:\/\/[^\s.]+\.[^\s]+$/
 
 export function updateProfile(userId: string, input: { name: string; email: string }) {
   return mockAction('panel-app.settings.profile.update', input, () => {
+    assertProfileOwner(userId)
     const name = input.name.trim()
     if (name.length < 2) throw new MockError('O nome precisa ter ao menos 2 caracteres.')
+    moderateProfileText(name)
     const email = input.email.trim().toLowerCase()
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new MockError('Informe um e-mail válido.', 'email')
     if (db.get().users.some((u) => u.email === email && u.id !== userId)) {
       throw new MockError('Este e-mail já está em uso.')
     }
@@ -45,7 +49,9 @@ export function updateMemberProfile(userId: string, input: MemberProfileInput) {
     'panel-app.settings.member-profile.update',
     { ...input, photoUrl: input.photoUrl ? '(imagem)' : null },
     () => {
+      assertProfileOwner(userId)
       validateDevProfile(input)
+      moderateProfileText(input.bio)
       if (input.situation && !SITUATIONS.some((o) => o.value === input.situation)) {
         throw new MockError('Situação inválida.', 'situation')
       }
@@ -88,6 +94,7 @@ export function setProfilePublished(userId: string, published: boolean) {
     published ? 'panel-app.settings.profile-publication.store' : 'panel-app.settings.profile-publication.destroy',
     { userId },
     () => {
+      assertProfileOwner(userId)
       const user = findUser(userId)
       if (!user) throw new MockError('Conta não encontrada.')
       if (user.published === published) return { published }

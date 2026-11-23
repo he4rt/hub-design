@@ -1,6 +1,7 @@
 import { Database } from 'bun:sqlite'
 import { randomUUIDv7 } from 'bun'
 import { readFileSync } from 'node:fs'
+import { migrateGithub } from '../github-queue'
 
 const DATABASE_PATH = process.env.DB_PATH ?? new URL('./hub.sqlite', import.meta.url).pathname
 const SCHEMA_PATH = new URL('./schema.sql', import.meta.url).pathname
@@ -14,6 +15,14 @@ function open(): Database {
   const database = new Database(DATABASE_PATH, { create: true, strict: true })
   database.run('PRAGMA journal_mode = WAL')
   database.run('PRAGMA foreign_keys = ON')
+  database.run('PRAGMA busy_timeout = 5000')
+  migrateGithub(database)
+  // Read additive domain DDL from the canonical schema; never reset existing data.
+  const schema = readFileSync(SCHEMA_PATH, 'utf8')
+  for (const table of ['github_repositories', 'squad_delivery_decisions', 'board_item_pull_request_reviewers', 'profile_revisions']) {
+    const ddl = schema.match(new RegExp(`CREATE TABLE ${table} \\([\\s\\S]*?\\n\\);`))?.[0]
+    if (ddl) database.transaction(() => database.run(ddl.replace('CREATE TABLE ', 'CREATE TABLE IF NOT EXISTS ')))()
+  }
   return database
 }
 
@@ -23,11 +32,12 @@ export function migrateFresh() {
   const tables = sql.query<{ name: string }, []>("SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%'").all()
   for (const { name } of tables) sql.run(`DROP TABLE "${name}"`)
   sql.run(readFileSync(SCHEMA_PATH, 'utf8'))
+  migrateGithub(sql)
   sql.run('PRAGMA foreign_keys = ON')
 }
 
 /** Tables that hold the model; the session tables are kept when the model is rewritten. */
-const SESSION_TABLES = ['sessions', 'pending_social_identities']
+const SESSION_TABLES = ['sessions', 'pending_social_identities', 'github_jobs', 'github_resources', 'github_identities', 'action_receipts']
 
 /**
  * Replaces every model row in one transaction, then checks every foreign key before committing.

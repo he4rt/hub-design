@@ -1,5 +1,5 @@
 import { track } from '@/mocks/analytics'
-import { db, type SquadDelivery } from '@/mocks/db'
+import { db, newId, type SquadDelivery } from '@/mocks/db'
 import { MockError, mockAction } from '@/mocks/mock-action'
 import { appendLog, canManageSquad, isSuperAdmin, requireText } from '@/mocks/squads'
 
@@ -15,6 +15,7 @@ function managed(actorId: string, deliveryId: string) {
   const project = state.projects.find((p) => p.id === delivery?.projectId)
   if (!delivery || !project) throw new MockError('Entrega não encontrada.')
   if (!canManageSquad(state, project.squadId, actorId)) throw new MockError('Só o capitão do squad decide as entregas.')
+  if (project.status !== 'active') throw new MockError('O projeto não está ativo.')
   if (delivery.status !== 'pending') throw new MockError('Esta entrega já foi decidida.')
   return { delivery, project, state }
 }
@@ -31,7 +32,13 @@ export function acceptDelivery(actorId: string, deliveryId: string, input: Deliv
       .map((c) => ({ userId: c.userId, part: c.part.trim() }))
       .filter((c) => c.part)
     if (credits.length === 0) throw new MockError('Registre o que ao menos uma pessoa fez.', 'credits')
+    if (new Set(credits.map((c) => c.userId)).size !== credits.length || credits.some((c) => !state.users.some((u) => u.id === c.userId))) {
+      throw new MockError('Cada crédito precisa identificar uma pessoa existente, sem repetição.', 'credits')
+    }
     credits.forEach((c) => requireText(c.part, 3, 'Descreva a parte de cada pessoa.', 'credits'))
+    const collaboration = credits.length === 1 ? 'individual' : credits.length === 2 ? 'pair' : 'group'
+    if (input.collaboration !== collaboration) throw new MockError('A colaboração precisa corresponder às pessoas creditadas.', 'credits')
+    if (!delivery.criterionId || !project.acceptanceCriteria.some((c) => c.id === delivery.criterionId)) throw new MockError('Ligue a entrega a um critério de aceite no board.')
     const context = requireText(input.context, 20, 'Escreva o contexto que o validador vai ler (20 caracteres ou mais).', 'context')
     const item = state.boardItems.find((i) => i.id === delivery.boardItemId)
     if (delivery.kind === 'technical' && !item?.pullRequests.some((pr) => pr.merged)) {
@@ -47,7 +54,8 @@ export function acceptDelivery(actorId: string, deliveryId: string, input: Deliv
       ...s,
       deliveries: s.deliveries.map((d) =>
         d.id === deliveryId
-          ? { ...d, status: 'accepted' as const, credits, collaboration: input.collaboration, context, decidedBy: actorId, decidedAt: now, returnedReason: null }
+          ? { ...d, status: 'accepted' as const, credits, collaboration: input.collaboration, context, decidedBy: actorId, decidedAt: now, returnedReason: null,
+            decisions: [...(d.decisions ?? []), { id: newId(), decision: 'accepted' as const, actorId, reason: context, at: now }] }
           : d,
       ),
     }))
@@ -62,11 +70,13 @@ export function returnDelivery(actorId: string, deliveryId: string, reason: stri
   return mockAction('panel-app.squads.deliveries.update', { deliveryId, status: 'returned', reason }, () => {
     managed(actorId, deliveryId)
     const text = requireText(reason, 10, 'Diga o motivo da devolução.', 'reason')
+    const now = new Date().toISOString()
     db.set((s) => ({
       ...s,
       deliveries: s.deliveries.map((d) =>
         d.id === deliveryId
-          ? { ...d, status: 'returned' as const, returnedReason: text, decidedBy: actorId, decidedAt: new Date().toISOString() }
+          ? { ...d, status: 'returned' as const, returnedReason: text, decidedBy: actorId, decidedAt: now,
+            decisions: [...(d.decisions ?? []), { id: newId(), decision: 'returned' as const, actorId, reason: text, at: now }] }
           : d,
       ),
     }))

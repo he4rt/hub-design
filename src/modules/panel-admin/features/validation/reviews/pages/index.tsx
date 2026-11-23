@@ -10,7 +10,7 @@ import { ValidationRecord } from '@/components/validation/validation-record'
 import { useActionRunner } from '@/hooks/use-action-runner'
 import { useDebugActions } from '@/debug/use-debug-actions'
 import { useDb } from '@/mocks/db'
-import { REVIEWED_VALIDATIONS } from '@/mocks/validation'
+import { REVIEWED_VALIDATIONS, reviewBlocker } from '@/mocks/validation'
 import { useAdmin } from '@/modules/panel-admin/hooks/use-admin'
 import { decideReview } from '../../actions'
 import './index.css'
@@ -44,25 +44,29 @@ export default function Index() {
           <Field id="review-note" label="Nota para o validador" required hint="Obrigatória para devolver.">
             <Input id="review-note" value={note} onChange={(e) => setNote(e.target.value)} />
           </Field>
-          {inReview.map((v) => (
-            <Card key={v.id}>
-              <p className="admin-reviews__muted">Para {state.users.find((u) => u.id === v.memberId)?.name}</p>
-              <ValidationRecord validation={v} projectName={state.projects.find((p) => p.id === v.projectId)?.name} />
-              <div className="admin-reviews__actions">
-                <Button size="sm" variant="secondary" disabled={pending} onClick={() => run(() => decideReview(admin?.id ?? '', v.id, 'approved', note), 'Registrada.')}>
-                  Registrar validação
-                </Button>
-                <Button
-                  size="sm"
-                  variant="danger"
-                  disabled={pending || note.trim().length < 10}
-                  onClick={() => run(() => decideReview(admin?.id ?? '', v.id, 'returned', note), 'Devolvida ao validador.')}
-                >
-                  Devolver ao validador
-                </Button>
-              </div>
-            </Card>
-          ))}
+          {inReview.map((v) => {
+            const blocker = reviewBlocker(state, admin?.id ?? '', v)
+            return (
+              <Card key={v.id}>
+                <p className="admin-reviews__muted">Para {state.users.find((u) => u.id === v.memberId)?.name}</p>
+                <ValidationRecord validation={v} projectName={state.projects.find((p) => p.id === v.projectId)?.name} />
+                {blocker && <p className="admin-reviews__muted">{blocker}</p>}
+                <div className="admin-reviews__actions">
+                  <Button size="sm" variant="secondary" disabled={pending || !!blocker} onClick={() => run(() => decideReview(admin?.id ?? '', v.id, 'approved', note), 'Registrada.')}>
+                    Registrar validação
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="danger"
+                    disabled={pending || !!blocker || note.trim().length < 10}
+                    onClick={() => run(() => decideReview(admin?.id ?? '', v.id, 'returned', note), 'Devolvida ao validador.')}
+                  >
+                    Devolver ao validador
+                  </Button>
+                </div>
+              </Card>
+            )
+          })}
         </>
       )}
     </div>

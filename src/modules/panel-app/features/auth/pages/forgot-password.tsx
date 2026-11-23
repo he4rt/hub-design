@@ -41,8 +41,9 @@ export default function ForgotPassword() {
     <form action={submit} className="auth-form">
       <h1>Recuperar senha</h1>
       <p className="auth-form__hint">
-        Informe o e-mail da sua conta He4rt. Se ela existir, enviamos um link para criar uma nova senha. Entrou com
-        Discord, GitHub ou Google? O link também cria uma senha para a conta.
+        Informe o e-mail da sua conta He4rt para solicitar um link de nova senha. Neste ambiente exploratório,
+        a mensagem fica na caixa de saída local; o envio externo depende de um provedor configurado.
+        O link também permite criar uma senha para uma conta social.
       </p>
       <div className="auth-form__field">
         <Label htmlFor="email">E-mail</Label>
@@ -57,7 +58,7 @@ export default function ForgotPassword() {
         />
       </div>
       <FormMessage tone={result?.ok === false ? 'error' : 'success'}>
-        {result && (result.ok ? 'Se houver uma conta com este e-mail, o link chega em instantes.' : result.error)}
+        {result && (result.ok ? 'Solicitação registrada.' : result.error)}
       </FormMessage>
       <Button type="submit" loading={pending}>
         Enviar link

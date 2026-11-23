@@ -1,5 +1,6 @@
 import { track } from './analytics'
-import { db, type MockDb, type ValidationRequest } from './db'
+import { db, type MockDb, type Validation, type ValidationRequest } from './db'
+import { isStaff } from './squads'
 
 /** Validations open at once per validator. */
 export const VALIDATOR_WINDOW = 3
@@ -21,6 +22,18 @@ export function openCount(state: MockDb, validatorId: string): number {
 
 export function needsReview(state: MockDb, validatorId: string): boolean {
   return state.validations.filter((v) => v.validatorId === validatorId && v.status === 'recorded').length < REVIEWED_VALIDATIONS
+}
+
+/** A review only applies to the current assignment, by staff outside the case. */
+export function reviewBlocker(state: MockDb, actorId: string, validation: Validation): string | null {
+  if (!isStaff(state.users.find((u) => u.id === actorId))) return 'Só a staff faz isso.'
+  if (validation.status !== 'in-review') return 'Validação não encontrada em revisão.'
+  const request = state.validationRequests.find((r) => r.id === validation.requestId)
+  if (request?.status !== 'assigned' || request.validatorId !== validation.validatorId) {
+    return 'O pedido não está mais atribuído a este validador.'
+  }
+  if (actorId === validation.validatorId || actorId === validation.memberId) return 'Quem revisa não pode ser o validador nem o membro.'
+  return null
 }
 
 /** Who may validate this request: from outside the squad, never the captain, never after a conflict. */
@@ -81,4 +94,20 @@ export function byQueueOrder(a: ValidationRequest, b: ValidationRequest): number
 
 export function evaluationCriterion(state: MockDb, request: ValidationRequest) {
   return state.projects.find((p) => p.id === request.projectId)?.evaluationCriteria.find((c) => c.id === request.criterionId)
+}
+
+/** Walk only authorized links; a missing/private link never discloses its predecessors. */
+export function validationHistory(validations: Validation[], current: Validation, includePrivate = false): Validation[] {
+  if (current.status !== 'recorded' || (!includePrivate && !current.published)) return []
+  const history: Validation[] = []
+  const visited = new Set([current.id])
+  let previousId = current.supersedesId
+  while (previousId && !visited.has(previousId)) {
+    const previous = validations.find((v) => v.id === previousId && v.memberId === current.memberId && v.status === 'recorded' && (includePrivate || v.published))
+    if (!previous) break
+    visited.add(previous.id)
+    history.push(previous)
+    previousId = previous.supersedesId
+  }
+  return history
 }

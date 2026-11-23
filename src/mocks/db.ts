@@ -133,6 +133,8 @@ export type Project = {
   expectedLevel: StartingPoint[]
   /** Counts every active member, the captain included. */
   seats: number
+  /** Derived by the API for viewers who cannot read other people's pending invitations. */
+  reservedSeats?: number
   applicationQuestions: ApplicationQuestion[]
   repository: { fullName: string; url: string } | null
   board: { number: number; url: string } | null
@@ -196,7 +198,7 @@ export type BoardItem = {
   kind: WorkKind
   criterionId: string | null
   assigneeIds: string[]
-  pullRequests: { number: number; url: string; merged: boolean; authorId: string; coAuthorIds: string[] }[]
+  pullRequests: { number: number; url: string; merged: boolean; authorId: string; coAuthorIds: string[]; reviewerIds?: string[] }[]
   updatedAt: string
 }
 
@@ -219,6 +221,8 @@ export type SquadDelivery = {
   returnedReason: string | null
   decidedBy: string | null
   decidedAt: string | null
+  /** Append-only decisions; resubmitting or accepting never erases an earlier return. */
+  decisions?: { id: string; decision: 'accepted' | 'returned'; actorId: string; reason: string; at: string }[]
   createdAt: string
 }
 
@@ -247,6 +251,8 @@ export type SquadLogEntry = {
 }
 
 export type GithubSync = {
+  /** Repositories of the organization, kept current by the GitHub App; projects create or link one. */
+  repositories: string[]
   lastWebhookAt: string | null
   lastSweepAt: string | null
   divergences: { id: string; description: string; detectedAt: string }[]
@@ -444,6 +450,17 @@ export type MemberAchievement = {
   revokedAt: string | null
 }
 
+export type ProfileRevision = {
+  id: string
+  userId: string
+  actorId: string
+  collection: 'presentation' | 'knowledge' | 'learnings' | 'experiences' | 'articles' | 'evidences'
+  recordId: string
+  operation: 'update' | 'delete'
+  snapshot: Record<string, unknown>
+  at: string
+}
+
 export type DiscussionCategory = 'question' | 'technical' | 'learning'
 
 /** What a discussion is about: a squad, a squad project, or one of the author's diary publications. */
@@ -620,6 +637,7 @@ export type MockDb = {
   /** What PostHog would receive, newest first. */
   events: AnalyticsEvent[]
   profiles: MemberProfile[]
+  profileRevisions: ProfileRevision[]
   /** Achievements each member chose to show on the profile. */
   achievementChoices: { userId: string; key: string }[]
   discussions: Discussion[]
@@ -635,6 +653,8 @@ export type MockDb = {
   validatorApplications: ValidatorApplication[]
   validators: Validator[]
   validationRequests: ValidationRequest[]
+  /** Computed by the API for active validators; queue counts do not disclose other members' requests. */
+  validationQueueSize?: number
   validations: Validation[]
   contestations: Contestation[]
 }
@@ -1067,6 +1087,7 @@ const seed: MockDb = {
     },
   ],
   events: [],
+  profileRevisions: [],
   profiles: [
     {
       userId: 'u2',

@@ -231,6 +231,7 @@ function readApplications(): SquadApplication[] {
 function readBoardItems(): BoardItem[] {
   const assignees = groupBy(all('SELECT * FROM board_item_assignees ORDER BY rowid'), 'board_item_id')
   const coAuthors = groupBy(all('SELECT * FROM board_item_pull_request_co_authors ORDER BY rowid'), 'pull_request_id')
+  const reviewers = groupBy(all('SELECT * FROM board_item_pull_request_reviewers ORDER BY rowid'), 'pull_request_id')
   const pullRequests = groupBy(all('SELECT * FROM board_item_pull_requests ORDER BY id'), 'board_item_id')
   return all<R>('SELECT * FROM board_items ORDER BY rowid').map((b) => ({
     id: b.id,
@@ -246,6 +247,7 @@ function readBoardItems(): BoardItem[] {
       merged: bool(pr.merged),
       authorId: pr.author_id,
       coAuthorIds: (coAuthors.get(String(pr.id)) ?? []).map((c) => c.user_id),
+      reviewerIds: (reviewers.get(String(pr.id)) ?? []).map((r) => r.user_id),
     })),
     updatedAt: b.updated_at,
   }))
@@ -254,6 +256,7 @@ function readBoardItems(): BoardItem[] {
 function readDeliveries(): SquadDelivery[] {
   const credits = groupBy(all('SELECT * FROM squad_delivery_credits ORDER BY position'), 'delivery_id')
   const evidence = groupBy(all('SELECT * FROM squad_delivery_evidence ORDER BY id'), 'delivery_id')
+  const decisions = groupBy(all('SELECT * FROM squad_delivery_decisions ORDER BY rowid'), 'delivery_id')
   return all<R>('SELECT * FROM squad_deliveries ORDER BY rowid').map((d) => ({
     id: d.id,
     projectId: d.project_id,
@@ -269,6 +272,7 @@ function readDeliveries(): SquadDelivery[] {
     returnedReason: d.returned_reason,
     decidedBy: d.decided_by,
     decidedAt: d.decided_at,
+    decisions: (decisions.get(d.id) ?? []).map((entry) => ({ id: entry.id, decision: entry.decision, actorId: entry.actor_id, reason: entry.reason, at: entry.at })),
     createdAt: d.created_at,
   }))
 }
@@ -400,6 +404,7 @@ export function readState(): MockDb {
     })),
     events: all<R>('SELECT * FROM analytics_events ORDER BY id DESC').map((e) => ({ event: e.event, props: JSON.parse(e.props), at: e.at })),
     profiles: readProfiles(),
+    profileRevisions: all<R>('SELECT * FROM profile_revisions ORDER BY rowid').map((r) => ({ id: r.id, userId: r.user_id, actorId: r.actor_id, collection: r.collection, recordId: r.record_id, operation: r.operation, snapshot: JSON.parse(r.snapshot), at: r.at })),
     achievementChoices: all<R>('SELECT * FROM achievement_choices ORDER BY rowid').map((c) => ({ userId: c.user_id, key: c.key })),
     discussions: readDiscussions(),
     squads: all<R>('SELECT * FROM squads ORDER BY rowid').map((s) => ({
@@ -451,6 +456,7 @@ export function readState(): MockDb {
       at: l.at,
     })),
     githubSync: {
+      repositories: all<R>('SELECT full_name FROM github_repositories ORDER BY position').map((r) => r.full_name),
       lastWebhookAt: sync?.last_webhook_at ?? null,
       lastSweepAt: sync?.last_sweep_at ?? null,
       divergences: all<R>('SELECT * FROM github_sync_divergences ORDER BY rowid').map((d) => ({

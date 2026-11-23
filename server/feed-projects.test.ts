@@ -15,6 +15,11 @@ const { readState } = await import('./database/read-state')
 const { showState } = await import('./actions')
 const { createSession, sessionCookie } = await import('./auth')
 
+const databaseFile = sql.query<{ name: string; file: string }, []>('PRAGMA database_list').all().find((entry) => entry.name === 'main')?.file
+if (databaseFile && !databaseFile.includes('/.amp/in/orb-backup/')) {
+  throw new Error('Feed tests require a disposable SQLite connection, not the shared development database.')
+}
+
 const input = {
   repository: 'https://github.com/danielhe4rt/agenda-de-lives',
   pitch: 'Agenda com lembrete para as lives da comunidade.',

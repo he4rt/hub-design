@@ -4,6 +4,7 @@ import { db, findUser, makeUser, newId, updateUser, type SocialProvider, type Us
 import { MockError, mockAction } from '@/mocks/mock-action'
 import { linkAccount } from '@/modules/panel-app/lib/linked-accounts'
 import { validateDevProfile, type DevProfileInput } from '@/modules/panel-app/lib/dev-profile'
+import { authMailGateway } from '@/modules/panel-app/lib/auth-mail'
 
 export const PASSWORD_MIN_LENGTH = 8
 
@@ -205,8 +206,13 @@ export function answerOnboardingStep(
   return mockAction('panel-app.onboarding.update', { step, skip: options.skip ?? false, answer }, () => {
     const user = findUser(userId)
     if (!user) throw new MockError('Conta não encontrada.')
+    const index = ONBOARDING_STEPS.indexOf(step)
+    if (index < 0 || index > firstUnansweredStep(user)) {
+      throw new MockError('Responda às etapas anteriores antes de continuar.', 'step')
+    }
     if (options.skip && !SKIPPABLE_STEPS.includes(step)) throw new MockError('Esta pergunta não pode ser pulada.')
     if (step === 'github') {
+      if (hasGithub(user)) return { userId, done: !!user.onboardedAt }
       // Stands in for the GitHub OAuth callback, which returns the handle.
       const owner = db
         .get()
@@ -250,30 +256,55 @@ export function sendPasswordResetLink(input: { email: string }) {
   return mockAction('panel-app.password-reset-link.store', input, () => {
     if (!EMAIL_PATTERN.test(input.email.trim())) throw new MockError('Informe um e-mail válido.', 'email')
     const user = findByEmail(input.email)
+    // Resolve configuration for both branches, so an outage does not enumerate accounts.
+    const mail = authMailGateway()
     if (user) {
-      const reset = { email: user.email, token: newId(), createdAt: new Date().toISOString() }
-      db.set((state) => ({ ...state, passwordResets: [...state.passwordResets, reset] }))
+      mail.request('password-reset', user)
+      // Retire legacy short tokens. New bearer links only live in the private local mailbox.
+      db.set((state) => ({ ...state, passwordResets: state.passwordResets.filter((r) => r.email !== user.email) }))
     }
-    return { sent: true }
+    return { queued: true }
   })
 }
 
 export function resetPassword(input: { token: string; password: string; confirmation: string }) {
-  return mockAction('panel-app.new-password.store', { token: input.token }, () => {
-    const reset = db.get().passwordResets.find((r) => r.token === input.token)
-    const user = reset && findByEmail(reset.email)
-    if (!user) throw new MockError('Este link expirou ou já foi usado. Peça um novo.')
+  return mockAction('panel-app.new-password.store', { token: '[redacted]' }, () => {
     if (input.password.length < PASSWORD_MIN_LENGTH) {
       throw new MockError(`A senha precisa ter ao menos ${PASSWORD_MIN_LENGTH} caracteres.`, 'password')
     }
     if (input.password !== input.confirmation) throw new MockError('As senhas não conferem.', 'confirmation')
 
-    db.set((state) => ({
-      ...state,
-      passwords: { ...state.passwords, [user.id]: input.password },
-      passwordResets: state.passwordResets.filter((r) => r.email !== user.email),
-    }))
-    return { userId: user.id }
+    authMailGateway().consume('password-reset', input.token, db.get().users, (user) => {
+      db.set((state) => ({
+        ...state,
+        passwords: { ...state.passwords, [user.id]: input.password },
+        passwordResets: state.passwordResets.filter((r) => r.email !== user.email),
+        session: state.session?.userId === user.id ? null : state.session,
+      }))
+    })
+    return { reset: true }
+  })
+}
+
+/** Only the signed-in member can request a message; this does not verify their address. */
+export function sendEmailVerification(userId: string) {
+  return mockAction('panel-app.email-verification-notification.store', { userId }, () => {
+    if (db.get().session?.userId !== userId) throw new MockError('Entre na sua conta para continuar.')
+    const user = findUser(userId)
+    if (!user) throw new MockError('Conta não encontrada.')
+    if (user.emailVerifiedAt) throw new MockError('Seu e-mail já está confirmado.')
+    authMailGateway().request('email-verification', user)
+    return { queued: true }
+  })
+}
+
+/** Possession of a single-use link, not a browser-supplied user id, proves the identity. */
+export function verifyEmail(token: string) {
+  return mockAction('panel-app.email-verification.store', { token: '[redacted]' }, () => {
+    authMailGateway().consume('email-verification', token, db.get().users, (user) => {
+      updateUser(user.id, (u) => ({ ...u, emailVerifiedAt: u.emailVerifiedAt ?? new Date().toISOString() }))
+    })
+    return { verified: true }
   })
 }
 

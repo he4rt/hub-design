@@ -14,6 +14,7 @@ import { updateProfile } from '../actions'
 import { LinkedAccounts } from '../components/linked-accounts'
 import { MemberProfileForm } from '../components/member-profile-form'
 import { ProfilePublication } from '../components/profile-publication'
+import { TrajectorySettings } from '../components/trajectory-settings'
 import './profile.css'
 
 export default function Profile() {
@@ -30,6 +31,7 @@ export default function Profile() {
         </Card>
         <LinkedAccounts account={account} />
         <MemberProfileForm key={`profile-${account.id}`} account={account} />
+        <TrajectorySettings key={`trajectory-${account.id}`} userId={account.id} />
         <AccountForm key={`account-${account.id}`} account={account} />
       </div>
     </>

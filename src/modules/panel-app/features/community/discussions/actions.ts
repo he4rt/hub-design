@@ -8,6 +8,11 @@ export const TITLE_MIN_LENGTH = 10
 export const BODY_MIN_LENGTH = 20
 export const REPLY_MIN_LENGTH = 10
 
+function moderate(text: string, field: string) {
+  const term = findBlockedTerm(text)
+  if (term) throw new MockError(`Barrado pela moderação automática: linguagem ofensiva ("${term}").`, field)
+}
+
 function sessionUserId(message: string): string {
   const userId = db.get().session?.userId
   if (!userId) throw new MockError(message)
@@ -50,9 +55,6 @@ export function createDiscussion(input: CreateDiscussionInput) {
     if (body.length < BODY_MIN_LENGTH) {
       throw new MockError(`Conte um pouco mais: pelo menos ${BODY_MIN_LENGTH} caracteres.`, 'body')
     }
-    if (findBlockedTerm(title) || findBlockedTerm(body)) {
-      throw new MockError('Barrado pela moderação automática: linguagem ofensiva.')
-    }
     if (input.context && !contextExists(input.context)) {
       throw new MockError('Esse squad ou projeto não existe mais.', 'context')
     }
@@ -60,6 +62,8 @@ export function createDiscussion(input: CreateDiscussionInput) {
     if (input.context?.type === 'post' && !(linkedPost && canLinkPost(authorId, linkedPost))) {
       throw new MockError('Só dá para ligar a discussão a uma publicação sua compartilhada no Feed ou no perfil.', 'context')
     }
+    moderate(title, 'title')
+    moderate(body, 'body')
 
     const discussion: Discussion = {
       id: newId(),
@@ -94,9 +98,7 @@ export function replyToDiscussion(input: { discussionId: string; body: string })
     if (body.length < REPLY_MIN_LENGTH) {
       throw new MockError(`Escreva pelo menos ${REPLY_MIN_LENGTH} caracteres.`, 'body')
     }
-    if (findBlockedTerm(body)) {
-      throw new MockError('Barrado pela moderação automática: linguagem ofensiva.', 'body')
-    }
+    moderate(body, 'body')
 
     const reply = { id: newId(), authorId, body, createdAt: new Date().toISOString() }
     db.set((state) => ({
@@ -107,5 +109,26 @@ export function replyToDiscussion(input: { discussionId: string; body: string })
     }))
     track('discussion_replied', { discussionId: discussion.id, isAuthor: authorId === discussion.authorId })
     return { id: reply.id }
+  })
+}
+
+/** Sets the solution explicitly (null reopens), so retrying never toggles it back. */
+export function setDiscussionSolution(input: { discussionId: string; replyId: string | null }) {
+  return mockAction('panel-app.discussions.solution.update', input, () => {
+    const userId = sessionUserId('Entre na sua conta para marcar uma solução.')
+    const discussion = db.get().discussions.find((candidate) => candidate.id === input.discussionId)
+    if (!discussion) throw new MockError('Esta discussão não existe mais.')
+    if (discussion.authorId !== userId) throw new MockError('Só o autor da discussão pode marcar ou desmarcar a solução.')
+    if (input.replyId !== null && !discussion.replies.some((reply) => reply.id === input.replyId)) {
+      throw new MockError('Esta resposta não pertence à discussão.')
+    }
+    if (discussion.solvedReplyId === input.replyId) return
+    db.set((state) => ({
+      ...state,
+      discussions: state.discussions.map((candidate) =>
+        candidate.id === discussion.id ? { ...candidate, solvedReplyId: input.replyId } : candidate,
+      ),
+    }))
+    track('discussion_solution_changed', { discussionId: discussion.id, replyId: input.replyId, userId })
   })
 }

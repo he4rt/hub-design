@@ -1,14 +1,18 @@
 import { Glob } from 'bun'
 import { canReadDiscussion } from '@/lib/discussions'
+import { existsSync } from 'node:fs'
+import { createHash } from 'node:crypto'
 import { canSee } from '@/lib/trajectory/visibility'
 import { itemKey, type StatePatch } from '@/mocks/api'
-import { db, type MockDb, type User } from '@/mocks/db'
+import { db, makeUser, type MockDb, type User } from '@/mocks/db'
 import { MockError } from '@/mocks/mock-action'
+import { completePendingGithubIdentity, enqueueGithubEffects } from './github-effects'
 import { all, first, insert, now, replaceRows, sql } from './database/connection'
 import { readState } from './database/read-state'
 import { writeState } from './database/write-state'
 import { seed } from './database/seed'
 import { createSession, currentSession, deleteSession, isStaff, sessionCookie, type Guard, type SessionRow } from './auth'
+import { clearAuthMail } from './mail-auth'
 
 /*
  * Runs the prototype's actions (every `actions.ts`) as the backend. Each call reads the state from
@@ -19,6 +23,8 @@ import { createSession, currentSession, deleteSession, isStaff, sessionCookie, t
 
 /** Debug mode: the debug sidebar may change the database directly and sign in as anyone. */
 export const DEBUG = process.env.HUB_DEBUG === '1'
+/** Set when Sign in with GitHub is configured: the OAuth App or the GitHub App (server/github.ts). */
+export const GITHUB_OAUTH = !!process.env.GITHUB_OAUTH_CLIENT_ID || !!process.env.GITHUB_CLIENT_ID || existsSync(`${process.env.HOME}/.config/he4rt-hub/github-app.json`)
 
 const ROOT = new URL('../src/', import.meta.url).pathname
 /** Same list as the Vite plugin in vite.config.ts. */
@@ -30,7 +36,7 @@ const MODULES = new Set(
 const ACTOR_PARAMS = ['userId', 'actorId', 'memberId', 'validatorId']
 
 type Fn = (...args: unknown[]) => unknown
-type Context = { request: Request; web?: SessionRow; admin?: SessionRow; cookies: string[] }
+export type Context = { request: Request; web?: SessionRow; admin?: SessionRow; cookies: string[] }
 
 export class HttpError extends Error {
   status: number
@@ -69,12 +75,26 @@ function authorize(module: string, fn: Fn, args: unknown[], state: MockDb, conte
     if (!DEBUG) throw new HttpError('Os webhooks do GitHub só são simulados no modo debug.', 403)
     return
   }
-  if (module.endsWith('/auth/actions')) return
+  const [first] = parameterNames(fn)
+  if (module.endsWith('/auth/actions')) {
+    // Provider identities come from the trusted OAuth callback, never from browser arguments.
+    if (!DEBUG) {
+      const linking = fn.name === 'answerOnboardingStep' && args[1] === 'github'
+      const hasGithub = userOf(state, context.web)?.linkedAccounts.some((a) => a.provider === 'github')
+      if (fn.name === 'socialLogin' || (linking && !hasGithub)) {
+        throw new HttpError('Autentique pelo próprio provedor.', 403)
+      }
+    }
+    // Login and registration are public; onboarding still acts on the signed-in account.
+    if (!ACTOR_PARAMS.includes(first)) return
+  }
+  if (!DEBUG && fn.name === 'connectAccount' && args[1] !== 'linkedin') {
+    throw new HttpError('Vincule a conta pelo próprio provedor.', 403)
+  }
   const admin = module.startsWith('modules/panel-admin/')
   const user = userOf(state, admin ? context.admin : context.web)
   if (!user) throw new HttpError(admin ? 'Entre na administração.' : 'Entre no Hub.', 401)
   if (admin && !isStaff(user)) throw new HttpError('Só a administração.', 403)
-  const [first] = parameterNames(fn)
   if (ACTOR_PARAMS.includes(first) && args[0] !== user.id) {
     throw new HttpError('Esta ação é de outra conta.', 403)
   }
@@ -127,11 +147,14 @@ function stateFor(context: Context, args: unknown[]): { state: MockDb; matched: 
 }
 
 /** Writes the state after the action, and signs users in or out as the action chose. */
-function persist(context: Context, after: MockDb, matched: Map<string, string>) {
+function persist(context: Context, after: MockDb, matched: Map<string, string>, effects?: () => void) {
   const passwords = { ...after.passwords }
   // A password the action left as it was goes back to its hash; a new one is hashed by writeState.
   for (const [id, plain] of matched) if (passwords[id] === plain) passwords[id] = hashOf(id)
-  replaceRows(() => writeState({ ...after, passwords }))
+  replaceRows(() => {
+    writeState({ ...after, passwords })
+    effects?.()
+  })
   syncSession(context, 'web', after.session?.userId ?? null, after.pendingSocialSignUp ?? after.pendingSocialLink)
   syncSession(context, 'admin', after.adminSession?.userId ?? null, null)
 }
@@ -185,6 +208,20 @@ function syncSession(
   }
 }
 
+/** Identity needed for attribution; the profile's body only leaves the API after publication. */
+function publicUser(user: User): User {
+  return makeUser({
+    id: user.id, name: user.name, username: user.username, email: '', birthDate: '',
+    role: user.role, photoUrl: user.photoUrl, createdAt: user.createdAt, onboardedAt: user.onboardedAt,
+    published: user.published,
+    ...(user.published ? {
+      bio: user.bio, objective: user.objective, areas: user.areas, languages: user.languages,
+      situation: user.situation, city: user.city, portfolioUrl: user.portfolioUrl,
+      linkedAccounts: user.linkedAccounts,
+    } : {}),
+  })
+}
+
 /**
  * The state as the signed-in user may see it, like the props of a page. The staff (admin session)
  * sees everything; a member sees their own records and what others chose to show members; a
@@ -196,8 +233,14 @@ export function viewState(context: Context): MockDb {
   const view: MockDb = {
     ...state,
     passwords: {},
-    passwordResets: DEBUG ? state.passwordResets : [],
-    events: DEBUG || isStaff(userOf(state, context.admin)) ? state.events : [],
+    passwordResets: DEBUG && isStaff(userOf(state, context.admin)) ? state.passwordResets : [],
+    events: isStaff(userOf(state, context.admin)) ? state.events : [],
+    profileRevisions: isStaff(userOf(state, context.admin)) ? state.profileRevisions : state.profileRevisions.filter((revision) => revision.userId === me),
+    projects: state.projects.map((p) => ({ ...p, reservedSeats: new Set(state.applications.filter((a) =>
+      a.projectId === p.id && a.status === 'accepted' && a.githubInvite === 'pending' &&
+      !state.memberships.some((m) => m.projectId === p.id && m.userId === a.userId && !m.leftAt),
+    ).map((a) => a.userId)).size })),
+    validationQueueSize: state.validationRequests.filter((r) => r.status === 'queued').length,
   }
   if (isStaff(userOf(state, context.admin))) return view
   const viewer = (ownerId: string) => (ownerId === me ? 'owner' : me ? 'member' : 'visitor')
@@ -206,16 +249,25 @@ export function viewState(context: Context): MockDb {
     const project = state.projects.find((p) => p.id === projectId)
     return state.squads.find((s) => s.id === project?.squadId)?.captainId
   }
+  const manages = (projectId: string) => !!me && (captainOf(projectId) === me || userOf(state, context.web)?.role === 'super-admin')
+  const participates = (projectId: string) => !!me && state.memberships.some((m) => m.userId === me && m.projectId === projectId && !m.leftAt)
+  const requests = state.validationRequests.filter((r) => !!me && (r.memberId === me || r.validatorId === me))
+  const assignedDeliveries = new Set(requests.filter((r) => r.validatorId === me).flatMap((r) => r.deliveryIds))
+  const validations = state.validations.filter((v) =>
+    (v.status === 'recorded' && (v.memberId === me || v.validatorId === me || (v.published && published.has(v.memberId)))) ||
+    (!!me && v.validatorId === me && requests.some((r) => r.id === v.requestId && r.validatorId === me)),
+  )
+  const visibleValidations = new Set(validations.map((v) => v.id))
   const feedPosts = state.feedPosts
     .filter((p) => p.userId === me || (!p.deletedAt && ((me && p.sharedOnFeed) || (p.shownOnProfile && published.has(p.userId)))))
-    .map((p) => (p.userId === me ? p : { ...p, revisions: [] }))
+    .map((p) => p.userId === me ? p : { ...p, revisions: [], reactions: p.showReactionCounts ? p.reactions : p.reactions.filter((r) => r.userId === me) })
+  const visibleCollections = new Set(feedPosts.flatMap((p) => p.collectionIds))
   // Comments are for members reading the Feed; a deleted one stays only for moderation.
   const discussed = new Set(feedPosts.filter((p) => p.sharedOnFeed && !p.deletedAt).map((p) => p.id))
   return {
     ...view,
-    // Never public: the e-mail, the birth date, and being open to opportunities (staff only).
-    users: state.users.map((u) => (u.id === me ? u : { ...u, email: '', birthDate: '', openToOpportunities: false })),
-    profiles: state.profiles.map((p) => {
+    users: state.users.map((u) => u.id === me ? u : publicUser(u)),
+    profiles: state.profiles.filter((p) => p.userId === me || published.has(p.userId)).map((p) => {
       const sees = <T extends { visibility: 'private' | 'community' | 'public' }>(records: T[]) =>
         records.filter((r) => canSee(r.visibility, viewer(p.userId)))
       return {
@@ -233,11 +285,29 @@ export function viewState(context: Context): MockDb {
       .filter((p) => feedPosts.some((post) => post.projectId === p.id && !post.deletedAt))
       .map((p) => (p.userId === me ? p : { ...p, revisions: [] })),
     feedComments: me ? state.feedComments.filter((c) => !c.deletedAt && discussed.has(c.postId)) : [],
-    feedBookmarks: state.feedBookmarks.filter((b) => b.userId === me),
     discussions: state.discussions.filter((discussion) => canReadDiscussion(state, discussion, me)),
-    applications: state.applications.filter((a) => a.userId === me || captainOf(a.projectId) === me),
+    feedCollections: state.feedCollections.filter((c) => c.userId === me || visibleCollections.has(c.id)),
+    feedBookmarks: state.feedBookmarks.filter((b) => b.userId === me),
+    applications: state.applications.filter((a) => !!me && (a.userId === me || manages(a.projectId))),
+    entryTests: state.entryTests.filter((t) => t.userId === me || published.has(t.userId) || state.applications.some((a) => a.userId === t.userId && manages(a.projectId))),
+    boardItems: state.boardItems.filter((b) => manages(b.projectId) || participates(b.projectId)),
+    deliveries: state.deliveries.flatMap((d) => {
+      const internal = manages(d.projectId) || participates(d.projectId) || assignedDeliveries.has(d.id) || d.credits.some((c) => c.userId === me)
+      if (internal) return [d]
+      return d.status === 'accepted' ? [{ ...d, context: '', returnedReason: null, decisions: [] }] : []
+    }),
+    githubSync: { ...state.githubSync, repositories: [], divergences: [] },
     validatorApplications: state.validatorApplications.filter((a) => a.userId === me),
-    validations: state.validations.filter((v) => v.memberId === me || v.validatorId === me || v.published),
+    validators: state.validators.filter((v) => v.userId === me || (published.has(v.userId) && !v.suspension)).map((v) => v.userId === me ? v : {
+      ...v, jobTitle: v.showEmployer ? v.jobTitle : '', company: v.showEmployer ? v.company : '', lastAssignedAt: null,
+    }),
+    validationRequests: requests.map((r) => ({ ...r, conflicts: [] })),
+    validationQueueSize: state.validators.some((v) => v.userId === me && !v.suspension) ? view.validationQueueSize : undefined,
+    validations: validations.map((v) => v.validatorId === me ? v : { ...v, review: null }),
+    contestations: state.contestations.filter((c) => visibleValidations.has(c.validationId)).map((c) =>
+      c.openedBy === me || validations.some((v) => v.id === c.validationId && v.memberId === me)
+        ? c : { ...c, openedBy: '', reason: '', decision: null },
+    ),
   }
 }
 
@@ -257,34 +327,74 @@ export function showState(request: Request): Response {
   return new Response(JSON.stringify(viewState(context)), { headers: { 'content-type': 'application/json' } })
 }
 
-/** POST /api/actions/:name, body { module, export, args }: runs one action. */
-export function runAction(request: Request, name: string, body: { module: string; export: string; args: unknown[] }) {
-  return exclusive(async () => {
-    const context = contextOf(request)
-    if (!MODULES.has(body.module) || !Array.isArray(body.args)) throw new HttpError('Ação desconhecida.', 404)
-    const exports = (await import(`${ROOT}${body.module}.ts`)) as Record<string, unknown>
-    const fn = exports[body.export]
-    if (typeof fn !== 'function') throw new HttpError('Ação desconhecida.', 404)
+type Outcome = { output: unknown; failure: unknown; tracked: MockDb['events'] }
 
-    const { state: before, matched } = stateFor(context, body.args)
-    authorize(body.module, fn as Fn, body.args, before, context)
-    db.set(() => before)
-    let output: unknown
-    let failure: unknown
-    try {
-      output = await (fn as Fn)(...body.args)
-    } catch (error) {
-      failure = error
+/**
+ * Runs one action for the request's sessions and writes the result. `trusted` is for calls the API
+ * builds itself, such as the GitHub OAuth callback, whose arguments come from GitHub, not the browser.
+ */
+export async function execute(context: Context, call: { module: string; export: string; args: unknown[] }, trusted = false): Promise<Outcome> {
+  if (!MODULES.has(call.module) || !Array.isArray(call.args)) throw new HttpError('Ação desconhecida.', 404)
+  const exports = (await import(`${ROOT}${call.module}.ts`)) as Record<string, unknown>
+  const fn = exports[call.export]
+  if (typeof fn !== 'function') throw new HttpError('Ação desconhecida.', 404)
+
+  const { state: before, matched } = stateFor(context, call.args)
+  if (!trusted) authorize(call.module, fn as Fn, call.args, before, context)
+  const receiptGuard = call.module.startsWith('modules/panel-admin/') ? 'admin' : 'web'
+  const receiptSession = context[receiptGuard]
+  const key = !trusted && !call.module.endsWith('/auth/actions') && call.module !== 'mocks/github'
+    && receiptSession?.user_id ? context.request.headers.get('idempotency-key') : null
+  if (key !== null && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(key)) throw new HttpError('Idempotency-Key inválida.', 400)
+  const scope = createHash('sha256').update(JSON.stringify([receiptGuard, receiptSession?.id, receiptSession?.user_id])).digest('hex')
+  const payloadHash = createHash('sha256').update(JSON.stringify(call)).digest('hex')
+  if (key) {
+    const receipt = first<{ payload_hash: string; output: string }>('SELECT payload_hash,output FROM action_receipts WHERE scope=$scope AND key=$key AND expires_at>$at', { scope, key, at: Date.now() })
+    if (receipt) {
+      if (receipt.payload_hash !== payloadHash) throw new HttpError('Esta chave já foi usada com outra ação.', 409)
+      return { output: JSON.parse(receipt.output), failure: undefined, tracked: [] }
     }
-    // Like the mock, what the action wrote before refusing stays (an underage sign-up drops the social login).
-    persist(context, db.get(), matched)
-    console.log(`${name} ${failure ? `→ ${failure instanceof Error ? failure.message : failure}` : 'ok'}`)
-    // The product events the action sent, for the browser's debug log.
-    const tracked = db.get().events.filter((event) => !before.events.includes(event))
-    if (failure instanceof MockError) return respond(context, { message: failure.message, field: failure.field ?? null, tracked }, 422)
-    if (failure) throw failure
-    return respond(context, { output: output ?? null, tracked })
+  }
+  db.set(() => before)
+  let output: unknown
+  let failure: unknown
+  try {
+    // The browser's mock sweep is a simulation, not evidence from GitHub. The backend queues a
+    // real sweep after the same guard/actor authorization, without reopening local returned work.
+    output = call.module === 'modules/panel-admin/features/system/github/actions' && call.export === 'syncGithub'
+      ? { queued: true, created: 0 }
+      : await (fn as Fn)(...call.args)
+  } catch (error) {
+    failure = error
+  }
+  // Like the mock, what the action wrote before refusing stays (an underage sign-up drops the social login).
+  persist(context, db.get(), matched, failure ? undefined : () => {
+    completePendingGithubIdentity(context.web?.id, db.get())
+    enqueueGithubEffects(call, before, db.get())
+    if (key) {
+      sql.query('DELETE FROM action_receipts WHERE expires_at<=?').run(Date.now())
+      sql.query('INSERT INTO action_receipts(scope,key,payload_hash,output,expires_at) VALUES(?,?,?,?,?)')
+        .run(scope, key, payloadHash, JSON.stringify(output ?? null), Date.now() + 48 * 60 * 60 * 1000)
+    }
   })
+  console.log(`${call.module}.${call.export} ${failure ? `→ ${failure instanceof Error ? failure.message : failure}` : 'ok'}`)
+  // The product events the action sent, for the browser's debug log.
+  return { output, failure, tracked: db.get().events.filter((event) => !before.events.includes(event)) }
+}
+
+/** Runs `work` with the request's sessions, one write at a time. */
+export function withContext<T>(request: Request, work: (context: Context) => Promise<T>): Promise<T> {
+  return exclusive(() => work(contextOf(request)))
+}
+
+/** POST /api/actions/:name, body { module, export, args }: runs one action. */
+export async function runAction(request: Request, _name: string, body: { module: string; export: string; args: unknown[] }) {
+  const { context, outcome } = await withContext(request, async (context) => ({ context, outcome: await execute(context, body) }))
+  const { output, failure, tracked } = outcome
+  if (failure instanceof MockError) return respond(context, { message: failure.message, field: failure.field ?? null, tracked }, 422)
+  if (failure) throw failure
+  // External effects are durable intents committed with the model, never awaited by the request.
+  return respond(context, { output: output ?? null, tracked })
 }
 
 /** POST /api/debug/state: a change the debug sidebar made to the store, as a patch. */
@@ -320,7 +430,10 @@ function restore(collection: string, item: unknown, stored: unknown): unknown {
   if (collection === 'users') {
     const [next, old] = [item as User, stored as User]
     if (next.email !== '') return next
-    return { ...next, email: old.email, birthDate: old.birthDate, openToOpportunities: old.openToOpportunities }
+    const visible = publicUser(old)
+    return Object.fromEntries(Object.entries(next).map(([key, value]) => [
+      key, JSON.stringify(value) === JSON.stringify(visible[key as keyof User]) ? old[key as keyof User] : value,
+    ]))
   }
   if (collection === 'profiles') {
     const [next, old] = [item as MockDb['profiles'][number], stored as MockDb['profiles'][number]]
@@ -352,6 +465,7 @@ function restore(collection: string, item: unknown, stored: unknown): unknown {
 export function resetState(request: Request) {
   return exclusive(async () => {
     if (!DEBUG) throw new HttpError('O modo debug está desligado na API.', 403)
+    clearAuthMail()
     await seed()
     const context: Context = { request, cookies: [sessionCookie('web', null), sessionCookie('admin', null)] }
     return respond(context, { output: null })

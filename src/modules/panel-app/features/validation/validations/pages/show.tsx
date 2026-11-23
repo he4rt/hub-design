@@ -13,6 +13,7 @@ import { useDebugActions } from '@/debug/use-debug-actions'
 import { useDb } from '@/mocks/db'
 import { errorMessage } from '@/mocks/mock-action'
 import { formatDate } from '@/mocks/squads'
+import { validationHistory } from '@/mocks/validation'
 import { contestValidation, hasOpenContestation } from '../actions'
 import '@/components/validation/validation-page.css'
 
@@ -42,7 +43,7 @@ export default function Show() {
 
   if (!validation) return <NotFound />
 
-  const previous = state.validations.find((v) => v.id === validation.supersedesId)
+  const history = validationHistory(state.validations, validation, true)
   const contestations = state.contestations.filter((c) => c.validationId === validation.id)
   const project = state.projects.find((p) => p.id === validation.projectId)
 
@@ -57,17 +58,17 @@ export default function Show() {
         }
       />
       <Card>
-        <ValidationRecord validation={validation} projectName={project?.name} />
+        <ValidationRecord validation={validation} projectName={project?.name} showHistory={false} />
       </Card>
-      {previous && (
-        <Card>
+      {history.map((previous) => (
+        <Card key={previous.id}>
           <CardHeader>
             <h2>Registro anterior</h2>
           </CardHeader>
           <p className="validation-page__muted">Esta validação corrige a anterior, que continua visível.</p>
-          <ValidationRecord validation={previous} projectName={project?.name} />
+          <ValidationRecord validation={previous} projectName={project?.name} showHistory={false} />
         </Card>
-      )}
+      ))}
       <Card>
         <CardHeader>
           <h2>Contestação</h2>

@@ -6,6 +6,7 @@ import { areaLabels, LINKED_PROVIDERS } from '@/lib/member-profile'
 import type { LinkedProvider, User } from '@/mocks/db'
 import { errorMessage } from '@/mocks/mock-action'
 import { canUnlink } from '@/modules/panel-app/lib/linked-accounts'
+import { githubOAuthUrl } from '@/modules/panel-app/lib/github-oauth'
 import { connectAccount, disconnectAccount, resolveGithubSuggestion } from '../actions'
 import './linked-accounts.css'
 
@@ -52,6 +53,10 @@ export function LinkedAccounts({ account }: { account: User }) {
                 ) : (
                   <span className="linked-accounts__only">Único login</span>
                 )
+              ) : value === 'github' ? (
+                <Button asChild variant="secondary" size="sm">
+                  <a href={githubOAuthUrl('link', '/app/settings/profile')}>Conectar</a>
+                </Button>
               ) : (
                 <Button
                   variant="secondary"

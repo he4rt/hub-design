@@ -12,7 +12,7 @@ import { useDebugActions } from '@/debug/use-debug-actions'
 import { useActionRunner } from '@/hooks/use-action-runner'
 import { db } from '@/mocks/db'
 import { errorMessage } from '@/mocks/mock-action'
-import { activeMemberships } from '@/mocks/squads'
+import { activeMemberships, reservedSeats } from '@/mocks/squads'
 import { useSquadPage } from '../../hooks/use-squad-page'
 import { endProject, updateProjectSettings } from '../actions'
 import '../../components/squad-page.css'
@@ -27,6 +27,7 @@ export default function Edit() {
   const { state, userId, squad, manager } = useSquadPage()
   const project = state.projects.find((p) => p.squadId === squad?.id && p.slug === projectSlug)
   const [seats, setSeats] = useState(String(project?.seats ?? 0))
+  const [archiveRepository, setArchiveRepository] = useState(false)
   const [rows, setRows] = useState<Row[]>(() =>
     (project?.applicationQuestions ?? []).map((q) => ({ ...q, rowId: crypto.randomUUID() })),
   )
@@ -56,7 +57,7 @@ export default function Edit() {
       <PageHeader title={`${project.name}: perguntas e lugares`} description={`Squad ${squad.name}.`} />
       <Card>
         <form action={submit} className="project-settings">
-          <Field id="seats" label="Lugares" hint={`Contam todos os membros ativos, você incluído (${activeMemberships(state, project.id).length} agora).`}>
+          <Field id="seats" label="Lugares" hint={`${activeMemberships(state, project.id).length} membros ativos, você incluído; ${project.reservedSeats ?? reservedSeats(state, project.id)} convites reservados.`}>
             <Input id="seats" type="number" min={1} max={12} value={seats} onChange={(e) => setSeats(e.target.value)} className="project-settings__seats" />
           </Field>
           <CardHeader>
@@ -94,7 +95,7 @@ export default function Edit() {
           </div>
           <FormMessage tone={result?.tone ?? 'success'}>{result?.text}</FormMessage>
           <div className="squad-page__actions">
-            <Button type="submit" loading={pending}>
+            <Button type="submit" loading={pending} disabled={project.status !== 'active'}>
               Salvar
             </Button>
           </div>
@@ -102,14 +103,18 @@ export default function Edit() {
       </Card>
       {project.status === 'active' && (
         <Card>
+          <label className="project-settings__check">
+            <Checkbox checked={archiveRepository} onCheckedChange={(value) => setArchiveRepository(value === true)} disabled={ending.pending} />
+            Arquivar também o repositório no GitHub
+          </label>
           <div className="squad-page__row">
             <p className="squad-page__muted">
-              Encerrar o projeto deixa o squad inativo e responde as candidaturas pendentes. O log fica.
+              Encerrar o projeto deixa o squad inativo, fecha candidaturas e convites pendentes e remove os acessos gerenciados pela integração. O log fica.
             </p>
             <Button
               variant="danger"
               loading={ending.pending}
-              onClick={() => ending.run(() => endProject(userId, project.id), () => navigate(`/app/squads/${squad.slug}`))}
+              onClick={() => ending.run(() => endProject(userId, project.id, { archiveRepository }), () => navigate(`/app/squads/${squad.slug}`))}
             >
               Encerrar projeto
             </Button>

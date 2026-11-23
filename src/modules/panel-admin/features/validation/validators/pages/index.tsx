@@ -21,6 +21,7 @@ export default function Index() {
   const state = useDb((s) => s)
   const { run, pending, error, success } = useActionRunner()
   const [reason, setReason] = useState('')
+  const [suspensionReasons, setSuspensionReasons] = useState<Record<string, string>>({})
   const name = (id: string) => state.users.find((u) => u.id === id)?.name ?? '?'
   const pendingApps = state.validatorApplications.filter((a) => a.status === 'pending')
   const superAdmin = isSuperAdmin(admin)
@@ -113,6 +114,11 @@ export default function Index() {
                   </span>
                 </div>
                 {v.suspension && <p className="validators__caption">Motivo da suspensão: {v.suspension.reason}</p>}
+                {superAdmin && !v.suspension && (
+                  <Field id={`suspension-${v.userId}`} label="Motivo da suspensão" required hint="Ao menos 10 caracteres. Os pedidos voltam à frente da fila.">
+                    <Input id={`suspension-${v.userId}`} value={suspensionReasons[v.userId] ?? ''} disabled={pending} onChange={(e) => setSuspensionReasons((reasons) => ({ ...reasons, [v.userId]: e.target.value }))} />
+                  </Field>
+                )}
                 {superAdmin && (
                   <div className="validators__actions">
                     {v.suspension ? (
@@ -123,10 +129,13 @@ export default function Index() {
                       <Button
                         size="sm"
                         variant="danger"
-                        disabled={pending}
-                        onClick={() => run(() => suspendValidator(admin?.id ?? '', v.userId, reason), 'Suspenso; pedidos voltaram à fila.')}
+                        disabled={pending || (suspensionReasons[v.userId] ?? '').trim().length < 10}
+                        onClick={() => run(async () => {
+                          await suspendValidator(admin?.id ?? '', v.userId, suspensionReasons[v.userId] ?? '')
+                          setSuspensionReasons((reasons) => ({ ...reasons, [v.userId]: '' }))
+                        }, 'Suspenso; pedidos voltaram à fila.')}
                       >
-                        Suspender (usa o motivo acima)
+                        Suspender
                       </Button>
                     )}
                   </div>

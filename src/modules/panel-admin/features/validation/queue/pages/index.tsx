@@ -143,7 +143,7 @@ export default function Index() {
           <p className="admin-queue__muted">Fila vazia.</p>
         ) : (
           <ol className="admin-queue__list">
-            {queued.slice(0, 20).map((r, i) => (
+            {queued.map((r, i) => (
               <li key={r.id} className="admin-queue__line">
                 <span className="admin-queue__name">
                   <span className="admin-queue__pos">{i + 1}.</span> {name(r.memberId)}{' '}

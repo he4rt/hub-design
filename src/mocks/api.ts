@@ -33,23 +33,30 @@ export function remote<F extends (...args: never[]) => unknown>(module: string, 
 export function callServer(action: string): () => Promise<unknown> {
   const call = current
   if (!call) throw new Error(`A ação ${action} precisa ser exportada de um actions.ts.`)
-  return () => send(`/api/actions/${action}`, { module: call.module, export: call.name, args: call.args })
+  const authenticated = !!(db.get().session || db.get().adminSession)
+  const key = authenticated && call.module !== 'mocks/github' && !call.module.endsWith('/auth/actions') ? crypto.randomUUID() : undefined
+  return () => send(`/api/actions/${action}`, { module: call.module, export: call.name, args: call.args }, key)
 }
 
 /** One request at a time, in order, so a debug change and the action after it never cross. */
 let queue: Promise<unknown> = Promise.resolve()
 
-function send(url: string, body: unknown): Promise<unknown> {
-  const request = queue.then(() => post(url, body))
+function send(url: string, body: unknown, key?: string): Promise<unknown> {
+  const request = queue.then(() => post(url, body, key))
   queue = request.catch(() => undefined)
   return request
 }
 
-async function post(url: string, body: unknown): Promise<unknown> {
-  const response = await fetch(url, {
+async function post(url: string, body: unknown, key?: string): Promise<unknown> {
+  const options: RequestInit = {
     method: 'POST',
-    headers: { 'content-type': 'application/json' },
+    headers: { 'content-type': 'application/json', ...(key ? { 'idempotency-key': key } : {}) },
     body: JSON.stringify(body),
+  }
+  // Only authenticated, receipted actions can retry an uncertain network result safely.
+  const response = await fetch(url, options).catch((error: unknown) => {
+    if (!key) throw error
+    return fetch(url, options)
   })
   const data = (await response.json().catch(() => ({}))) as {
     output?: unknown
@@ -58,7 +65,7 @@ async function post(url: string, body: unknown): Promise<unknown> {
     message?: string
     field?: string
   }
-  for (const { event, props } of (data.tracked ?? []).toReversed()) logFinish(logStart(`posthog: ${event}`, props), { status: 'success' })
+  for (const { event, props } of (data.tracked ?? []).toReversed()) logFinish(logStart(`analytics: ${event}`, props), { status: 'success' })
   // The state comes back on errors too: a refusal can change it, like an underage sign-up.
   if (data.state) applyServerState(data.state)
   if (response.status >= 400 && response.status < 500) throw new MockError(data.message ?? 'Algo deu errado.', data.field ?? undefined)
@@ -83,6 +90,17 @@ export async function loadServerState() {
   if (!response.ok) throw new Error(`HTTP ${response.status}`)
   applyServerState((await response.json()) as MockDb)
   db.subscribe(sendDebugChange)
+  // The other person's decisions become visible when returning to the tab; no parallel stale GET.
+  const refresh = () => {
+    if (document.visibilityState !== 'visible') return
+    const request = queue.then(async () => {
+      const response = await fetch('/api/state')
+      if (response.ok) applyServerState((await response.json()) as MockDb)
+    })
+    queue = request.catch(() => undefined)
+  }
+  window.addEventListener('focus', refresh)
+  document.addEventListener('visibilitychange', refresh)
 }
 
 /** "Resetar dados mockados": the API loads the seed again and signs everyone out. */

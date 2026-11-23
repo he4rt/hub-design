@@ -153,7 +153,7 @@ export default function PublicProfile() {
     .flatMap((b) => posts.filter((p) => p.id === b.postId && p.deletedAt === null && p.sharedOnFeed && p.userId !== user.id))
   const publishedValidations = validations
     .filter((v) => v.memberId === user.id && v.status === 'recorded' && v.published)
-    .filter((v) => !validations.some((n) => n.supersedesId === v.id && n.status === 'recorded'))
+    .filter((v) => !validations.some((n) => n.supersedesId === v.id && n.status === 'recorded' && n.published))
     .toSorted((a, b) => (b.recordedAt ?? '').localeCompare(a.recordedAt ?? ''))
   const firstName = user.name.split(' ')[0]
   const achievements = shownAchievements(memberAchievements(state, user.id, now), asOwner)

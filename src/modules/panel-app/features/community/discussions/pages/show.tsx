@@ -1,7 +1,8 @@
-import { useState, useSyncExternalStore } from 'react'
+import { useActionState, useState, useSyncExternalStore } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { CheckCircle2, ChevronDown, FileText, LifeBuoy, MessagesSquare } from 'lucide-react'
 import { MemberProjectPreview } from '@/components/member-project-preview'
+import { FormMessage } from '@/components/form-message'
 import { NotFound } from '@/components/not-found'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
@@ -10,10 +11,12 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { useDebugActions } from '@/debug/use-debug-actions'
 import { useNow } from '@/hooks/use-now'
 import { db, useDb } from '@/mocks/db'
+import { errorMessage } from '@/mocks/mock-action'
 import { MemberLink } from '@/modules/panel-app/components/member-link'
 import { formatDay, formatRelative } from '@/lib/dates'
 import { formatPostDate } from '@/lib/feed-post'
 import { categoryLabels, discussionContext } from '@/modules/panel-app/lib/discussions'
+import { setDiscussionSolution } from '../actions'
 import { ReplyForm } from '../components/reply-form'
 import { ProjectDocuments } from '../components/project-documents'
 import { SignInPrompt } from '../components/sign-in-prompt'
@@ -42,6 +45,18 @@ export default function DiscussionShow() {
       return () => query.removeEventListener('change', notify)
     },
     () => window.matchMedia('(min-width: 1100px)').matches,
+  )
+  const [solutionResult, submitSolution, solutionPending] = useActionState(
+    async (_previous: { ok: boolean; message: string } | null, data: FormData) => {
+      try {
+        const replyId = String(data.get('replyId') ?? '') || null
+        await setDiscussionSolution({ discussionId: discussionId!, replyId })
+        return { ok: true, message: replyId ? 'Solução marcada.' : 'Solução desmarcada.' }
+      } catch (error) {
+        return { ok: false, message: errorMessage(error) }
+      }
+    },
+    null,
   )
 
   useDebugActions('Discussão', [
@@ -148,6 +163,7 @@ export default function DiscussionShow() {
                   : `${discussion.replies.length} respostas`}
             </h2>
             {discussion.replies.length > 0 && (
+              <form action={submitSolution} className="discussion-show__solutions">
               <ol className="discussion-show__reply-list">
                 {discussion.replies.map((reply) => (
                   <li key={reply.id}>
@@ -165,16 +181,35 @@ export default function DiscussionShow() {
                         </time>
                       </header>
                       <p>{reply.body}</p>
-                      {reply.id === discussion.solvedReplyId && (
-                        <p className="discussion-show__solved-note">
+                      <p className="discussion-show__solved-note" aria-live="polite">
+                        {reply.id === discussion.solvedReplyId && <>
                           <CheckCircle2 size={14} aria-hidden />
                           {firstName} marcou esta resposta como a que resolveu.
-                        </p>
+                        </>}
+                      </p>
+                      {sessionUserId === discussion.authorId && (
+                        <Button
+                          type="submit"
+                          name="replyId"
+                          value={reply.id === discussion.solvedReplyId ? '' : reply.id}
+                          variant="secondary"
+                          size="sm"
+                          loading={solutionPending}
+                          className="discussion-show__solution-button"
+                        >
+                          {reply.id === discussion.solvedReplyId ? 'Desmarcar solução' : 'Marcar como solução'}
+                        </Button>
                       )}
                     </article>
                   </li>
                 ))}
               </ol>
+              {sessionUserId === discussion.authorId && (
+                <FormMessage tone={solutionResult?.ok === false ? 'error' : 'success'}>
+                  {solutionResult?.message}
+                </FormMessage>
+              )}
+              </form>
             )}
 
             {!memberProject && (sessionUserId ? (

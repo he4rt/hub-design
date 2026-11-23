@@ -1,4 +1,5 @@
 import { GitMerge } from 'lucide-react'
+import { ENTRY_TEST_REPOSITORY } from '@/lib/github'
 import { useState, useTransition } from 'react'
 import { Link } from 'react-router'
 import { FormMessage } from '@/components/form-message'
@@ -85,8 +86,8 @@ export default function Show() {
               meta={
                 <>
                   Por exemplo{' '}
-                  <a href="https://github.com/he4rt/primeiro-commit" target="_blank" rel="noreferrer" className="entry-test__mono">
-                    he4rt/primeiro-commit
+                  <a href={`https://github.com/${ENTRY_TEST_REPOSITORY}`} target="_blank" rel="noreferrer" className="entry-test__mono">
+                    {ENTRY_TEST_REPOSITORY}
                   </a>
                   .
                 </>

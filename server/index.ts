@@ -1,8 +1,12 @@
 import './runtime'
 import { all, hasSchema, sql } from './database/connection'
 import { migrateFeed } from './database/migrate-feed'
+import { currentSession } from './auth'
 import { seed } from './database/seed'
+import { startGithubWorker } from './github-sync'
+import { manifestCallback, manifestPage, oauthCallback, oauthStart, webhook } from './github'
 import { applyDebugPatch, DEBUG, HttpError, resetState, runAction, showState } from './actions'
+import { confirmEmailVerification, developmentMail, dispatchAuthMail, emailVerificationPage } from './mail-auth'
 
 /*
  * He4rt Hub API: Bun.serve + SQLite. Runs beside the Vite dev server, which proxies /api here, so
@@ -10,8 +14,18 @@ import { applyDebugPatch, DEBUG, HttpError, resetState, runAction, showState } f
  */
 
 if (!hasSchema()) await seed()
-
 migrateFeed(sql)
+startGithubWorker()
+process.env.APP_URL ??= process.env.HUB_PUBLIC_URL ?? process.env.HUB_PORTAL_URL
+if (process.env.MAIL_TRANSPORT === 'resend' && process.env.MAIL_RESEND_API_KEY && process.env.MAIL_FROM) {
+  let dispatching = false
+  setInterval(async () => {
+    if (dispatching) return
+    dispatching = true
+    try { await dispatchAuthMail() } catch { console.error('[mail] envio pendente; nova tentativa agendada.') }
+    finally { dispatching = false }
+  }, 5000)
+}
 
 type Handler = (request: Request, params: string[]) => Response | Promise<Response>
 
@@ -33,6 +47,21 @@ const routes: [string, string, Handler][] = [
   ['POST', '/api/actions/:name', async (r, [name]) => runAction(r, name, await body(r))],
   ['POST', '/api/debug/state', async (r) => applyDebugPatch(r, await body(r))],
   ['POST', '/api/debug/reset', (r) => resetState(r)],
+  ['GET', '/api/debug/mail', (r) => developmentMail(r)],
+  ['GET', '/api/auth/email/verify', (r) => emailVerificationPage(r)],
+  ['POST', '/api/auth/email/verify', (r) => confirmEmailVerification(r)],
+  ['GET', '/api/github/manifest', (r) => manifestPage(r)],
+  ['GET', '/api/github/manifest/callback', (r) => manifestCallback(r)],
+  ['GET', '/api/github/oauth/start', (r) => oauthStart(r)],
+  ['GET', '/api/github/oauth/callback', (r) => oauthCallback(r)],
+  ['POST', '/api/github/webhook', (r) => webhook(r)],
+  ['POST', '/webhooks/github', (r) => webhook(r)],
+  ['GET', '/api/github/jobs', (r) => {
+    const session = currentSession(r, 'admin')
+    const user = session && all<{ role: string }>('SELECT role FROM users WHERE id=$id', { id: session.user_id })[0]
+    if (!user || !['admin', 'super-admin'].includes(user.role)) throw new HttpError('Entre na administração.', 401)
+    return json({ jobs: all(`SELECT id,kind,dedupe_key,status,attempts,available_at,last_error,created_at,completed_at FROM github_jobs ORDER BY id DESC LIMIT 200`) })
+  }],
   ['GET', '/api/tables', () => json({ tables: tableCounts() })],
   ['GET', '/api/tables/:name', (_, [name]) => json(tableRows(name))],
 ]
@@ -61,7 +90,7 @@ function tableCounts() {
 /** Rows of one table for the explorer; secrets are masked. */
 function tableRows(name: string) {
   if (!tableNames().includes(name)) throw new HttpError('Tabela não encontrada.', 404)
-  const masked: Record<string, string[]> = { users: ['password'], sessions: ['id'], pending_social_identities: ['session_id'], password_reset_tokens: ['token'] }
+  const masked: Record<string, string[]> = { users: ['password'], sessions: ['id'], pending_social_identities: ['session_id'], password_reset_tokens: ['token'], github_resources: ['key'], github_jobs: ['payload'] }
   const rows = all<Record<string, unknown>>(`SELECT * FROM "${name}" ORDER BY rowid LIMIT 200`).map((row) => {
     for (const column of masked[name] ?? []) if (row[column]) row[column] = '••••'
     return row
@@ -78,10 +107,17 @@ const server = Bun.serve({
     if (!found) return Response.json({ message: 'Rota não encontrada.' }, { status: 404 })
     // A write from another origin never carries the session: same origin only, like Laravel's CSRF check.
     const origin = request.headers.get('origin')
-    if (request.method !== 'GET' && origin && new URL(origin).host !== (request.headers.get('x-forwarded-host') ?? url.host)) {
+    if (request.method !== 'GET' && origin && new URL(origin).host !== (request.headers.get('x-forwarded-host') ?? request.headers.get('host') ?? url.host)) {
       return Response.json({ message: 'Origem não permitida.' }, { status: 403 })
     }
     try {
+      const development = url.pathname === '/api' || url.pathname.startsWith('/api/tables') || url.pathname.startsWith('/api/github/manifest')
+      if (development) {
+        if (!DEBUG) throw new HttpError('Rota não encontrada.', 404)
+        const session = currentSession(request, 'admin')
+        const staff = session && all<{ role: string }>('SELECT role FROM users WHERE id = $id', { id: session.user_id })[0]
+        if (!staff || !['admin', 'super-admin'].includes(staff.role)) throw new HttpError('Entre na administração.', 401)
+      }
       return await found[0](request, found[1])
     } catch (error) {
       if (error instanceof HttpError) return Response.json({ message: error.message, field: error.field ?? null }, { status: error.status })

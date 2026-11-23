@@ -52,6 +52,9 @@ export function writeState(state: MockDb) {
       insert('github_suggestion_items', { user_id: user.id, kind: 'language', value, position }),
     )
   }
+  for (const revision of state.profileRevisions) {
+    insert('profile_revisions', { id: revision.id, user_id: revision.userId, actor_id: revision.actorId, collection: revision.collection, record_id: revision.recordId, operation: revision.operation, snapshot: revision.snapshot, at: revision.at })
+  }
   for (const reset of state.passwordResets) {
     insert('password_reset_tokens', { email: reset.email, token: reset.token, created_at: reset.createdAt })
   }
@@ -319,6 +322,7 @@ function writeSquads(state: MockDb) {
       insert('board_item_pull_requests', { board_item_id: b.id, number: pr.number, url: pr.url, merged: pr.merged, author_id: pr.authorId })
       const id = lastId()
       for (const user_id of pr.coAuthorIds) insert('board_item_pull_request_co_authors', { pull_request_id: id, user_id })
+      for (const user_id of pr.reviewerIds ?? []) insert('board_item_pull_request_reviewers', { pull_request_id: id, user_id })
     }
   }
   for (const d of state.deliveries) {
@@ -341,6 +345,9 @@ function writeSquads(state: MockDb) {
     for (const e of d.evidence) {
       insert('squad_delivery_evidence', { delivery_id: d.id, kind: e.kind, ref: e.ref, url: e.url, author_id: e.authorId })
     }
+    for (const entry of d.decisions ?? []) {
+      insert('squad_delivery_decisions', { id: entry.id, delivery_id: d.id, decision: entry.decision, actor_id: entry.actorId, reason: entry.reason, at: entry.at })
+    }
   }
   for (const l of state.squadLog) {
     insert('squad_log_entries', {
@@ -356,6 +363,7 @@ function writeSquads(state: MockDb) {
     })
   }
   insert('github_sync_state', { id: 1, last_webhook_at: state.githubSync.lastWebhookAt, last_sweep_at: state.githubSync.lastSweepAt })
+  state.githubSync.repositories.forEach((full_name, position) => insert('github_repositories', { full_name, position }))
   for (const d of state.githubSync.divergences) {
     insert('github_sync_divergences', { id: d.id, description: d.description, detected_at: d.detectedAt })
   }

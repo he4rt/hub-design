@@ -1,6 +1,7 @@
 import { useActionState, useState } from 'react'
 import { Field } from '@/components/field'
 import { FormMessage } from '@/components/form-message'
+import { DeliveryHistory } from '@/components/squads/delivery-history'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -9,7 +10,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import type { SquadDelivery, MockDb } from '@/mocks/db'
 import { errorMessage } from '@/mocks/mock-action'
-import { acceptDelivery, returnDelivery } from '../actions'
+import { isSuperAdmin } from '@/mocks/squads'
+import { acceptDelivery, needsSuperAdmin, returnDelivery } from '../actions'
 import './delivery-review.css'
 
 /** One pending delivery: the captain checks the criterion and writes who did what. */
@@ -21,6 +23,9 @@ export function DeliveryReview({ state, delivery, actorId }: { state: MockDb; de
   const [context, setContext] = useState(delivery.context)
   const [reason, setReason] = useState('')
   const name = (id: string) => state.users.find((u) => u.id === id)?.name ?? '?'
+  const captainId = state.squads.find((s) => s.id === project?.squadId)?.captainId ?? null
+  const ownWork = needsSuperAdmin(captainId, credits.filter((c) => c.part.trim())) && !isSuperAdmin(state.users.find((u) => u.id === actorId))
+  const blocker = project?.status !== 'active' ? 'O projeto não está ativo.' : !criterion ? 'Ligue a entrega a um critério de aceite no GitHub antes de aceitar.' : ownWork ? 'Uma entrega creditada só ao capitão é aceita pelo super admin.' : null
 
   const [result, submit, pending] = useActionState(async (_: string | null, form: FormData) => {
     try {
@@ -56,6 +61,7 @@ export function DeliveryReview({ state, delivery, actorId }: { state: MockDb; de
         )}
       </Card>
       {delivery.returnedReason && <p className="squad-page__text">Devolvida antes: {delivery.returnedReason}</p>}
+      <DeliveryHistory delivery={delivery} users={state.users} />
 
       <fieldset className="delivery-review__credits">
         <legend>Quem fez o quê</legend>
@@ -92,7 +98,7 @@ export function DeliveryReview({ state, delivery, actorId }: { state: MockDb; de
         <Textarea id={`context-${delivery.id}`} value={context} onChange={(e) => setContext(e.target.value)} />
       </Field>
       <div className="squad-page__actions">
-        <Button type="submit" name="intent" value="accept" loading={pending}>
+        <Button type="submit" name="intent" value="accept" loading={pending} disabled={!!blocker}>
           Aceitar entrega
         </Button>
       </div>
@@ -112,12 +118,12 @@ export function DeliveryReview({ state, delivery, actorId }: { state: MockDb; de
           />
         </Field>
         <div className="squad-page__actions">
-          <Button type="submit" name="intent" value="return" variant="danger" disabled={pending || reason.trim().length < 10}>
+          <Button type="submit" name="intent" value="return" variant="danger" disabled={pending || project?.status !== 'active' || reason.trim().length < 10}>
             Devolver
           </Button>
         </div>
       </div>
-      <FormMessage tone="error">{result}</FormMessage>
+      <FormMessage tone="error">{result ?? blocker}</FormMessage>
     </form>
   )
 }

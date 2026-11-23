@@ -1,0 +1,24 @@
+.delivery-history {
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font: var(--text-body);
+}
+
+.delivery-history h3 {
+  font: var(--text-subheading);
+}
+
+.delivery-history ul {
+  display: grid;
+  gap: var(--space-3);
+  padding: 0;
+  list-style: none;
+}
+
+.delivery-history__decision {
+  color: var(--text-muted);
+  font: var(--text-caption);
+  font-variant-numeric: tabular-nums;
+}

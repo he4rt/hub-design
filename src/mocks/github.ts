@@ -1,11 +1,13 @@
+import { ENTRY_TEST_REPOSITORY, GITHUB_ORG } from '@/lib/github'
 import { track } from './analytics'
-import { db, newId, type BoardStatus, type SquadDelivery, type Evidence } from './db'
+import { db, newId, type BoardItem, type BoardStatus, type EntryTest, type SquadDelivery, type Evidence } from './db'
 import { MockError, mockAction } from './mock-action'
-import { appendLog, githubHandle } from './squads'
+import { activeMemberships, appendLog, githubHandle, isStaff, reservedSeats } from './squads'
 
 /**
- * Stand-in for the He4rt GitHub App: what `POST /webhooks/github` and the
- * periodic sweep would do in the Laravel app. Only debug actions call these.
+ * What the He4rt GitHub App does to the Hub: `POST /api/github/webhook` (server/github-sync.ts) calls
+ * these with what GitHub sent, like `POST /webhooks/github` in the Laravel app. The debug actions call
+ * them without the GitHub data, which is then made up.
  */
 
 function touchSync() {
@@ -13,8 +15,8 @@ function touchSync() {
 }
 
 /** `pull_request.opened` on a He4rt repository by a member without an approved entry test. */
-export function entryTestOpened(userId: string) {
-  return mockAction('github.webhook.pull_request.opened', { userId }, () => {
+export function entryTestOpened(userId: string, pullRequest?: EntryTest['pullRequest']) {
+  return mockAction('github.webhook.pull_request.opened', { userId, pullRequest }, () => {
     const state = db.get()
     const user = state.users.find((u) => u.id === userId)
     if (!githubHandle(user)) throw new MockError('A conta não tem GitHub vinculado; o webhook é ignorado.')
@@ -23,11 +25,11 @@ export function entryTestOpened(userId: string) {
     const number = 40 + Math.floor(Math.random() * 900)
     const test = {
       userId,
-      pullRequest: {
-        repository: 'he4rt/primeiro-commit',
+      pullRequest: pullRequest ?? {
+        repository: ENTRY_TEST_REPOSITORY,
         number,
         title: 'Meu primeiro commit na He4rt',
-        url: `https://github.com/he4rt/primeiro-commit/pull/${number}`,
+        url: `https://github.com/${ENTRY_TEST_REPOSITORY}/pull/${number}`,
       },
       status: 'open' as const,
       reviewer: null,
@@ -41,12 +43,16 @@ export function entryTestOpened(userId: string) {
 }
 
 /** `pull_request.closed` on the entry test PR, merged or not, by someone from the staff. */
-export function entryTestClosed(userId: string, merged: boolean, reviewerId = 'u8') {
-  return mockAction('github.webhook.pull_request.closed', { userId, merged }, () => {
+export function entryTestClosed(userId: string, merged: boolean, reviewerId = 'u8', reviewerHandle?: string, pullRequest?: EntryTest['pullRequest']) {
+  return mockAction('github.webhook.pull_request.closed', { userId, merged, reviewerHandle }, () => {
     const state = db.get()
     const test = state.entryTests.find((t) => t.userId === userId && t.status === 'open')
     if (!test) throw new MockError('Não há PR de teste aberto.')
-    const reviewer = githubHandle(state.users.find((u) => u.id === reviewerId))
+    if (pullRequest && (pullRequest.number !== test.pullRequest.number || pullRequest.repository.toLowerCase() !== test.pullRequest.repository.toLowerCase())) {
+      throw new MockError('Este não é o PR de teste aguardando revisão.')
+    }
+    if (merged && !isStaff(state.users.find((u) => u.id === reviewerId))) throw new MockError('O merge do teste precisa ser feito pela staff.')
+    const reviewer = reviewerHandle ?? githubHandle(state.users.find((u) => u.id === reviewerId))
     const now = new Date().toISOString()
     db.set((s) => ({
       ...s,
@@ -66,11 +72,16 @@ export function inviteAccepted(applicationId: string) {
   return mockAction('github.webhook.organization.member_added', { applicationId }, () => {
     const state = db.get()
     const app = state.applications.find((a) => a.id === applicationId)
+    if (app?.status === 'accepted' && app.githubInvite === 'accepted') return
     if (!app || app.status !== 'accepted' || app.githubInvite !== 'pending') {
       throw new MockError('Não há convite pendente para esta candidatura.')
     }
     const project = state.projects.find((p) => p.id === app.projectId)
     if (!project) throw new MockError('Projeto não encontrado.')
+    if (project.status !== 'active') throw new MockError('O projeto não está ativo.')
+    const members = activeMemberships(state, project.id)
+    if (members.some((m) => m.userId === app.userId)) throw new MockError('Esta pessoa já participa do projeto.')
+    if (members.length + reservedSeats(state, project.id) > project.seats) throw new MockError('O projeto está sem lugares livres.')
     const squad = state.squads.find((s) => s.id === project.squadId)
     db.set((s) => ({
       ...s,
@@ -118,28 +129,30 @@ export function boardItemMoved(itemId: string, status: BoardStatus) {
     }))
     touchSync()
     if (status !== 'done') return { delivery: null }
-    return { delivery: createPendingDelivery(itemId) }
+    return { delivery: createPendingDelivery(itemId, item.status !== status) }
   })
 }
 
 /** Builds the pending delivery from the board item with the credit pre-filled from GitHub. */
-function createPendingDelivery(itemId: string): string | null {
+function createPendingDelivery(itemId: string, changed = false): string | null {
   const state = db.get()
   const item = state.boardItems.find((i) => i.id === itemId)
   if (!item) return null
+  if (state.projects.find((p) => p.id === item.projectId)?.status !== 'active') return null
   const merged = item.pullRequests.filter((pr) => pr.merged)
   if (item.kind === 'technical' && merged.length === 0) return null
   const existing = state.deliveries.find((d) => d.boardItemId === itemId)
   if (existing?.status === 'accepted' || existing?.status === 'pending') return null
+  if (existing?.status === 'returned' && !changed) return null
 
   const repo = state.projects.find((p) => p.id === item.projectId)?.repository?.fullName.split('/')[1] ?? 'repo'
-  const people = [...new Set([...merged.flatMap((pr) => [pr.authorId, ...pr.coAuthorIds]), ...item.assigneeIds])]
-  const evidence: Evidence[] = merged.map((pr) => ({
+  const people = [...new Set([...merged.flatMap((pr) => [pr.authorId, ...pr.coAuthorIds, ...(pr.reviewerIds ?? [])]), ...item.assigneeIds])]
+  const evidence: Evidence[] = merged.flatMap((pr) => [{
     kind: 'pull-request',
     ref: `${repo}#${pr.number}`,
     url: pr.url,
     authorId: pr.authorId,
-  }))
+  } as Evidence, ...(pr.reviewerIds ?? []).map((authorId) => ({ kind: 'review' as const, ref: `${repo}#${pr.number}:review:${authorId}`, url: `${pr.url}/files`, authorId }))])
   const delivery: SquadDelivery = {
     id: existing?.id ?? newId(),
     projectId: item.projectId,
@@ -155,17 +168,25 @@ function createPendingDelivery(itemId: string): string | null {
     returnedReason: existing?.returnedReason ?? null,
     decidedBy: null,
     decidedAt: null,
-    createdAt: new Date().toISOString(),
+    decisions: existing?.decisions ?? [],
+    createdAt: existing?.createdAt ?? new Date().toISOString(),
   }
   db.set((s) => ({ ...s, deliveries: [...s.deliveries.filter((d) => d.id !== delivery.id), delivery] }))
   return delivery.id
 }
 
 /** Merges a pull request on a board item, so it can become a delivery. */
-export function pullRequestMerged(itemId: string, authorId: string, coAuthorIds: string[] = []) {
-  return mockAction('github.webhook.pull_request.closed', { itemId, merged: true }, () => {
-    const number = 40 + Math.floor(Math.random() * 900)
+export function pullRequestMerged(
+  itemId: string,
+  authorId: string,
+  coAuthorIds: string[] = [],
+  pullRequest?: { number: number; url: string; reviewerIds?: string[] },
+) {
+  return mockAction('github.webhook.pull_request.closed', { itemId, merged: true, pullRequest }, () => {
     const project = db.get().projects.find((p) => p.id === db.get().boardItems.find((i) => i.id === itemId)?.projectId)
+    const number = pullRequest?.number ?? 40 + Math.floor(Math.random() * 900)
+    const url = pullRequest?.url ?? `${project?.repository?.url}/pull/${number}`
+    const changed = !db.get().boardItems.find((i) => i.id === itemId)?.pullRequests.some((pr) => pr.number === number && pr.merged)
     db.set((s) => ({
       ...s,
       boardItems: s.boardItems.map((i) =>
@@ -173,14 +194,15 @@ export function pullRequestMerged(itemId: string, authorId: string, coAuthorIds:
           ? {
               ...i,
               pullRequests: [
-                ...i.pullRequests,
-                { number, merged: true, authorId, coAuthorIds, url: `${project?.repository?.url}/pull/${number}` },
+                ...i.pullRequests.filter((pr) => pr.number !== number),
+                { number, merged: true, authorId, coAuthorIds, reviewerIds: [...new Set(pullRequest?.reviewerIds ?? [])], url },
               ],
             }
           : i,
       ),
     }))
     touchSync()
+    if (db.get().boardItems.find((i) => i.id === itemId)?.status === 'done') createPendingDelivery(itemId, changed)
   })
 }
 
@@ -211,8 +233,8 @@ export function accessDiverged(description: string) {
 }
 
 /** `repository.created` + `projects_v2.created`: the App finished creating the project on GitHub. */
-export function projectProvisioned(projectId: string) {
-  return mockAction('github.webhook.projects_v2.created', { projectId }, () => {
+export function projectProvisioned(projectId: string, board?: { number: number; url: string }, actorId = 'u8') {
+  return mockAction('github.webhook.projects_v2.created', { projectId, board }, () => {
     const state = db.get()
     const project = state.projects.find((p) => p.id === projectId && p.status === 'provisioning')
     if (!project) throw new MockError('Não há projeto esperando o GitHub.')
@@ -223,7 +245,7 @@ export function projectProvisioned(projectId: string) {
       ...s,
       projects: s.projects.map((p) =>
         p.id === projectId
-          ? { ...p, status: 'active' as const, startedAt: now, board: { number, url: `https://github.com/orgs/he4rt/projects/${number}` } }
+          ? { ...p, status: 'active' as const, startedAt: now, board: board ?? { number, url: `https://github.com/orgs/${GITHUB_ORG}/projects/${number}` } }
           : p,
       ),
       squads: s.squads.map((sq) => (sq.id === project.squadId ? { ...sq, status: 'active' as const } : sq)),
@@ -235,7 +257,42 @@ export function projectProvisioned(projectId: string) {
             ]
           : s.memberships,
     }))
-    appendLog({ squadId: project.squadId, projectId, kind: 'project-started', actorId: 'u8', detail: project.name })
+    appendLog({ squadId: project.squadId, projectId, kind: 'project-started', actorId, detail: project.name })
     touchSync()
+  })
+}
+
+/**
+ * `projects_v2_item.created`/`edited`: an issue on the project's board, as GitHub has it now. Creates or
+ * updates the board item (matched by issue number); reaching "done" works like `boardItemMoved`.
+ */
+export function boardItemSynced(
+  projectId: string,
+  item: Pick<BoardItem, 'issue' | 'status' | 'kind' | 'assigneeIds'> & Partial<Pick<BoardItem, 'criterionId'>>,
+) {
+  return mockAction('github.webhook.projects_v2_item.edited', { projectId, issue: item.issue.number, status: item.status }, () => {
+    const state = db.get()
+    if (!state.projects.some((p) => p.id === projectId)) throw new MockError('Projeto não encontrado.')
+    const existing = state.boardItems.find((i) => i.projectId === projectId && i.issue.number === item.issue.number)
+    const id = existing?.id ?? newId()
+    const next: BoardItem = {
+      id,
+      projectId,
+      criterionId: existing?.criterionId ?? null,
+      pullRequests: existing?.pullRequests ?? [],
+      ...item,
+      updatedAt: new Date().toISOString(),
+    }
+    db.set((s) => ({ ...s, boardItems: [...s.boardItems.filter((i) => i.id !== id), next] }))
+    touchSync()
+    const changed = !existing || existing.status !== item.status || existing.issue.title !== item.issue.title || existing.kind !== item.kind || existing.criterionId !== next.criterionId || existing.assigneeIds.join(',') !== item.assigneeIds.join(',')
+    return { itemId: id, delivery: item.status === 'done' ? createPendingDelivery(id, changed) : null }
+  })
+}
+
+/** Repositories of the organization, after the App listed them. */
+export function repositoriesSynced(repositories: string[]) {
+  return mockAction('github.sweep.repositories', { count: repositories.length }, () => {
+    db.set((s) => ({ ...s, githubSync: { ...s.githubSync, repositories, lastSweepAt: new Date().toISOString() } }))
   })
 }

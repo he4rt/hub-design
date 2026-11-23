@@ -14,7 +14,13 @@ export type AnalyticsEventName =
   | 'signup_blocked_underage'
   | 'discussion_created'
   | 'discussion_replied'
+  | 'discussion_solution_changed'
   | 'trajectory_record_added'
+  | 'trajectory_record_updated'
+  | 'trajectory_record_deleted'
+  | 'profile_about_saved'
+  | 'profile_focus_updated'
+  | 'email_verified'
   | 'feed_post_created'
   | 'feed_post_blocked'
   | 'feed_post_visibility_changed'
@@ -50,16 +56,14 @@ export type AnalyticsEventName =
   | 'validation_unpublished'
   | 'validation_contested'
 
-const EVENTS_KEPT = 200
-
 /**
- * Sends a product event, like `posthog.capture` on the backend. Props carry
- * ids and choices, never personal data. Shows up in the debug log.
+ * Persists a product event. Props carry ids and choices, never personal data.
+ * Only the debug log is bounded: the relational event history must not lose conversions.
  */
 export function track(event: AnalyticsEventName, props: Record<string, unknown> = {}) {
   db.set((state) => ({
     ...state,
-    events: [{ event, props, at: new Date().toISOString() }, ...state.events].slice(0, EVENTS_KEPT),
+    events: [{ event, props, at: new Date().toISOString() }, ...state.events],
   }))
-  logFinish(logStart(`posthog: ${event}`, props), { status: 'success' })
+  logFinish(logStart(`analytics: ${event}`, props), { status: 'success' })
 }

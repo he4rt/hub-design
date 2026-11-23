@@ -1,7 +1,8 @@
 import { track } from '@/mocks/analytics'
+import { GITHUB_ORG } from '@/lib/github'
 import { db, newId, type StartingPoint } from '@/mocks/db'
 import { MockError, mockAction } from '@/mocks/mock-action'
-import { activeProject, appendLog, githubHandle, isStaff, isSuperAdmin, requireText, RESERVED_SQUAD_SLUGS } from '@/mocks/squads'
+import { activeMemberships, activeProject, appendLog, freeSeats, githubHandle, isStaff, isSuperAdmin, requireText, RESERVED_SQUAD_SLUGS } from '@/mocks/squads'
 import { slugify } from '@/lib/text'
 
 function staff(actorId: string) {
@@ -56,7 +57,6 @@ export type ProjectInput = {
 }
 
 /** Existing He4rt repositories the App can link; a real install lists them from GitHub. */
-export const ORG_REPOSITORIES = ['he4rt/loja-checkout', 'he4rt/loja-catalogo', 'he4rt/agenda', 'he4rt/bot-discord', 'he4rt/hub-design']
 
 export function canCreateProject(squadId: string): boolean {
   return !activeProject(db.get(), squadId)
@@ -83,10 +83,15 @@ export function createProject(actorId: string, squadId: string, input: ProjectIn
     if (!Number.isInteger(input.seats) || input.seats < 2 || input.seats > 12) throw new MockError('Entre 2 e 12 lugares.', 'seats')
     const captainId = input.captainId || squad.captainId || ''
     requireGithub(captainId)
+    if (squad.captainId && captainId !== squad.captainId) {
+      throw new MockError('Troque o capitão na gestão do squad, com motivo, antes de criar o projeto.', 'captain')
+    }
 
     const repo = input.repository.trim().toLowerCase()
-    if (!/^he4rt\/[a-z0-9-]+$/.test(repo)) throw new MockError('O repositório fica na organização: he4rt/nome-do-projeto.', 'repository')
-    const exists = ORG_REPOSITORIES.includes(repo) || state.projects.some((p) => p.repository?.fullName === repo)
+    if (!new RegExp(`^${GITHUB_ORG}/[a-z0-9-]+$`, 'i').test(repo)) {
+      throw new MockError(`O repositório fica na organização: ${GITHUB_ORG}/nome-do-projeto.`, 'repository')
+    }
+    const exists = state.githubSync.repositories.some((r) => r.toLowerCase() === repo) || state.projects.some((p) => p.repository?.fullName === repo)
     if (input.repositoryMode === 'create' && exists) throw new MockError('Este repositório já existe. Use "Vincular existente".', 'repository')
     if (input.repositoryMode === 'link' && !exists) throw new MockError('Este repositório não existe na organização.', 'repository')
     if (state.projects.some((p) => p.repository?.fullName === repo && p.status !== 'ended')) {
@@ -138,6 +143,9 @@ export function changeCaptain(actorId: string, squadId: string, captainId: strin
     requireGithub(captainId)
     const text = squad.captainId ? requireText(reason, 10, 'Diga o motivo da troca.', 'reason') : reason.trim() || null
     const project = activeProject(db.get(), squadId)
+    if (project && !activeMemberships(db.get(), project.id).some((m) => m.userId === captainId) && freeSeats(db.get(), project) <= 0) {
+      throw new MockError('Não há lugar livre para o novo capitão. Ajuste os lugares antes.', 'captain')
+    }
     const now = new Date().toISOString()
     db.set((s) => ({
       ...s,
@@ -179,11 +187,14 @@ export function reassignMember(actorId: string, membershipId: string, targetSqua
     if (!target || target.status !== 'active' || targetSquadId === m.squadId) {
       throw new MockError('Escolha outro squad com projeto ativo.', 'target')
     }
+    if (activeMemberships(state, target.id).some((x) => x.userId === m.userId)) throw new MockError('Esta pessoa já está no projeto de destino.', 'target')
+    if (freeSeats(state, target) <= 0) throw new MockError('O projeto de destino está sem lugares livres.', 'target')
     const text = requireText(reason, 10, 'Diga o motivo, que fica no log dos dois squads.', 'reason')
     const now = new Date().toISOString()
     const targetName = state.squads.find((s) => s.id === targetSquadId)?.name ?? ''
     db.set((s) => ({
       ...s,
+      squads: s.squads.map((sq) => sq.id === m.squadId && sq.captainId === m.userId ? { ...sq, captainId: null } : sq),
       memberships: [
         ...s.memberships.map((x) => (x.id === membershipId ? { ...x, leftAt: now, leftReason: text } : x)),
         { id: newId(), squadId: targetSquadId, projectId: target.id, userId: m.userId, responsibilities: '', joinedAt: now, leftAt: null, leftReason: null, shownOnProfile: m.shownOnProfile },
