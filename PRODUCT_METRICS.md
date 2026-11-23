@@ -96,6 +96,11 @@ XP é reconhecimento no perfil. Não libera acesso, não aparece em ranking e n�
 | validation_unpublished          | Membro despublica uma validação                       |
 | validation_contested            | Contestação aberta sobre uma validação                |
 | feed_post_created               | Publicação no diário de aprendizado                   |
+| feed_project_published          | Projeto pessoal divulgado no Feed                    |
+| feed_project_updated            | Autor atualiza o texto do projeto pessoal             |
+| feed_project_read_failed        | Leitura do repositório falha ao preparar a publicação  |
+| discussion_created             | Discussão aberta no Fórum, com categoria e tipo de contexto |
+| discussion_replied             | Resposta publicada em uma discussão do Fórum          |
 | job_viewed                      | Vaga aberta por membro elegível                       |
 | job_applied                     | Candidatura enviada com consentimento                 |
 

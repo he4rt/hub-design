@@ -1,7 +1,8 @@
 import { useRef, useState, useTransition } from 'react'
+import { BookOpen, MessageSquare, Wrench } from 'lucide-react'
 import { Link } from 'react-router'
+import { MemberProjectPreview } from '@/components/member-project-preview'
 import { Avatar } from '@/components/ui/avatar'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Dialog, DialogClose, DialogContent } from '@/components/ui/dialog'
@@ -18,26 +19,26 @@ import { areaLabels, labelOf } from '@/lib/member-profile'
 import { useDb, type FeedPost, type User } from '@/mocks/db'
 import { errorMessage } from '@/mocks/mock-action'
 import {
+  canCommentOn,
   canManagePost,
-  canSavePost,
   deletePost,
-  savePost,
-  unsavePost,
   updatePostCollections,
   updatePostVisibility,
 } from '../actions'
-import { memberBadges } from '../lib/badges'
 import { CollectionPicker } from './collection-picker'
-import { ReactionBar } from './reaction-bar'
+import { PostComments } from './post-comments'
+import { PostSaveButton } from './post-save-button'
+import { ReactButton, ReactionSummary } from './reaction-bar'
 import './post-card.css'
 
 export type Notice = { tone: 'error' | 'success'; text: string }
 
 /**
- * One publication. The author's photo and name open their profile, with their
- * headline and badges. Readers react and save it to read again; the author gets
- * a menu to edit it, choose where it shows and who sees the reaction counts,
- * pick its study tracks ("trilhas") and delete it.
+ * One publication, kept to what it says: who wrote it, when, what they learned,
+ * how they applied it and how much it moved them toward their objective. The
+ * author's photo and name open their profile. Readers react, comment and save it
+ * to read again; "Comentar" opens the short discussion inside the card. The author gets a menu to edit it, choose where it shows and who sees
+ * the reaction counts, pick its study tracks ("trilhas") and delete it.
  */
 export function PostCard({
   post,
@@ -52,9 +53,6 @@ export function PostCard({
 }) {
   const [busy, startBusy] = useTransition()
   const now = useNow()
-  const squads = useDb((state) => state.squads)
-  const validators = useDb((state) => state.validators)
-  const [saving, startSaving] = useTransition()
   const [confirmingDelete, setConfirmingDelete] = useState(false)
   const [editingCollections, setEditingCollections] = useState(false)
   const [draftCollections, setDraftCollections] = useState(post.collectionIds)
@@ -64,13 +62,13 @@ export function PostCard({
     event.preventDefault()
     menuButton.current?.focus()
   }
-  const allCollections = useDb((state) => state.feedCollections)
-  const bookmarks = useDb((state) => state.feedBookmarks)
-  const saved = bookmarks.some((b) => b.userId === viewerId && b.postId === post.id)
+  const allComments = useDb((state) => state.feedComments)
+  const viewer = useDb((state) => state.users.find((u) => u.id === viewerId))
+  const project = useDb((state) => state.memberProjects.find((p) => p.id === post.projectId))
+  const [commenting, setCommenting] = useState(false)
+  const comments = allComments.filter((c) => c.postId === post.id && c.deletedAt === null)
   const own = canManagePost(post, viewerId)
   const name = author?.name ?? 'Membro'
-  const collections = allCollections.filter((c) => post.collectionIds.includes(c.id))
-  const badges = author ? memberBadges(author, { squads, validators }) : []
   const headline = author ? author.bio || areaLabels(author.areas) : ''
   const profilePath = author ? `/members/${author.username}` : null
 
@@ -81,16 +79,6 @@ export function PostCard({
         setConfirmingDelete(false)
         setEditingCollections(false)
         onNotice({ tone: 'success', text: success })
-      } catch (e) {
-        onNotice({ tone: 'error', text: errorMessage(e) })
-      }
-    })
-  }
-
-  function toggleSaved() {
-    startSaving(async () => {
-      try {
-        await (saved ? unsavePost : savePost)(viewerId, post.id)
       } catch (e) {
         onNotice({ tone: 'error', text: errorMessage(e) })
       }
@@ -116,32 +104,31 @@ export function PostCard({
             ) : (
               <strong>{name}</strong>
             )}
-            {badges.map((badge) => (
-              <Badge key={badge.key} title={badge.title}>
-                {badge.label}
-              </Badge>
-            ))}
+            <p className="post-card__meta">
+              <time dateTime={post.createdAt} title={formatFullDate(post.createdAt)}>
+                {formatRelative(post.createdAt, now)}
+              </time>
+              {post.editedAt && (
+                <span title={`O texto foi corrigido em ${formatShortDate(post.editedAt, now)}.`}>, editado</span>
+              )}
+            </p>
           </div>
           {headline && (
             <p className="post-card__headline" title={headline}>
               {headline}
             </p>
           )}
-          <p className="post-card__meta">
-            <time dateTime={post.createdAt} title={formatFullDate(post.createdAt)}>
-              {formatRelative(post.createdAt, now)}
-            </time>
-            {post.editedAt && (
-              <span title="O texto foi corrigido depois de publicado.">
-                , editado em <time dateTime={post.editedAt}>{formatShortDate(post.editedAt, now)}</time>
-              </span>
-            )}
-          </p>
         </div>
         {own && (
           <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
-              <Button ref={menuButton} variant="ghost" size="sm" loading={busy} aria-label="Ações da publicação">
+              <Button
+                ref={menuButton}
+                variant="ghost"
+                size="sm"
+                loading={busy}
+                aria-label="Ações da publicação"
+              >
                 •••
               </Button>
             </DropdownMenuTrigger>
@@ -149,6 +136,11 @@ export function PostCard({
               <DropdownMenuItem asChild>
                 <Link to={`/app/feed/${post.id}/edit`}>Editar</Link>
               </DropdownMenuItem>
+              {project && (post.sharedOnFeed || post.shownOnProfile) && (
+                <DropdownMenuItem asChild>
+                  <Link to={`/app/discussions/new?post=${post.id}`}>Tirar dúvida no Fórum</Link>
+                </DropdownMenuItem>
+              )}
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onSelect={() =>
@@ -182,7 +174,10 @@ export function PostCard({
                 <DropdownMenuItem
                   onSelect={() =>
                     run(
-                      () => updatePostVisibility(viewerId, post.id, { showReactionCounts: !post.showReactionCounts }),
+                      () =>
+                        updatePostVisibility(viewerId, post.id, {
+                          showReactionCounts: !post.showReactionCounts,
+                        }),
                       post.showReactionCounts
                         ? 'Só você vê os números desta publicação.'
                         : 'Todos veem os números desta publicação.',
@@ -211,44 +206,69 @@ export function PostCard({
         )}
       </header>
 
-      <dl className="post-card__body">
-        <div>
-          <dt>O que aprendi</dt>
-          <dd>{post.learned}</dd>
+      {project ? (
+        <div className="post-card__project">
+          <p className="post-card__pitch">{project.pitch}</p>
+          <MemberProjectPreview project={project} />
         </div>
-        <div>
-          <dt>Como apliquei</dt>
-          <dd>{post.applied}</dd>
-        </div>
-      </dl>
+      ) : (
+        <>
+          <dl className="post-card__body">
+            <div>
+              <dt><BookOpen size={15} aria-hidden /> O que aprendi</dt>
+              <dd>{post.learned}</dd>
+            </div>
+            <div>
+              <dt><Wrench size={15} aria-hidden /> Como apliquei</dt>
+              <dd>{post.applied}</dd>
+            </div>
+          </dl>
 
-      <div className="post-card__tags">
-        <Badge title="Quanto isso aproximou do objetivo">
-          {labelOf(OBJECTIVE_PROGRESS, post.objectiveProgress)} do objetivo
-        </Badge>
-        {collections.map((c) => (
-          <Badge key={c.id} title={`Trilha: ${c.name}`}>
-            Trilha: {c.name}
-          </Badge>
-        ))}
-      </div>
+          <p className="post-card__progress">
+            {labelOf(OBJECTIVE_PROGRESS, post.objectiveProgress)} do objetivo
+          </p>
+        </>
+      )}
 
-      {(post.sharedOnFeed || !own) && (
+      {canCommentOn(post) && (
         <footer className="post-card__footer">
-          <ReactionBar post={post} viewerId={viewerId} own={own} onNotice={onNotice}>
-            {canSavePost(post, viewerId) && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="post-card__save"
-                aria-pressed={saved}
-                loading={saving}
-                onClick={toggleSaved}
+          {/* What others did with it; hidden when there is nothing to show. */}
+          <div className="post-card__stats">
+            <ReactionSummary post={post} own={own} />
+            {comments.length > 0 && (
+              <button
+                type="button"
+                className="post-card__stats-comments"
+                aria-expanded={commenting}
+                onClick={() => setCommenting((open) => !open)}
               >
-                {saved ? 'Salvo' : 'Salvar'}
-              </Button>
+                {comments.length} {comments.length === 1 ? 'comentário' : 'comentários'}
+              </button>
             )}
-          </ReactionBar>
+          </div>
+          <div className="post-card__actions">
+            {!own && <ReactButton post={post} viewerId={viewerId} onNotice={onNotice} />}
+            <Button
+              variant="ghost"
+              className="post-action"
+              data-action="comment"
+              aria-expanded={commenting}
+              data-active={commenting || undefined}
+              onClick={() => setCommenting((open) => !open)}
+            >
+              <MessageSquare size={18} aria-hidden />
+              <span className="post-action__label">Comentar</span>
+            </Button>
+            <PostSaveButton post={post} viewerId={viewerId} onNotice={onNotice} />
+          </div>
+          {commenting && viewer && (
+            <PostComments
+              postId={post.id}
+              comments={comments}
+              viewer={viewer}
+              onClose={() => setCommenting(false)}
+            />
+          )}
         </footer>
       )}
 
@@ -267,7 +287,10 @@ export function PostCard({
               <Button
                 loading={busy}
                 onClick={() =>
-                  run(() => updatePostCollections(viewerId, post.id, draftCollections), 'Trilhas atualizadas.')
+                  run(
+                    () => updatePostCollections(viewerId, post.id, draftCollections),
+                    'Trilhas atualizadas.',
+                  )
                 }
               >
                 Salvar
@@ -275,7 +298,12 @@ export function PostCard({
             </>
           }
         >
-          <CollectionPicker userId={viewerId} value={draftCollections} onChange={setDraftCollections} disabled={busy} />
+          <CollectionPicker
+            userId={viewerId}
+            value={draftCollections}
+            onChange={setDraftCollections}
+            disabled={busy}
+          />
         </DialogContent>
       </Dialog>
 
@@ -301,7 +329,7 @@ export function PostCard({
             </>
           }
         >
-          <p className="post-card__quote">{post.learned}</p>
+          <p className="post-card__quote">{project?.pitch ?? post.learned}</p>
         </DialogContent>
       </Dialog>
     </Card>

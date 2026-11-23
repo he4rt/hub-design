@@ -1,5 +1,6 @@
 import { Link, useSearchParams } from 'react-router'
 import { MoreHorizontal } from 'lucide-react'
+import { MemberProjectPreview } from '@/components/member-project-preview'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -7,7 +8,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { formatPostDate, OBJECTIVE_PROGRESS } from '@/lib/feed-post'
 import { labelOf } from '@/lib/member-profile'
-import type { FeedCollection, FeedPost } from '@/mocks/db'
+import { useDb, type FeedCollection, type FeedPost } from '@/mocks/db'
 import './diary-card.css'
 
 /**
@@ -29,6 +30,7 @@ export function DiaryCard({
   ownerView: boolean
 }) {
   const [params, setParams] = useSearchParams()
+  const projects = useDb((s) => s.memberProjects)
   // A trilha shows only with at least one publication the member showed here.
   const trilhas = collections
     .map((c) => ({ ...c, count: posts.filter((p) => p.collectionIds.includes(c.id)).length }))
@@ -39,7 +41,7 @@ export function DiaryCard({
 
   return (
     <Card className="diary-card" aria-labelledby="diary-card-title">
-      <h2 id="diary-card-title">Diário de aprendizado</h2>
+      <h2 id="diary-card-title">Publicações</h2>
       {trilhas.length > 0 && (
         <ToggleGroup
           type="single"
@@ -100,9 +102,11 @@ export function DiaryCard({
                   </DropdownMenu>
                 )}
               </div>
-              <p className="diary-card__learned">{post.learned}</p>
-              <p className="diary-card__muted">Como aplicou: {post.applied}</p>
-              <p className="diary-card__muted">{labelOf(OBJECTIVE_PROGRESS, post.objectiveProgress)} do objetivo</p>
+              {post.projectId ? projects.filter((p) => p.id === post.projectId).map((p) => <div key={p.id}><p className="diary-card__learned">{p.pitch}</p><MemberProjectPreview project={p} /></div>) : <>
+                <p className="diary-card__learned">{post.learned}</p>
+                <p className="diary-card__muted">Como aplicou: {post.applied}</p>
+                <p className="diary-card__muted">{labelOf(OBJECTIVE_PROGRESS, post.objectiveProgress)} do objetivo</p>
+              </>}
             </li>
           ))}
         </ol>

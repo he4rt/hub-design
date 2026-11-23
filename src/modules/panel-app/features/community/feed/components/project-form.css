@@ -1,0 +1,87 @@
+.ui-dialog.project-form-dialog {
+  width: min(660px, calc(100vw - 2 * var(--space-4)));
+}
+.project-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  min-width: 0;
+}
+.project-form__repository,
+.project-form__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+.project-form__read {
+  display: flex;
+  gap: var(--space-2);
+  > input {
+    min-width: 0;
+    flex: 1;
+  }
+  > button {
+    flex: none;
+  }
+}
+.project-form__hint,
+.project-form__counter {
+  color: var(--text-muted);
+  font: var(--text-caption);
+}
+.project-form__counter {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.project-form__preview {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+  padding: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  > svg {
+    flex: none;
+    color: var(--info-text);
+  }
+  > div {
+    min-width: 0;
+  }
+  strong {
+    font: var(--text-body-strong);
+  }
+  p {
+    color: var(--text-muted);
+    overflow-wrap: anywhere;
+  }
+}
+.project-form__fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+.project-form__check {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+.project-form__existing {
+  font: var(--text-body);
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+@media (max-width: 520px) {
+  .project-form__read {
+    flex-wrap: wrap;
+    > input {
+      flex-basis: 100%;
+    }
+  }
+}

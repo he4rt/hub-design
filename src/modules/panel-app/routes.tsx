@@ -3,6 +3,7 @@ import { AuthLayout } from '@/components/auth-layout'
 import Profile from './features/account/settings/pages/profile'
 import FeedEdit from './features/community/feed/pages/edit'
 import FeedIndex from './features/community/feed/pages/index'
+import FeedProject from './features/community/feed/pages/project'
 import ForgotPassword from './features/auth/pages/forgot-password'
 import Login from './features/auth/pages/login'
 import Onboarding from './features/auth/pages/onboarding'
@@ -74,12 +75,13 @@ export const panelAppRoutes: RouteObject = {
     {
       Component: AppLayout,
       children: [
-        // The Feed is the home of the Hub; `wide` lets its three columns use the screen.
-        { index: true, Component: FeedIndex, handle: { wide: true } },
+        // The Feed is the home of the Hub.
+        { index: true, Component: FeedIndex },
         { path: 'feed', loader: ({ request }) => redirect(`/app${new URL(request.url).search}`) },
         // Nova publicação opens over the home.
         { path: 'feed/new', loader: () => redirect('/app?compose=1') },
         { path: 'feed/:postId/edit', Component: FeedEdit },
+        { path: 'projects/:projectId', Component: FeedProject },
         { path: 'settings/profile', Component: Profile },
         { path: 'squads/entry-test', Component: EntryTest },
         { path: 'squads/applications', Component: MyApplications },

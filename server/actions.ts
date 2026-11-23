@@ -1,4 +1,5 @@
 import { Glob } from 'bun'
+import { canReadDiscussion } from '@/lib/discussions'
 import { canSee } from '@/lib/trajectory/visibility'
 import { itemKey, type StatePatch } from '@/mocks/api'
 import { db, type MockDb, type User } from '@/mocks/db'
@@ -205,6 +206,11 @@ export function viewState(context: Context): MockDb {
     const project = state.projects.find((p) => p.id === projectId)
     return state.squads.find((s) => s.id === project?.squadId)?.captainId
   }
+  const feedPosts = state.feedPosts
+    .filter((p) => p.userId === me || (!p.deletedAt && ((me && p.sharedOnFeed) || (p.shownOnProfile && published.has(p.userId)))))
+    .map((p) => (p.userId === me ? p : { ...p, revisions: [] }))
+  // Comments are for members reading the Feed; a deleted one stays only for moderation.
+  const discussed = new Set(feedPosts.filter((p) => p.sharedOnFeed && !p.deletedAt).map((p) => p.id))
   return {
     ...view,
     // Never public: the e-mail, the birth date, and being open to opportunities (staff only).
@@ -221,10 +227,14 @@ export function viewState(context: Context): MockDb {
         evidences: sees(p.evidences),
       }
     }),
-    feedPosts: state.feedPosts
-      .filter((p) => p.userId === me || (!p.deletedAt && ((me && p.sharedOnFeed) || (p.shownOnProfile && published.has(p.userId)))))
+    feedPosts,
+    // A project shows wherever the publication that shares it shows.
+    memberProjects: state.memberProjects
+      .filter((p) => feedPosts.some((post) => post.projectId === p.id && !post.deletedAt))
       .map((p) => (p.userId === me ? p : { ...p, revisions: [] })),
+    feedComments: me ? state.feedComments.filter((c) => !c.deletedAt && discussed.has(c.postId)) : [],
     feedBookmarks: state.feedBookmarks.filter((b) => b.userId === me),
+    discussions: state.discussions.filter((discussion) => canReadDiscussion(state, discussion, me)),
     applications: state.applications.filter((a) => a.userId === me || captainOf(a.projectId) === me),
     validatorApplications: state.validatorApplications.filter((a) => a.userId === me),
     validations: state.validations.filter((v) => v.memberId === me || v.validatorId === me || v.published),
@@ -329,6 +339,10 @@ function restore(collection: string, item: unknown, stored: unknown): unknown {
   }
   if (collection === 'feedPosts') {
     const [next, old] = [item as MockDb['feedPosts'][number], stored as MockDb['feedPosts'][number]]
+    return next.revisions.length === 0 ? { ...next, revisions: old.revisions } : next
+  }
+  if (collection === 'memberProjects') {
+    const [next, old] = [item as MockDb['memberProjects'][number], stored as MockDb['memberProjects'][number]]
     return next.revisions.length === 0 ? { ...next, revisions: old.revisions } : next
   }
   return item

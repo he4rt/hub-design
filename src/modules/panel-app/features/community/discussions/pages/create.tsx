@@ -1,6 +1,7 @@
 import { useActionState, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router'
 import { FormMessage } from '@/components/form-message'
+import { MemberProjectPreview } from '@/components/member-project-preview'
 import { PageHeader } from '@/components/page-header'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -51,9 +52,12 @@ export default function DiscussionCreate() {
   const squads = useDb((state) => state.squads)
   const projects = useDb((state) => state.projects)
   const posts = useDb((state) => state.feedPosts)
+  const memberProjects = useDb((state) => state.memberProjects)
 
   const [title, setTitle] = useState('')
-  const [category, setCategory] = useState<DiscussionCategory | null>(null)
+  const [category, setCategory] = useState<DiscussionCategory | null>(() =>
+    posts.some((post) => post.id === params.get('post') && post.projectId) ? 'question' : null,
+  )
   const [contextValue, setContextValue] = useState<string | null>(() => initialContext(params))
   const [body, setBody] = useState('')
 
@@ -67,9 +71,16 @@ export default function DiscussionCreate() {
     ...posts
       .filter((post) => canLinkPost(sessionUserId, post))
       .toSorted((a, b) => b.createdAt.localeCompare(a.createdAt))
-      .map((post) => ({ value: encode({ type: 'post', id: post.id }), label: `Minha publicação: ${post.learned}` })),
+      .map((post) => ({
+        value: encode({ type: 'post', id: post.id }),
+        label: post.projectId
+          ? `Meu projeto: ${memberProjects.find((project) => project.id === post.projectId)?.read.name ?? 'Projeto pessoal'}`
+          : `Minha publicação: ${post.learned}`,
+      })),
   ]
   const context = options.some((option) => option.value === contextValue) ? contextValue : null
+  const linkedPost = context?.startsWith('post:') ? posts.find((post) => post.id === decode(context)?.id) : undefined
+  const linkedProject = memberProjects.find((project) => project.id === linkedPost?.projectId)
 
   const [result, submit, pending] = useActionState(async (): Promise<Result> => {
     try {
@@ -80,7 +91,7 @@ export default function DiscussionCreate() {
       return { ok: false, error: errorMessage(e), field: e instanceof MockError ? e.field : undefined }
     }
   }, null)
-  const invalid = (field: string) => (result?.field === field ? true : undefined)
+  const invalid = (field: string) => (!pending && result?.field === field ? true : undefined)
 
   useDebugActions('Nova discussão', [
     {
@@ -103,6 +114,18 @@ export default function DiscussionCreate() {
     { label: 'Abrir a partir de uma publicação do diário', run: () => navigate('/app/discussions/new?post=j1') },
     { label: 'Abrir a partir de um projeto', run: () => navigate('/app/discussions/new?project=p1') },
     {
+      label: 'Vincular meu projeto pessoal',
+      run: () => {
+        const post = posts.find((post) => post.projectId && canLinkPost(sessionUserId, post))
+        if (post) {
+          setContextValue(encode({ type: 'post', id: post.id }))
+          setCategory('question')
+          setTitle('Como melhorar a consulta deste projeto?')
+          setBody('A consulta faz uma busca por item. Tentei carregar os relacionamentos, mas ainda não consegui reduzir o número de consultas. Qual caminho vocês sugerem?')
+        }
+      },
+    },
+    {
       label: 'Ver como visitante',
       description: 'Remove a sessão de membro.',
       run: () => db.set((state) => ({ ...state, session: null })),
@@ -113,7 +136,7 @@ export default function DiscussionCreate() {
     <div className="discussion-create">
       <PageHeader
         title="Nova discussão"
-        description="Pergunte, proponha ou conte o que está aprendendo. Quem lê o fórum não precisa de conta; quem escreve, sim."
+        description="Tire dúvidas e converse sobre código e projetos. Discussões de projetos pessoais ficam entre membros."
       />
 
       {!sessionUserId && <SignInPrompt>Entre na sua conta para abrir uma discussão.</SignInPrompt>}
@@ -121,7 +144,7 @@ export default function DiscussionCreate() {
       <Card>
         <form action={submit} className="discussion-create__form">
           {/* A visitor sees the form as it is, but only a member fills it in. */}
-          <fieldset disabled={!sessionUserId} className="discussion-create__fields">
+          <fieldset disabled={!sessionUserId || pending} className="discussion-create__fields">
             <div className="discussion-create__field">
               <Label htmlFor="discussion-title">Título</Label>
               <Input
@@ -160,8 +183,14 @@ export default function DiscussionCreate() {
                 aria-describedby="discussion-context-hint"
               />
               <p id="discussion-context-hint" className="discussion-create__hint">
-                Só você pode ligar uma discussão às suas publicações do diário.
+                Vincule um projeto que você divulgou ou uma publicação do diário. Também dá para colar o link do repositório no texto, sem publicar no Feed.
               </p>
+              {linkedProject && <MemberProjectPreview project={linkedProject} />}
+              {linkedProject && (
+                <p className="discussion-create__hint">
+                  Os documentos acompanham a dúvida. O acesso segue a publicação: membros leem enquanto ela estiver no Feed; fora dele, só você.
+                </p>
+              )}
             </div>
 
             <div className="discussion-create__field">
@@ -180,7 +209,7 @@ export default function DiscussionCreate() {
             </div>
           </fieldset>
 
-          <FormMessage tone="error">{result?.error}</FormMessage>
+          <FormMessage tone="error">{!pending && result?.error}</FormMessage>
           <div className="discussion-create__actions">
             <Button asChild variant="ghost">
               <Link to="/app/discussions">Cancelar</Link>

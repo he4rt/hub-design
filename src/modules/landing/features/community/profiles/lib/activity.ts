@@ -147,7 +147,7 @@ export function memberActivity(
   }
 
   // Only publications the author chose to show on the profile; never their reactions.
-  for (const post of posts.filter((p) => p.userId === userId && p.shownOnProfile && p.deletedAt === null)) {
+  for (const post of posts.filter((p) => p.userId === userId && p.projectId === null && p.shownOnProfile && p.deletedAt === null)) {
     items.push({
       id: post.id,
       group: 'learning',

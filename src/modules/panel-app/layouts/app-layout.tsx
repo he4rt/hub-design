@@ -15,7 +15,7 @@ import {
   UserRound,
   UsersRound,
 } from 'lucide-react'
-import { Link, Navigate, NavLink, Outlet, useLocation, useMatches, useNavigate } from 'react-router'
+import { Link, Navigate, NavLink, Outlet, useLocation, useNavigate } from 'react-router'
 import { BrandMark } from '@/components/brand-mark'
 import { SidebarFooter, SidebarGroup, SidebarGroups, SidebarNav, SidebarTop } from '@/components/sidebar-nav'
 import { Avatar } from '@/components/ui/avatar'
@@ -25,6 +25,7 @@ import { createStore, useStore } from '@/lib/store'
 import { useDb } from '@/mocks/db'
 import { activeSquadIds, githubHandle } from '@/mocks/squads'
 import { isActiveValidator } from '@/mocks/validation'
+import { ThemeToggle } from '@/modules/panel-app/components/theme-toggle'
 import { useAccount } from '@/modules/panel-app/hooks/use-account'
 import { logout, needsOnboarding } from '@/modules/panel-app/features/auth/actions'
 import './app-layout.css'
@@ -44,8 +45,6 @@ export function AppLayout() {
   const { pathname, search } = useLocation()
   const [loggingOut, startLogout] = useTransition()
   const collapsed = useStore(sidebar, (s) => s.collapsed)
-  // Routes with `handle: { wide: true }` (the home) get the whole width for their columns.
-  const wide = useMatches().some((match) => (match.handle as { wide?: boolean } | undefined)?.wide)
 
   const userId = account?.id ?? ''
   const activeIds = activeSquadIds(state, userId)
@@ -135,7 +134,17 @@ export function AppLayout() {
             </SidebarGroup>
           )}
         </SidebarGroups>
-        {!validator && (
+        {/* One card above the account: finishing the profile comes before inviting to validate. */}
+        {account.completeness.percent < 100 ? (
+          <Link
+            to="/app/settings/profile"
+            className="app-layout__invite sidebar-nav__hide-collapsed sidebar-nav__hide-mobile"
+          >
+            <span className="app-layout__invite-title">Completar perfil</span>
+            <span className="app-layout__invite-text">Perfil {account.completeness.percent}% preenchido.</span>
+          </Link>
+        ) : (
+          !validator && (
           <Link
             to="/app/validation/validator-application"
             className="app-layout__invite sidebar-nav__hide-collapsed sidebar-nav__hide-mobile"
@@ -143,6 +152,7 @@ export function AppLayout() {
             <span className="app-layout__invite-title">Quero validar</span>
             <span className="app-layout__invite-text">Valide o trabalho de squads com a sua experiência.</span>
           </Link>
+          )
         )}
         <SidebarFooter>
           <Avatar src={account.photoUrl} name={account.name} size="md" tone="ink" />
@@ -152,6 +162,7 @@ export function AppLayout() {
             </span>
             {github && <span className="app-layout__handle">@{github}</span>}
           </span>
+          <ThemeToggle />
           <NavLink
             to="/app/settings/profile"
             className="sidebar-nav__icon"
@@ -179,7 +190,7 @@ export function AppLayout() {
           </Button>
         </SidebarFooter>
       </SidebarNav>
-      <main className="app-layout__content" data-wide={wide || undefined}>
+      <main className="app-layout__content">
         <Outlet />
       </main>
     </div>

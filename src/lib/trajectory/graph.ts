@@ -143,6 +143,7 @@ export function trajectoryGraph(
   const experiences = shown(profile.experiences)
   // The owner reads every publication they kept; members those in the Feed or on the profile; visitors those on the profile.
   const readable = (post: FeedPost) =>
+    post.projectId === null &&
     post.deletedAt === null &&
     (viewer === 'owner' || post.shownOnProfile || (viewer === 'member' && post.sharedOnFeed))
   const squadOf = (project: Project) => squads.find((squad) => squad.id === project.squadId)

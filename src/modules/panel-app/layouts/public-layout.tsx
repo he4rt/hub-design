@@ -2,6 +2,7 @@ import { Link, NavLink, Outlet, useLocation } from 'react-router'
 import { BrandMark } from '@/components/brand-mark'
 import { Button } from '@/components/ui/button'
 import { useAccount } from '@/modules/panel-app/hooks/use-account'
+import { ThemeToggle } from '@/modules/panel-app/components/theme-toggle'
 import './public-layout.css'
 
 /**
@@ -20,6 +21,7 @@ export function PublicLayout() {
           <NavLink to="/app/discussions">Fórum</NavLink>
         </nav>
         <nav className="public-layout__actions" aria-label="Conta">
+          <ThemeToggle />
           {account ? (
             <Button asChild variant="ghost" size="sm">
               <Link to="/app">Ir para o painel</Link>

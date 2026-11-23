@@ -95,7 +95,7 @@ export default function DiscussionsIndex() {
     <div className="discussions-index">
       <PageHeader
         title="Fórum"
-        description="Pergunte, responda e marque a resposta que resolveu. Qualquer pessoa lê; para escrever, entre na sua conta."
+        description="Tire dúvidas, peça ajuda com seu projeto e compartilhe caminhos. Discussões de projetos pessoais ficam entre membros."
         actions={
           <Button asChild>
             <Link to="/app/discussions/new">

@@ -1,4 +1,4 @@
-import { Outlet } from 'react-router'
+import { Outlet, ScrollRestoration } from 'react-router'
 import { DebugSidebar } from '@/debug/debug-sidebar'
 import './app-shell.css'
 
@@ -10,6 +10,7 @@ export function AppShell() {
         <Outlet />
       </div>
       <DebugSidebar />
+      <ScrollRestoration />
     </div>
   )
 }

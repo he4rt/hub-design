@@ -38,7 +38,8 @@ export function ReplyForm({ discussionId }: { discussionId: string }) {
         id="reply-body"
         rows={4}
         value={body}
-        aria-invalid={result?.ok === false ? true : undefined}
+        disabled={pending}
+        aria-invalid={!pending && result?.ok === false ? true : undefined}
         aria-describedby="reply-body-hint"
         onChange={(event) => setBody(event.target.value)}
       />
@@ -47,7 +48,7 @@ export function ReplyForm({ discussionId }: { discussionId: string }) {
       </p>
       <div className="reply-form__footer">
         <FormMessage tone={result?.ok === false ? 'error' : 'success'}>
-          {result && (result.ok ? 'Resposta publicada.' : result.error)}
+          {!pending && result && (result.ok ? 'Resposta publicada.' : result.error)}
         </FormMessage>
         <Button type="submit" loading={pending}>
           Responder

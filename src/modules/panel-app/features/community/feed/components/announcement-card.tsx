@@ -1,4 +1,5 @@
 import { useTransition } from 'react'
+import { Megaphone, Pin } from 'lucide-react'
 import { Avatar } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -42,21 +43,18 @@ export function AnnouncementCard({
 
   return (
     <Card className="announcement-card" data-pinned={pinned || undefined}>
-      {pinned && <p className="announcement-card__pinned">Fixado no topo do Feed</p>}
       <header className="announcement-card__header">
         <Avatar src={null} name="He4rt Developers" />
-        <div className="announcement-card__author">
-          <div className="announcement-card__name">
-            <strong>He4rt Developers</strong>
-            <Badge>Oficial</Badge>
-          </div>
-          <p className="announcement-card__headline">Comunicado oficial da comunidade</p>
-          <p className="announcement-card__meta">
-            <time dateTime={announcement.createdAt} title={formatFullDate(announcement.createdAt)}>
-              {formatRelative(announcement.createdAt, now)}
-            </time>
-          </p>
+        <div className="announcement-card__name">
+          <strong>He4rt Developers</strong>
+          <Badge title="Comunicado oficial da comunidade">Oficial</Badge>
         </div>
+        <p className="announcement-card__meta">
+          {pinned && <><Pin size={13} aria-hidden /> Fixado, </>}
+          <time dateTime={announcement.createdAt} title={formatFullDate(announcement.createdAt)}>
+            {formatRelative(announcement.createdAt, now)}
+          </time>
+        </p>
         {canPinAnnouncement(viewer) && (
           <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
@@ -70,7 +68,7 @@ export function AnnouncementCard({
           </DropdownMenu>
         )}
       </header>
-      <h3 className="announcement-card__title">{announcement.title}</h3>
+      <h3 className="announcement-card__title"><Megaphone size={18} aria-hidden /> {announcement.title}</h3>
       <p className="announcement-card__body">{announcement.body}</p>
     </Card>
   )

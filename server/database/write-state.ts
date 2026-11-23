@@ -121,6 +121,29 @@ export function writeState(state: MockDb) {
   for (const choice of state.achievementChoices) insert('achievement_choices', { user_id: choice.userId, key: choice.key })
 
   for (const c of state.feedCollections) insert('feed_collections', { id: c.id, user_id: c.userId, name: c.name, created_at: c.createdAt })
+  for (const p of state.memberProjects) {
+    insert('member_projects', {
+      id: p.id,
+      user_id: p.userId,
+      repository_full_name: p.repository.fullName,
+      repository_url: p.repository.url,
+      pitch: p.pitch,
+      read_name: p.read.name,
+      read_description: p.read.description,
+      read_language: p.read.language,
+      read_license: p.read.license,
+      read_pushed_at: p.read.pushedAt,
+      product_md: p.read.files.product,
+      product_metrics_md: p.read.files.metrics,
+      readme_md: p.read.files.readme,
+      repository_status: p.repositoryStatus,
+      read_at: p.readAt,
+      created_at: p.createdAt,
+    })
+    for (const r of p.revisions) {
+      insert('member_project_revisions', { project_id: p.id, intent: r.intent, pitch: r.pitch, help_request: r.helpRequest, replaced_at: r.replacedAt })
+    }
+  }
   for (const post of state.feedPosts) {
     insert('feed_posts', {
       id: post.id,
@@ -129,6 +152,7 @@ export function writeState(state: MockDb) {
       applied: post.applied,
       objective_progress: post.objectiveProgress,
       learning_id: post.learningId,
+      project_id: post.projectId,
       shared_on_feed: post.sharedOnFeed,
       shown_on_profile: post.shownOnProfile,
       show_reaction_counts: post.showReactionCounts,
@@ -153,6 +177,9 @@ export function writeState(state: MockDb) {
     )
   }
   for (const b of state.feedBookmarks) insert('feed_bookmarks', { user_id: b.userId, post_id: b.postId, created_at: b.createdAt })
+  for (const c of state.feedComments) {
+    insert('feed_comments', { id: c.id, post_id: c.postId, user_id: c.userId, body: c.body, created_at: c.createdAt, deleted_at: c.deletedAt })
+  }
   for (const a of state.feedAnnouncements) {
     insert('feed_announcements', { id: a.id, author_id: a.authorId, title: a.title, body: a.body, created_at: a.createdAt, pinned_at: a.pinnedAt })
   }

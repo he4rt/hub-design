@@ -1,0 +1,3 @@
+.ui-button.post-save-button[aria-pressed='true'] {
+  color: var(--warning-text);
+}

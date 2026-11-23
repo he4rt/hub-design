@@ -149,6 +149,7 @@ export function readFeedPosts(where = '', params: Record<string, unknown> = {}):
     applied: p.applied,
     objectiveProgress: p.objective_progress,
     learningId: p.learning_id,
+    projectId: p.project_id,
     sharedOnFeed: bool(p.shared_on_feed),
     shownOnProfile: bool(p.shown_on_profile),
     collectionIds: (collections.get(p.id) ?? []).map((c) => c.collection_id),
@@ -329,6 +330,7 @@ function readValidations(): Validation[] {
  */
 export function readState(): MockDb {
   const sync = first<R>('SELECT * FROM github_sync_state WHERE id = 1')
+  const projectRevisions = groupBy(all<R>('SELECT * FROM member_project_revisions ORDER BY id'), 'project_id')
   return {
     users: readUsers(),
     passwords: {},
@@ -352,6 +354,32 @@ export function readState(): MockDb {
       userId: b.user_id,
       postId: b.post_id,
       createdAt: b.created_at,
+    })),
+    memberProjects: all<R>('SELECT * FROM member_projects ORDER BY rowid').map((p) => ({
+      id: p.id,
+      userId: p.user_id,
+      repository: { fullName: p.repository_full_name, url: p.repository_url },
+      pitch: p.pitch,
+      read: {
+        name: p.read_name,
+        description: p.read_description,
+        language: p.read_language,
+        license: p.read_license,
+        pushedAt: p.read_pushed_at,
+        files: { product: p.product_md, metrics: p.product_metrics_md, readme: p.readme_md },
+      },
+      repositoryStatus: p.repository_status,
+      readAt: p.read_at,
+      createdAt: p.created_at,
+      revisions: (projectRevisions.get(p.id) ?? []).map((r) => ({ intent: r.intent, pitch: r.pitch, helpRequest: r.help_request, replacedAt: r.replaced_at })),
+    })),
+    feedComments: all<R>('SELECT * FROM feed_comments ORDER BY created_at, rowid').map((c) => ({
+      id: c.id,
+      postId: c.post_id,
+      userId: c.user_id,
+      body: c.body,
+      createdAt: c.created_at,
+      deletedAt: c.deleted_at,
     })),
     feedAnnouncements: all<R>('SELECT * FROM feed_announcements ORDER BY rowid').map((a) => ({
       id: a.id,

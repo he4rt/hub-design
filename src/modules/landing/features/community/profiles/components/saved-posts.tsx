@@ -1,17 +1,19 @@
 import { Link } from 'react-router'
 import { BookmarkMinus } from 'lucide-react'
+import { MemberProjectPreview } from '@/components/member-project-preview'
 import { FormMessage } from '@/components/form-message'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { useActionRunner } from '@/hooks/use-action-runner'
 import { formatPostDate } from '@/lib/feed-post'
-import type { FeedPost, User } from '@/mocks/db'
+import { useDb, type FeedPost, type User } from '@/mocks/db'
 import { unsavePost } from '../actions'
 import './saved-posts.css'
 
 /** Publications the owner saved to read again, newest save first. Only the owner sees this list. */
 export function SavedPosts({ ownerId, posts, users }: { ownerId: string; posts: FeedPost[]; users: User[] }) {
   const { run, pending, error } = useActionRunner()
+  const projects = useDb((s) => s.memberProjects)
   return (
     <Card className="saved-posts" aria-labelledby="saved-posts-title">
       <h2 id="saved-posts-title">Salvos</h2>
@@ -34,8 +36,7 @@ export function SavedPosts({ ownerId, posts, users }: { ownerId: string; posts: 
                   )}
                   <time dateTime={post.createdAt}>{formatPostDate(post.createdAt)}</time>
                 </p>
-                <p>{post.learned}</p>
-                <p className="saved-posts__muted">Como aplicou: {post.applied}</p>
+                {post.projectId ? projects.filter((p) => p.id === post.projectId).map((p) => <MemberProjectPreview key={p.id} project={p} />) : <><p>{post.learned}</p><p className="saved-posts__muted">Como aplicou: {post.applied}</p></>}
                 <Button
                   variant="ghost"
                   size="sm"

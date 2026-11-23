@@ -1,19 +1,24 @@
-.reaction-bar {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--space-2);
+/* The same reaction keeps its meaning in the picker, summary and selected button. */
+.reaction-summary svg,
+.reaction-summary__breakdown svg,
+.post-action svg,
+.react-button__option svg {
+  &[data-reaction='helped'] {
+    color: var(--success-text);
+  }
+  &[data-reaction='learning-too'],
+  &[data-reaction='want-to-learn'] {
+    color: var(--info-text);
+  }
+  &[data-reaction='inspiring'] {
+    color: var(--warning-text);
+  }
 }
 
-.reaction-bar__actions {
-  display: flex;
-  align-self: stretch;
-  justify-content: space-between;
-  gap: var(--space-2);
-  margin-left: calc(-1 * var(--space-3));
-}
-
-.reaction-bar__summary {
+.reaction-summary {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
   min-width: 0;
   padding: 0;
   border: none;
@@ -21,45 +26,29 @@
   color: var(--text-muted);
   font: var(--text-caption);
   text-align: left;
+  cursor: pointer;
 
-  &:is(button) {
-    cursor: pointer;
+  &:hover {
+    color: var(--text);
+    text-decoration: underline;
+  }
 
-    &:hover {
-      color: var(--brand-text);
-      text-decoration: underline;
-    }
+  &:focus-visible {
+    border-radius: var(--radius-sm);
+    outline: none;
+    box-shadow: var(--focus-ring);
+  }
 
-    &:focus-visible {
-      border-radius: var(--radius-sm);
-      outline: none;
-      box-shadow: var(--focus-ring);
-    }
+  > span {
+    margin-left: var(--space-1);
   }
 }
 
-.reaction-bar__total {
+.reaction-summary__total {
   font-variant-numeric: tabular-nums;
 }
 
-.reaction-bar__react {
-  min-width: 22ch;
-
-  &[data-active] {
-    color: var(--brand-text);
-  }
-}
-
-.reaction-bar__picker {
-  width: auto;
-
-  .ui-toggle-group {
-    flex-direction: column;
-    align-items: stretch;
-  }
-}
-
-.reaction-bar__breakdown {
+.reaction-summary__breakdown {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
@@ -70,12 +59,70 @@
 
   li {
     display: flex;
-    justify-content: space-between;
-    gap: var(--space-4);
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  li > span:first-of-type {
+    flex: 1;
   }
 }
 
-.reaction-bar__hint {
+.reaction-summary__hint {
   color: var(--text-muted);
   font: var(--text-caption);
+}
+
+/* The four options side by side, icon above the name, like the reference picker. */
+.ui-popover.react-button__picker {
+  width: auto;
+  padding: var(--space-1);
+  border-radius: var(--radius-pill);
+}
+
+.ui-toggle-group.react-button__options {
+  flex-wrap: nowrap;
+  padding: 0;
+  background: transparent;
+}
+
+.ui-toggle-group__item.react-button__option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--space-1);
+  width: 96px;
+  height: auto;
+  padding: var(--space-2) var(--space-1);
+  border-radius: var(--radius-lg);
+  font: var(--text-caption);
+  line-height: 1.2;
+  white-space: normal;
+  text-align: center;
+
+  &:hover {
+    background: var(--surface-2);
+  }
+
+  &[data-state='on'] {
+    background: var(--surface-2);
+    color: var(--text);
+    font-weight: 600;
+    box-shadow: none;
+  }
+
+  &:first-child {
+    border-radius: var(--radius-pill) var(--radius-lg) var(--radius-lg) var(--radius-pill);
+  }
+
+  &:last-child {
+    border-radius: var(--radius-lg) var(--radius-pill) var(--radius-pill) var(--radius-lg);
+  }
+}
+
+@media (max-width: 420px) {
+  .ui-toggle-group__item.react-button__option {
+    width: 76px;
+  }
 }

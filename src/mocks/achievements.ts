@@ -209,7 +209,7 @@ function factsOf(state: MockDb, userId: string) {
   const user = state.users.find((u) => u.id === userId)
   const profile = state.profiles.find((p) => p.userId === userId)
   const github = user?.linkedAccounts.find((a) => a.provider === 'github')
-  const posts = state.feedPosts.filter((p) => p.userId === userId && p.deletedAt === null)
+  const posts = state.feedPosts.filter((p) => p.userId === userId && p.projectId === null && p.deletedAt === null)
   const memberships = state.memberships.filter((m) => m.userId === userId)
   const accepted = state.deliveries.filter((d) => d.status === 'accepted' && d.credits.some((c) => c.userId === userId))
   const validations = state.validations

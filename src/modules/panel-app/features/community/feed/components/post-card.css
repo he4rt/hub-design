@@ -1,7 +1,19 @@
 .post-card {
   gap: var(--space-4);
+  padding-bottom: 0;
+  overflow: clip;
 }
 
+.post-card__project {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+.post-card__pitch {
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
 .post-card__header {
   display: flex;
   align-items: flex-start;
@@ -54,9 +66,11 @@
 }
 
 .post-card__meta {
+  min-width: 0;
   color: var(--text-muted);
   font: var(--text-caption);
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 /* The two parts of a publication, each with a field label above its text. */
@@ -73,8 +87,14 @@
   }
 
   dt {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
     color: var(--text-muted);
     font: var(--text-label);
+    > svg {
+      color: var(--info-text);
+    }
   }
 
   dd {
@@ -86,23 +106,117 @@
   }
 }
 
-.post-card__tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
+.post-card__progress {
+  color: var(--text-muted);
+  font: var(--text-caption);
 }
 
+/*
+ * Footer: a quiet line with what others did (reactions, comments), then one bar of
+ * three equal actions between dividers, like a toolbar, then the discussion.
+ */
 .post-card__footer {
-  padding-top: var(--space-3);
-  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-1);
 }
 
-.post-card__save {
-  min-width: 10ch;
+.post-card__stats {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-height: 18px;
 
-  &[aria-pressed='true'] {
-    color: var(--brand-text);
+  &:empty {
+    display: none;
   }
+}
+
+.post-card__stats-comments {
+  margin-left: auto;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  font: var(--text-caption);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--text);
+    text-decoration: underline;
+  }
+
+  &:focus-visible {
+    border-radius: var(--radius-sm);
+    outline: none;
+    box-shadow: var(--focus-ring);
+  }
+}
+
+/*
+ * Three fixed columns: no button moves or resizes when its label changes, and each
+ * action sits in the same place on every card, even when one does not apply.
+ */
+.post-card__actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-1);
+  margin-inline: calc(-1 * var(--space-5));
+  padding: var(--space-1) var(--space-2);
+  border-top: 1px solid var(--border);
+  > [data-action='comment'] { grid-column: 2; }
+  > [data-action='save'] { grid-column: 3; }
+}
+
+/* Toolbar button: no border, muted until hovered or on. */
+.ui-button.post-action {
+  min-width: 0;
+  height: calc(var(--control-h) + var(--space-1));
+  padding: 0 var(--space-2);
+  color: var(--text-muted);
+  font: var(--text-body-strong);
+
+  svg {
+    flex: none;
+  }
+
+  &:hover:not(:disabled) {
+    background: var(--surface-2);
+    color: var(--text);
+  }
+
+  &[data-active] {
+    color: var(--text);
+  }
+
+  &[aria-expanded='true'] {
+    background: var(--surface-2);
+  }
+
+  &[data-action='comment'] > svg {
+    color: var(--info-text);
+  }
+
+  &[data-action='save'][data-active] {
+    color: var(--warning-text);
+  }
+}
+
+.post-card__footer > .post-comments {
+  padding-bottom: var(--space-4);
+}
+.post-card:not(:has(.post-card__footer)) {
+  padding-bottom: var(--space-5);
+}
+
+.post-action__label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .post-card__quote {
@@ -112,4 +226,17 @@
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 3;
   overflow-wrap: anywhere;
+}
+
+@media (max-width: 767px) {
+  .post-card__actions {
+    margin-inline: calc(-1 * var(--space-4));
+  }
+}
+
+@media (max-width: 520px) {
+  .ui-button.post-action {
+    gap: var(--space-1);
+    font: var(--text-label);
+  }
 }

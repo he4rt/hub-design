@@ -1,5 +1,6 @@
 import { createStore, useStore } from '@/lib/store'
 import { withCompleteness } from './profile-completeness'
+import { REPOSITORIES } from './repositories'
 import { squadsSeed } from './squads-seed'
 
 /** Providers that sign a member in. */
@@ -475,6 +476,19 @@ export type PostReaction = { userId: string; type: ReactionType; createdAt: stri
  */
 export type FeedCollection = { id: string; userId: string; name: string; createdAt: string }
 
+/**
+ * Short comment on a publication, for members who can read it in the Feed. No replies and no
+ * reactions on comments. Deleting one hides it for everyone and keeps it for moderation.
+ */
+export type FeedComment = {
+  id: string
+  postId: string
+  userId: string
+  body: string
+  createdAt: string
+  deletedAt: string | null
+}
+
 /** A publication a member saved to read again, like a bookmark. Only that member sees it. */
 export type FeedBookmark = { userId: string; postId: string; createdAt: string }
 
@@ -524,6 +538,12 @@ export type FeedPost = {
   objectiveProgress: ObjectiveProgress
   /** Learning record of the author's trajectory this publication belongs to, when they chose one. */
   learningId: string | null
+  /**
+   * Set when the publication shares one of the author's projects: its text lives in the project,
+   * `learned` and `applied` stay empty and `objectiveProgress` is unused. It is not a diary entry, so
+   * the trajectory, the profile's diary and the diary achievements leave it out.
+   */
+  projectId: string | null
   /** Members see it in the Feed. On by default in the form. */
   sharedOnFeed: boolean
   /** Visitors see it in the public profile, when the profile is published. Off by default. */
@@ -542,6 +562,41 @@ export type FeedPost = {
   revisions: (Pick<FeedPost, 'learned' | 'applied' | 'objectiveProgress'> & { replacedAt: string })[]
 }
 
+/** Legacy intentions are kept only in the moderation history. New questions live in the forum. */
+export type ProjectIntent = 'showcase' | 'help'
+
+/** What the He4rt GitHub App last read from a member's repository. */
+export type RepositoryRead = {
+  name: string
+  description: string | null
+  language: string | null
+  license: string | null
+  /** Last push to the default branch. */
+  pushedAt: string
+  /** Root files the Hub reads; null when the repository does not have one. Markdown, as on GitHub. */
+  files: { product: string | null; metrics: string | null; readme: string | null }
+}
+
+/**
+ * A member's own project ("projeto pessoal"), shared in the Feed from one of their GitHub repositories.
+ * Not the squad's `Project`, which the staff creates. The preview leads straight to GitHub;
+ * questions are forum discussions linked to the publication.
+ * Reactions, comments and bookmarks live in the publication that shares it (`FeedPost.projectId`).
+ */
+export type MemberProject = {
+  id: string
+  userId: string
+  repository: { fullName: string; url: string }
+  /** What the author tells the community about it. */
+  pitch: string
+  read: RepositoryRead
+  /** Unavailable when the repository was deleted or made private: the last read stays. */
+  repositoryStatus: 'available' | 'unavailable'
+  readAt: string
+  createdAt: string
+  revisions: { intent: ProjectIntent; pitch: string; helpRequest: string | null; replacedAt: string }[]
+}
+
 export type MockDb = {
   users: User[]
   /** Server-side only: passwords by user id. Accounts created by social login have none. */
@@ -557,7 +612,10 @@ export type MockDb = {
   feedPosts: FeedPost[]
   feedCollections: FeedCollection[]
   feedBookmarks: FeedBookmark[]
+  /** Oldest first, as they read under the publication. */
+  feedComments: FeedComment[]
   feedAnnouncements: FeedAnnouncement[]
+  memberProjects: MemberProject[]
   homeBanners: HomeBanner[]
   /** What PostHog would receive, newest first. */
   events: AnalyticsEvent[]
@@ -639,6 +697,7 @@ const post = (
   userId,
   createdAt,
   learningId: null,
+  projectId: null,
   sharedOnFeed: true,
   shownOnProfile: false,
   collectionIds: [],
@@ -900,18 +959,88 @@ const seed: MockDb = {
         reacted('u4', 'helped', '2026-11-18T08:00:00Z'),
       ],
     }),
+    // Publications that share members' projects; their text lives in memberProjects.
+    post('pp3', 'u8', '2026-11-16T10:00:00Z', { learned: '', applied: '', objectiveProgress: 'none', projectId: 'mp3' }),
+    post('pp2', 'u2', '2026-11-19T20:00:00Z', {
+      learned: '',
+      applied: '',
+      objectiveProgress: 'none',
+      projectId: 'mp2',
+      shownOnProfile: true,
+      reactions: [reacted('u9', 'inspiring', '2026-11-20T09:00:00Z'), reacted('u3', 'want-to-learn', '2026-11-20T11:00:00Z')],
+    }),
+    post('pp1', 'u9', '2026-11-21T08:00:00Z', {
+      learned: '',
+      applied: '',
+      objectiveProgress: 'none',
+      projectId: 'mp1',
+      reactions: [reacted('u8', 'learning-too', '2026-11-21T09:00:00Z')],
+    }),
   ],
   feedCollections: [
     { id: 'c1', userId: 'u2', name: 'Testes no front-end', createdAt: '2026-11-04T11:30:00Z' },
     { id: 'c2', userId: 'u2', name: 'Acessibilidade', createdAt: '2026-10-20T18:42:00Z' },
   ],
   feedBookmarks: [{ userId: 'u2', postId: 'p5', createdAt: '2026-11-13T08:00:00Z' }],
+  feedComments: [
+    {
+      id: 'fc1',
+      postId: 'p6',
+      userId: 'u3',
+      body: 'Boa! Eu ainda uso classe nos meus testes. Vou trocar.',
+      createdAt: '2026-11-17T12:05:00Z',
+      deletedAt: null,
+    },
+    {
+      id: 'fc2',
+      postId: 'p6',
+      userId: 'u1',
+      body: 'O getByRole também ajuda na acessibilidade: se o teste não acha o botão, o leitor de tela também não acha.',
+      createdAt: '2026-11-18T09:30:00Z',
+      deletedAt: null,
+    },
+  ],
+  memberProjects: [
+    {
+      id: 'mp1',
+      userId: 'u9',
+      repository: { fullName: 'diego-ramos/fila-zero', url: 'https://github.com/diego-ramos/fila-zero' },
+      pitch: 'Comecei o Fila Zero para acabar com a fila na porta da clínica da minha mãe. Hoje três clínicas usam.',
+      read: REPOSITORIES['diego-ramos/fila-zero'],
+      repositoryStatus: 'available',
+      readAt: '2026-11-21T08:00:00Z',
+      createdAt: '2026-11-21T08:00:00Z',
+      revisions: [],
+    },
+    {
+      id: 'mp2',
+      userId: 'u2',
+      repository: { fullName: 'ana-souza/caderno-de-estudos', url: 'https://github.com/ana-souza/caderno-de-estudos' },
+      pitch: 'Fiz o caderno que eu queria ter quando comecei: anotação por tema e um lembrete para revisar no dia certo.',
+      read: REPOSITORIES['ana-souza/caderno-de-estudos'],
+      repositoryStatus: 'available',
+      readAt: '2026-11-19T20:00:00Z',
+      createdAt: '2026-11-19T20:00:00Z',
+      revisions: [],
+    },
+    {
+      id: 'mp3',
+      userId: 'u8',
+      repository: { fullName: 'marina-duarte/acessa-form', url: 'https://github.com/marina-duarte/acessa-form' },
+      pitch: 'Componentes de formulário que funcionam com leitor de tela, para usar nos projetos dos squads.',
+      read: REPOSITORIES['marina-duarte/acessa-form'],
+      repositoryStatus: 'available',
+      readAt: '2026-11-16T10:00:00Z',
+      createdAt: '2026-11-16T10:00:00Z',
+      revisions: [],
+    },
+  ],
   feedAnnouncements: [
     {
       id: 'an1',
       authorId: 'u1',
       title: 'O Feed agora é a página inicial do Hub',
-      body: 'Registre o que você aprendeu e como aplicou. Escolha em cada publicação se ela vai para o Feed, para o seu perfil ou fica só com você. Dúvidas ficam no Fórum.',
+      body: 'Compartilhe aprendizados e divulgue seus projetos. Para tirar dúvidas ou pedir uma opinião sobre o código, abra uma discussão no Fórum e vincule seu projeto.',
       createdAt: '2026-11-18T12:00:00Z',
       pinnedAt: '2026-11-18T12:00:00Z',
     },
@@ -1134,6 +1263,39 @@ const seed: MockDb = {
     ...['validator', 'first-validation-given'].map((key) => ({ userId: 'u9', key })),
   ],
   discussions: [
+    {
+      id: 'project-help-pp1',
+      title: 'Como medir as faltas no Fila Zero?',
+      category: 'question',
+      authorId: 'u9',
+      body: 'Quero medir quem falta sem avisar, mas não sei se a consulta de check-in está contando certo. Alguém pode olhar a consulta e o painel de métricas?',
+      createdAt: '2026-11-21T08:00:00Z',
+      context: { type: 'post', id: 'pp1' },
+      replies: [
+        {
+          id: 'project-comment-fc3', authorId: 'u8',
+          body: 'Olhei a consulta: ela conta como falta quem cancelou depois do horário. Vale separar cancelamento tardio de falta.',
+          createdAt: '2026-11-21T10:15:00Z',
+        },
+        {
+          id: 'project-comment-fc4', authorId: 'u9',
+          body: 'Faz sentido! Vou abrir uma issue para isso. Obrigado, Marina.',
+          createdAt: '2026-11-21T11:02:00Z',
+        },
+      ],
+      solvedReplyId: null,
+    },
+    {
+      id: 'project-help-pp3',
+      title: 'Como testar o select do Acessa Form com leitor de tela?',
+      category: 'question',
+      authorId: 'u8',
+      body: 'Preciso de alguém que use leitor de tela no dia a dia para testar a mensagem de erro do select.',
+      createdAt: '2026-11-16T10:00:00Z',
+      context: { type: 'post', id: 'pp3' },
+      replies: [],
+      solvedReplyId: null,
+    },
     {
       id: 't1',
       title: 'Como ser avisada quando a fila do Laravel para?',

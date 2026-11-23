@@ -55,7 +55,8 @@ O que existe, uma linha cada, em quatro domínios:
 
 **Comunidade**
 
-- **Feed:** diário de aprendizado, onde o membro registra o que aprendeu, como aplicou e o quanto isso o aproximou do objetivo.
+- **Feed:** publicações de aprendizado e divulgação de projetos pessoais. No diário, o membro registra o que aprendeu, como aplicou e o quanto isso o aproximou do objetivo. Um projeto pessoal da conta vinculada do GitHub ganha uma prévia curta com saída para o repositório. Só aparece no perfil público por escolha do autor; não equivale a entrega de squad nem a competência validada e não gera XP de diário.
+- **Fórum:** dúvidas e discussões, inclusive sobre projetos pessoais. O membro pode vincular um projeto divulgado à discussão para reunir a dúvida, os documentos do repositório e as respostas no mesmo lugar. Pode abrir mais de uma dúvida sobre o projeto, sem criar novas publicações no Feed. Essas conversas ficam entre membros enquanto a publicação estiver no Feed; quando ela fica privada ou é excluída, só o dono mantém acesso ao histórico. A escolha de exibir o projeto no perfil público não torna a conversa pública. Discussões gerais continuam públicas, com login para participar.
 - **Progresso e conquistas:** XP e conquistas como reconhecimento no perfil, derivados de atividade apurada pela plataforma.
 - **Administração:** moderação, vagas, squads, validadores e conquistas manuais.
 

@@ -4,20 +4,17 @@ import { FormMessage } from '@/components/form-message'
 import { PageHeader } from '@/components/page-header'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { useDebugActions } from '@/debug/use-debug-actions'
-import { db, newId, updateUser, useDb, type FeedPost, type ObjectiveProgress, type ReactionType } from '@/mocks/db'
+import { db, newId, useDb, type FeedPost, type ObjectiveProgress, type ReactionType } from '@/mocks/db'
 import { errorMessage } from '@/mocks/mock-action'
 import { useAccount } from '@/modules/panel-app/hooks/use-account'
-import { createPost, FEED_PAGE_SIZE, loadMorePosts } from '../actions'
+import { createComment, createPost, FEED_PAGE_SIZE, loadMorePosts } from '../actions'
 import { AnnouncementCard } from '../components/announcement-card'
-import { HomeBanner } from '../components/home-banner'
 import { PostForm } from '../components/post-form'
-import { HomeAside } from '../components/home-aside'
 import { PostCard, type Notice } from '../components/post-card'
-import { ProfileCard } from '../components/profile-card'
-import { verifyEmail } from '../reminders/actions'
+import { ProjectForm } from '../components/project-form'
 import './index.css'
-
 
 const PROGRESS_CYCLE: ObjectiveProgress[] = ['none', 'little', 'a-lot', 'very-much']
 
@@ -31,6 +28,7 @@ function makeCommunityPosts(count: number, authorIds: string[]): FeedPost[] {
     applied: 'Movi a validação do controller para uma classe própria e escrevi um teste para ela.',
     objectiveProgress: PROGRESS_CYCLE[i % PROGRESS_CYCLE.length],
     learningId: null,
+    projectId: null,
     sharedOnFeed: true,
     shownOnProfile: false,
     collectionIds: [],
@@ -44,12 +42,11 @@ function makeCommunityPosts(count: number, authorIds: string[]): FeedPost[] {
 }
 
 /**
- * Home of the Hub: the learning diary of the community in the middle, newest
+ * Home of the Hub: the learning diary of the community in one column, newest
  * first and ten at a time, never ordered by reactions, the member's own shared
  * ones included, with the community's pinned announcements on top. "Nova
  * publicação" opens over it (`?compose=1`). Their own history and what they
- * saved live in their profile. The member's profile
- * preview sits on the left and the blocks of their moment on the right.
+ * saved live in their profile; how complete it is sits in the side navigation.
  */
 export default function FeedIndex() {
   const account = useAccount()
@@ -67,7 +64,7 @@ export default function FeedIndex() {
   const [loading, startLoading] = useTransition()
   const [loadError, setLoadError] = useState<string | null>(null)
 
-  const composing = params.get('compose') === '1'
+  const composing = params.get('compose')
   const limit = Math.max(FEED_PAGE_SIZE, Number(params.get('limit')) || FEED_PAGE_SIZE)
 
   useDebugActions('Início (Feed)', [
@@ -115,8 +112,66 @@ export default function FeedIndex() {
         })
         db.set((s) => ({
           ...s,
-          feedPosts: s.feedPosts.map((p) => (p.id === mine.id ? { ...p, reactions: [...p.reactions, ...added] } : p)),
+          feedPosts: s.feedPosts.map((p) =>
+            p.id === mine.id ? { ...p, reactions: [...p.reactions, ...added] } : p,
+          ),
         }))
+      },
+    },
+    {
+      label: 'Outros membros comentam na primeira publicação',
+      description: 'Três comentários chegam agora; abra Comentar para ver.',
+      run: () => {
+        const state = db.get()
+        const target = state.feedPosts
+          .filter((p) => p.sharedOnFeed && !p.deletedAt)
+          .sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0]
+        if (!target) return
+        const others = state.users.filter((u) => u.id !== account?.id && u.onboardedAt).slice(0, 3)
+        const texts = [
+          'Boa! Vou testar isso hoje.',
+          'Eu passei pelo mesmo problema semana passada.',
+          'Tem algum link que te ajudou?',
+        ]
+        const now = Date.now()
+        const made = others.map((u, i) => ({
+          id: newId(),
+          postId: target.id,
+          userId: u.id,
+          body: texts[i],
+          createdAt: new Date(now - (others.length - i) * 60_000).toISOString(),
+          deletedAt: null,
+        }))
+        db.set((s) => ({ ...s, feedComments: [...s.feedComments, ...made] }))
+      },
+    },
+    {
+      label: 'Gerar 25 comentários na primeira publicação',
+      run: () => {
+        const state = db.get()
+        const target = state.feedPosts
+          .filter((p) => p.sharedOnFeed && !p.deletedAt)
+          .sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0]
+        const others = state.users.filter((u) => u.id !== account?.id && u.onboardedAt)
+        if (!target || others.length === 0) return
+        const now = Date.now()
+        const made = Array.from({ length: 25 }, (_, i) => ({
+          id: newId(),
+          postId: target.id,
+          userId: others[i % others.length].id,
+          body: `Comentário gerado ${i + 1}: anotei para estudar também, obrigado por compartilhar o que funcionou.`,
+          createdAt: new Date(now - (25 - i) * 60_000).toISOString(),
+          deletedAt: null,
+        }))
+        db.set((s) => ({ ...s, feedComments: [...s.feedComments, ...made] }))
+      },
+    },
+    {
+      label: 'Comentar com texto ofensivo (erro esperado)',
+      description: 'A moderação automática barra o comentário.',
+      run: () => {
+        const target = db.get().feedPosts.find((p) => p.sharedOnFeed && !p.deletedAt)
+        if (account && target) return createComment(account.id, target.id, 'Que ideia de idiota.')
       },
     },
     {
@@ -151,7 +206,11 @@ export default function FeedIndex() {
               !state.feedBookmarks.some((b) => b.userId === account.id && b.postId === p.id),
           )
           .slice(0, 15)
-          .map((p, i) => ({ userId: account.id, postId: p.id, createdAt: new Date(at - i * 60_000).toISOString() }))
+          .map((p, i) => ({
+            userId: account.id,
+            postId: p.id,
+            createdAt: new Date(at - i * 60_000).toISOString(),
+          }))
         db.set((s) => ({ ...s, feedBookmarks: [...s.feedBookmarks, ...saved] }))
       },
     },
@@ -168,23 +227,6 @@ export default function FeedIndex() {
           feedPosts: s.feedPosts.map((p) => (p.id === bookmark.postId ? { ...p, deletedAt } : p)),
         }))
       },
-    },
-    {
-      label: 'Zerar dispensas dos próximos passos',
-      run: () =>
-        account &&
-        updateUser(account.id, (u) => ({
-          ...u,
-          profileReminder: { dismissals: 0, hiddenUntil: null },
-        })),
-    },
-    {
-      label: 'Abrir o link de confirmação do e-mail',
-      run: () => account && verifyEmail(account.id),
-    },
-    {
-      label: 'Desconfirmar e-mail',
-      run: () => account && updateUser(account.id, (u) => ({ ...u, emailVerifiedAt: null })),
     },
     {
       label: 'Esvaziar o Feed',
@@ -211,21 +253,16 @@ export default function FeedIndex() {
     },
     {
       label: 'Desafixar todos os comunicados',
-      run: () => db.set((s) => ({ ...s, feedAnnouncements: s.feedAnnouncements.map((a) => ({ ...a, pinnedAt: null })) })),
+      run: () =>
+        db.set((s) => ({
+          ...s,
+          feedAnnouncements: s.feedAnnouncements.map((a) => ({ ...a, pinnedAt: null })),
+        })),
     },
     {
-      label: 'Banner: aviso da comunidade',
-      run: () => db.set((s) => ({ ...s, homeBanners: s.homeBanners.map((b) => ({ ...b, active: b.kind === 'notice' })) })),
+      label: 'Ver salvos (no perfil)',
+      run: () => account && navigate(`/members/${account.username}?aba=salvos`),
     },
-    {
-      label: 'Banner: anúncio de parceiro (exemplo)',
-      run: () => db.set((s) => ({ ...s, homeBanners: s.homeBanners.map((b) => ({ ...b, active: b.kind === 'partner' })) })),
-    },
-    {
-      label: 'Banner: nenhum',
-      run: () => db.set((s) => ({ ...s, homeBanners: s.homeBanners.map((b) => ({ ...b, active: false })) })),
-    },
-    { label: 'Ver salvos (no perfil)', run: () => account && navigate(`/members/${account.username}?aba=salvos`) },
     { label: 'Nova publicação', run: () => setParams({ compose: '1' }) },
     {
       label: 'Expirar sessão',
@@ -274,68 +311,84 @@ export default function FeedIndex() {
   }
 
   return (
-    <div className="feed-home">
-      <HomeBanner />
-      <div className="feed-home__grid">
-        <aside className="feed-home__profile" aria-label="Seu perfil">
-          <ProfileCard account={account} />
-        </aside>
-        <div className="feed">
-          <PageHeader
-            title={`Olá, ${account.name.split(' ')[0]}!`}
-            description="O diário de aprendizado da comunidade."
-            actions={
-              <Button asChild>
-                <Link to="/app?compose=1" preventScrollReset>
-                  Nova publicação
-                </Link>
+    <div className="feed">
+      <PageHeader
+        title="Feed"
+        description="Aprendizados e projetos da comunidade."
+        actions={
+          <Button asChild>
+            <Link to="/app?compose=1" preventScrollReset>
+              Nova publicação
+            </Link>
+          </Button>
+        }
+      />
+      <FormMessage tone={notice?.tone ?? 'success'}>{notice?.text}</FormMessage>
+
+      {page.length === 0 ? (
+        <Card className="feed__empty">
+          <p>Ainda não há publicações. Registre o que você aprendeu.</p>
+          <Button asChild variant="secondary">
+            <Link to="/app?compose=1">Nova publicação</Link>
+          </Button>
+        </Card>
+      ) : (
+        <ol className="feed__list">
+          {page.map((item) => (
+            <li key={item.id}>
+              {item.kind === 'announcement' ? (
+                <AnnouncementCard announcement={item.announcement} viewer={account} onNotice={setNotice} />
+              ) : (
+                <PostCard
+                  post={item.post}
+                  author={users.find((u) => u.id === item.post.userId)}
+                  viewerId={account.id}
+                  onNotice={setNotice}
+                />
+              )}
+            </li>
+          ))}
+        </ol>
+      )}
+
+      {hasMore ? (
+        <div className="feed__more">
+          <Button variant="secondary" loading={loading} onClick={loadMore}>
+            Carregar mais
+          </Button>
+          <FormMessage tone="error">{loadError}</FormMessage>
+        </div>
+      ) : (
+        page.length > 0 && <p className="feed__end">Você chegou ao fim.</p>
+      )}
+      {composing === '1' && (
+        <Dialog open onOpenChange={(open) => !open && navigate('/app', { preventScrollReset: true })}>
+          <DialogContent
+            title="Nova publicação"
+            description="O que você quer compartilhar?"
+            footer={
+              <Button variant="secondary" onClick={() => navigate('/app', { preventScrollReset: true })}>
+                Cancelar
               </Button>
             }
-          />
-          <FormMessage tone={notice?.tone ?? 'success'}>{notice?.text}</FormMessage>
-
-          {page.length === 0 ? (
-            <Card className="feed__empty">
-              <p>Ainda não há publicações. Registre o que você aprendeu.</p>
+          >
+            <div className="feed__compose-options">
               <Button asChild variant="secondary">
-                <Link to="/app?compose=1">Nova publicação</Link>
+                <Link to="/app?compose=progress" preventScrollReset>
+                  Registrar um aprendizado
+                </Link>
               </Button>
-            </Card>
-          ) : (
-            <ol className="feed__list">
-              {page.map((item) => (
-                <li key={item.id}>
-                  {item.kind === 'announcement' ? (
-                    <AnnouncementCard announcement={item.announcement} viewer={account} onNotice={setNotice} />
-                  ) : (
-                    <PostCard
-                      post={item.post}
-                      author={users.find((u) => u.id === item.post.userId)}
-                      viewerId={account.id}
-                      onNotice={setNotice}
-                    />
-                  )}
-                </li>
-              ))}
-            </ol>
-          )}
-
-          {hasMore ? (
-            <div className="feed__more">
-              <Button variant="secondary" loading={loading} onClick={loadMore}>
-                Carregar mais
+              <Button asChild variant="secondary">
+                <Link to="/app?compose=project" preventScrollReset>
+                  Compartilhar um projeto
+                </Link>
               </Button>
-              <FormMessage tone="error">{loadError}</FormMessage>
             </div>
-          ) : (
-            page.length > 0 && <p className="feed__end">Você chegou ao fim.</p>
-          )}
-        </div>
-        <aside className="feed-home__aside" aria-label="Para você">
-          <HomeAside account={account} />
-        </aside>
-      </div>
-      {composing && (
+          </DialogContent>
+        </Dialog>
+      )}
+      {composing === 'project' && <ProjectForm account={account} />}
+      {composing === 'progress' && (
         <PostForm
           layout="dialog"
           account={account}

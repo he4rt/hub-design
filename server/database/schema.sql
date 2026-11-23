@@ -206,6 +206,38 @@ CREATE TABLE achievement_choices (
 -- Feed: the learning diary
 ----------------------------------------------------------------------------------------------------
 
+-- A member's own project, shared in the Feed from one of their GitHub repositories (not a squad project).
+-- The read_* columns are the last read of the He4rt GitHub App; they stay when the repository disappears.
+CREATE TABLE member_projects (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+  repository_full_name TEXT NOT NULL,
+  repository_url TEXT NOT NULL,
+  pitch TEXT NOT NULL,
+  read_name TEXT NOT NULL,
+  read_description TEXT,
+  read_language TEXT,
+  read_license TEXT,
+  read_pushed_at TEXT NOT NULL,
+  product_md TEXT,
+  product_metrics_md TEXT,
+  readme_md TEXT,
+  repository_status TEXT NOT NULL DEFAULT 'available' CHECK (repository_status IN ('available', 'unavailable')),
+  read_at TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+-- One project per repository: sharing the same link again leads to the existing one.
+CREATE UNIQUE INDEX member_projects_repository_unique ON member_projects (repository_full_name COLLATE NOCASE);
+
+CREATE TABLE member_project_revisions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  project_id TEXT NOT NULL REFERENCES member_projects (id) ON DELETE CASCADE,
+  intent TEXT NOT NULL CHECK (intent IN ('showcase', 'help')),
+  pitch TEXT NOT NULL,
+  help_request TEXT,
+  replaced_at TEXT NOT NULL
+);
+
 CREATE TABLE feed_posts (
   id TEXT PRIMARY KEY,
   user_id TEXT NOT NULL REFERENCES users (id),
@@ -213,6 +245,8 @@ CREATE TABLE feed_posts (
   applied TEXT NOT NULL,
   objective_progress TEXT NOT NULL CHECK (objective_progress IN ('none', 'little', 'a-lot', 'very-much')),
   learning_id TEXT REFERENCES learning_records (id) ON DELETE SET NULL,
+  -- Set when the post shares a member project; its text lives in the project and learned/applied stay empty.
+  project_id TEXT REFERENCES member_projects (id),
   shared_on_feed INTEGER NOT NULL DEFAULT 1 CHECK (shared_on_feed IN (0, 1)),
   shown_on_profile INTEGER NOT NULL DEFAULT 0 CHECK (shown_on_profile IN (0, 1)),
   show_reaction_counts INTEGER NOT NULL DEFAULT 0 CHECK (show_reaction_counts IN (0, 1)),
@@ -266,6 +300,17 @@ CREATE TABLE feed_bookmarks (
   created_at TEXT NOT NULL,
   PRIMARY KEY (user_id, post_id)
 );
+
+-- Short comments on a post; no replies, no reactions. Soft delete keeps them for moderation.
+CREATE TABLE feed_comments (
+  id TEXT PRIMARY KEY,
+  post_id TEXT NOT NULL REFERENCES feed_posts (id) ON DELETE CASCADE,
+  user_id TEXT NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+  body TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  deleted_at TEXT
+);
+CREATE INDEX feed_comments_post_id_index ON feed_comments (post_id, created_at);
 
 -- Official publication signed by He4rt Developers; the staff writes and pins it.
 CREATE TABLE feed_announcements (

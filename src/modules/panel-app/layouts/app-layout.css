@@ -68,10 +68,6 @@
   max-width: 960px;
   margin: 0 auto;
   padding: var(--space-8) var(--space-8) var(--space-10);
-
-  &[data-wide] {
-    max-width: var(--content-max);
-  }
 }
 
 @media (min-width: 768px) {
@@ -97,6 +93,11 @@
 
   .app-layout__logout {
     flex-basis: auto;
+  }
+
+  /* Its own `display` would beat `.sidebar-nav__hide-mobile`; the top bar has no room for it. */
+  .app-layout__invite {
+    display: none;
   }
 
   .app-layout__content {

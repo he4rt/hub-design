@@ -1,4 +1,4 @@
-import type { Discussion, DiscussionCategory, FeedPost, Project, Squad, User } from '@/mocks/db'
+import type { Discussion, DiscussionCategory, FeedPost, MemberProject, Project, Squad, User } from '@/mocks/db'
 
 export const categoryLabels: Record<DiscussionCategory, string> = {
   question: 'Dúvida',
@@ -24,7 +24,7 @@ export type ResolvedContext = { kind: string; label: string; path: string | null
  */
 export function discussionContext(
   discussion: Discussion,
-  { squads, projects, posts, users }: { squads: Squad[]; projects: Project[]; posts: FeedPost[]; users: User[] },
+  { squads, projects, posts, users, memberProjects }: { squads: Squad[]; projects: Project[]; posts: FeedPost[]; users: User[]; memberProjects: MemberProject[] },
 ): ResolvedContext | null {
   const context = discussion.context
   if (!context) return null
@@ -43,6 +43,10 @@ export function discussionContext(
   const author = users.find((user) => user.id === post?.userId)
   if (!post || !author || post.deletedAt || !(post.sharedOnFeed || post.shownOnProfile)) {
     return { kind: 'Publicação', label: 'Publicação privada', path: null }
+  }
+  const memberProject = memberProjects.find((project) => project.id === post.projectId)
+  if (memberProject) {
+    return { kind: 'Projeto pessoal', label: memberProject.read.name, path: memberProject.repository.url }
   }
   return { kind: 'Publicação', label: post.learned, path: `/members/${author.username}` }
 }

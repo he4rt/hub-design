@@ -18,6 +18,9 @@ type Family = 'success' | 'warning' | 'info' | 'neutral'
  * A state never changes family between screens.
  */
 const STATES = {
+  'member-repository': {
+    unavailable: ['neutral', 'Repositório indisponível'],
+  },
   squad: {
     active: ['success', 'Ativo'],
     inactive: ['neutral', 'Inativo'],
@@ -69,6 +72,7 @@ const STATES = {
 } satisfies Record<string, Record<string, readonly [Family, string]>>
 
 type States = {
+  'member-repository': 'unavailable'
   squad: Squad['status'] | 'vacancy'
   project: Project['status']
   'entry-test': EntryTest['status']

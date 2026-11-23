@@ -5,6 +5,41 @@
   max-width: 760px;
   margin: 0 auto;
   padding: var(--space-6) var(--space-6) var(--space-10);
+
+  &[data-project] { max-width: var(--content-max); }
+}
+
+.discussion-show__workspace { display: grid; min-width: 0; }
+.discussion-show[data-project] .discussion-show__workspace {
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-8);
+}
+.discussion-show__project,
+.discussion-show__conversation {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  min-width: 0;
+}
+.discussion-show__project { position: sticky; top: var(--space-6); }
+.discussion-show__documents { display: flex; flex-direction: column; gap: var(--space-3); }
+.discussion-show__documents-toggle.ui-button { display: none; }
+.discussion-show__pitch { font: var(--text-body); white-space: pre-line; overflow-wrap: anywhere; }
+.discussion-show__audience,
+.discussion-show__read { color: var(--text-muted); font: var(--text-caption); }
+.discussion-show[data-project] .discussion-show__post h2 {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--warning-text);
+  font: var(--text-subheading);
+}
+.discussion-show[data-project] .discussion-show__replies > h2 {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  > svg { color: var(--info-text); }
 }
 
 .discussion-show__back {
@@ -144,4 +179,18 @@
   .discussion-show__reply {
     padding: var(--space-4);
   }
+}
+
+@media (max-width: 1099px) {
+  .discussion-show[data-project] .discussion-show__workspace { grid-template-columns: minmax(0, 1fr); }
+  .discussion-show__project { position: static; }
+  .discussion-show__documents-toggle.ui-button {
+    display: flex;
+    width: 100%;
+    justify-content: flex-start;
+    > svg { color: var(--info-text); }
+    > svg:last-child { margin-left: auto; }
+    &[data-state='open'] > svg:last-child { transform: rotate(180deg); }
+  }
+  .discussion-show__documents-toggle + .discussion-show__documents[data-state='open'] { margin-top: var(--space-3); }
 }

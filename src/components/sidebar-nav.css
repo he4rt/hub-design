@@ -8,6 +8,7 @@
   padding: 22px var(--space-4) var(--space-4);
   overflow-y: auto;
   scrollbar-width: thin;
+  border-right: 1px solid var(--ink-3);
   background: var(--ink);
   color: var(--on-ink-text);
 
@@ -70,7 +71,7 @@
 
   &.active {
     background: var(--nav-active);
-    color: var(--on-ink);
+    color: var(--on-brand);
   }
 
   /* Count pill sits at the end of the item. */
@@ -173,6 +174,8 @@
     height: auto;
     padding: var(--space-3) var(--space-4);
     overflow: visible;
+    border-right: none;
+    border-bottom: 1px solid var(--ink-3);
   }
 
   .sidebar-nav__top {

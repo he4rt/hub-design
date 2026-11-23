@@ -1,5 +1,6 @@
 import './runtime'
-import { all, hasSchema } from './database/connection'
+import { all, hasSchema, sql } from './database/connection'
+import { migrateFeed } from './database/migrate-feed'
 import { seed } from './database/seed'
 import { applyDebugPatch, DEBUG, HttpError, resetState, runAction, showState } from './actions'
 
@@ -9,6 +10,8 @@ import { applyDebugPatch, DEBUG, HttpError, resetState, runAction, showState } f
  */
 
 if (!hasSchema()) await seed()
+
+migrateFeed(sql)
 
 type Handler = (request: Request, params: string[]) => Response | Promise<Response>
 

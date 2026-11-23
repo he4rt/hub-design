@@ -12,12 +12,14 @@ Sistema visual do He4rt Hub, a plataforma que registra a trajetória dos membros
 
 ## Cor
 
-- Fundo da página é `bg` (#F7F6FB), não branco. Cards são `surface` por cima dele.
+- Os neutros vêm de uma paleta cinza: #F2F2F2, #BFBFBF, #8C8C8C, #404040 e #0D0D0D (`--gray-100` a `--gray-900`). No claro, o fundo da página é `bg` (#F2F2F2) e os cards são `surface` branco por cima dele.
 - `brand` (#6A2FE0) é só para a ação principal de cada tela e para o item ativo da navegação. Uma por tela.
 - `brand-soft` + `brand-soft-text` marcam competências (critérios de avaliação) e seleção em listas. Competência é a única coisa que ganha chip roxo; estados usam a família semântica.
 - Estados: `success` (aprovado, aceito, merged, registrada), `warning` (pendente, devolvida, vacancy, obrigatório), `info` (em andamento: aguardando revisão, atribuído), `neutral` (inativo, rascunho, não técnica). Cores que precisam ser distinguidas também diferem em luminosidade.
 - Recusar e devolver usam `danger-text` sobre `surface` com `border-strong`. Nunca botão vermelho sólido: a ação exige motivo, e o visual pede a mesma calma.
-- Tema escuro inverte `bg`/`surface` para roxos profundos e mantém a sidebar ainda mais escura (`ink` #0C0519) para preservar a hierarquia.
+- O tema escuro fica perto do preto: a página abaixo de #0D0D0D, os cards e a sidebar em #0D0D0D, texto #F2F2F2 e apoio #BFBFBF. A sidebar acompanha o tema: branca com texto #0D0D0D no claro, #0D0D0D no escuro, separada da página por uma borda. O membro escolhe o tema no menu; sem escolha, vale o do sistema.
+- Por enquanto o roxo fica só no logo, na ação principal e no item ativo da navegação. Chips de competência, avatares, pontos da trilha e o anel de foco usam os neutros.
+- No Feed e nas discussões de projeto do Fórum, azul orienta contexto, documentos e conversa; âmbar destaca a dúvida no Fórum e o marcador de uma publicação salva. Nas reações, verde significa “Isso me ajudou”, azul acompanha aprendizado e âmbar acompanha “Inspirador”. A cor fica nos ícones, links e fundos discretos; ícone e rótulo explicam o significado sem depender dela. Um projeto pessoal nunca recebe verde de aprovação ou validação.
 
 ## Tipografia
 

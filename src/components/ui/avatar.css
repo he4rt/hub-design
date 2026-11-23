@@ -11,7 +11,7 @@
   font: 700 13px/1 var(--font-display);
 
   &[data-tone='ink'] {
-    background: var(--nav-active);
+    background: var(--ink-2);
     color: var(--on-ink);
   }
 

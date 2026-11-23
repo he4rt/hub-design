@@ -4,44 +4,63 @@
  * The dark theme follows the system setting, or `data-theme` on <html>.
  */
 :root {
-  --bg: light-dark(#f7f6fb, #120826); /* Page background. Slightly purple; never pure white. */
-  --surface: light-dark(#ffffff, #1a0a3f); /* Cards, topbar, inputs. */
-  --surface-2: light-dark(#eeedf3, #24114f); /* Recessed: tablist, inset blocks inside a card. */
-  --border: light-dark(#e6e2f0, #2e1763); /* Cards and dividers. Borders, not shadows. */
-  --border-strong: light-dark(#d9d4e6, #3b2378); /* Inputs and secondary buttons. */
-  --text: light-dark(#17122b, #f3eeff);
-  --text-muted: light-dark(#6b6480, #b4a5d9); /* Supporting text and metadata; still 4.5:1 on surface. */
-  --text-faint: light-dark(#8e87a3, #8f7fbf); /* Decorative icons and separators only; never running text. */
+  /* Neutral palette of the themes, chosen by Daniel; every neutral below comes from it. */
+  --gray-100: #f2f2f2;
+  --gray-300: #bfbfbf;
+  --gray-500: #8c8c8c;
+  --gray-700: #404040;
+  --gray-900: #0d0d0d;
+
+  /*
+   * Dark mode sits near black: the page below #0D0D0D, cards on #0D0D0D and the
+   * steps above it mixed toward #404040, so it reads as black, not dark gray.
+   */
+  --bg: light-dark(var(--gray-100), color-mix(in srgb, var(--gray-900), #000000 45%)); /* Page background. */
+  --surface: light-dark(#ffffff, var(--gray-900)); /* Cards, topbar, inputs. */
+  --surface-2: light-dark(
+    color-mix(in srgb, var(--gray-100), var(--gray-300) 25%),
+    color-mix(in srgb, var(--gray-900), var(--gray-700) 22%)
+  ); /* Recessed: tablist, inset blocks inside a card. */
+  --border: light-dark(
+    color-mix(in srgb, var(--gray-100), var(--gray-300) 50%),
+    color-mix(in srgb, var(--gray-900), var(--gray-700) 40%)
+  ); /* Cards and dividers. Borders, not shadows. */
+  --border-strong: light-dark(var(--gray-300), var(--gray-700)); /* Inputs and secondary buttons. */
+  --text: light-dark(var(--gray-900), var(--gray-100));
+  --text-muted: light-dark(var(--gray-700), var(--gray-300)); /* Supporting text and metadata; above 4.5:1 on surface. */
+  --text-faint: var(--gray-500); /* Decorative icons and separators only; never running text. */
   --brand: light-dark(#6a2fe0, #7f45f5); /* The one primary action per screen, toggles on, active tab. */
   --brand-hover: light-dark(#5623bd, #6a2fe0);
   --on-brand: #ffffff;
-  --brand-text: light-dark(#5623bd, #b79aff); /* Links and text actions. */
-  --brand-bright: light-dark(#7f45f5, #9a6bff); /* The 4 square, notification dot, trail dots, occupancy bar. */
-  --brand-soft: light-dark(#f5f0ff, #24114f); /* Competency chips and the selected item in a list. */
-  --brand-soft-text: light-dark(#421a94, #d6c6ff);
-  --brand-soft-border: light-dark(#d6c6ff, #5623bd);
-  --ink: light-dark(#1a0a3f, #0c0519); /* Sidebar background. */
-  --ink-2: light-dark(#24114f, #150a2e); /* Cards and hover inside the sidebar. */
-  --ink-3: #2e1763; /* Borders and dividers inside the sidebar. */
+  /* For now the purple stays on the primary action, the active nav item and the logo; details are neutral. */
+  --brand-text: var(--text); /* Links and text actions. */
+  --brand-bright: var(--text-muted); /* Notification dot, trail dots, occupancy bar. */
+  --brand-soft: var(--surface-2); /* Competency chips, avatars and the selected item in a list. */
+  --brand-soft-text: var(--text);
+  --brand-soft-border: var(--border-strong);
+  /* Ink: dark blocks in both themes (banners, the dark button). The side navigation overrides it below. */
+  --ink: var(--gray-900);
+  --ink-2: color-mix(in srgb, var(--gray-900), var(--gray-700) 35%); /* Cards and hover on ink. */
+  --ink-3: color-mix(in srgb, var(--gray-900), var(--gray-700) 55%); /* Borders and dividers on ink. */
   --nav-active: #5623bd;
   --on-ink: #ffffff;
-  --on-ink-text: #d6c6ff;
-  --on-ink-muted: #b4a5d9;
-  --on-ink-label: #8f7fbf;
+  --on-ink-text: var(--gray-100);
+  --on-ink-muted: var(--gray-300);
+  --on-ink-label: var(--gray-500);
   --success-bg: light-dark(#e7f6ee, #0f2e1f); /* Approved, accepted, merged, recorded. */
   --success-text: light-dark(#166534, #86efac);
   --warning-bg: light-dark(#fef3c7, #3a2a08); /* Pending, returned, vacancy, required. */
   --warning-text: light-dark(#92400e, #fcd34d);
   --info-bg: light-dark(#dbeafe, #0f1f4a); /* In progress: awaiting review, assigned. */
   --info-text: light-dark(#1e40af, #93c5fd);
-  --neutral-bg: light-dark(#eeedf3, #24114f); /* Inactive, non-technical, draft. */
-  --neutral-text: light-dark(#5b5570, #b4a5d9);
+  --neutral-bg: var(--surface-2); /* Inactive, non-technical, draft. */
+  --neutral-text: var(--text-muted);
   --danger-text: light-dark(#b91c1c, #fca5a5); /* Actions that decline or return. Never a solid background. */
-  --focus: light-dark(#7f45f5, #9a6bff);
-  --shadow-tab: 0 1px 2px rgba(23, 18, 43, 0.08); /* The only shadow: the active segmented tab. */
+  --focus: var(--text);
+  --shadow-tab: 0 1px 2px rgba(13, 13, 13, 0.08); /* The only shadow: the active segmented tab. */
 
   /* App extensions, built from the palette above. */
-  --overlay: light-dark(rgba(23, 18, 43, 0.5), rgba(0, 0, 0, 0.6)); /* Behind dialogs. */
+  --overlay: light-dark(rgba(13, 13, 13, 0.5), rgba(0, 0, 0, 0.6)); /* Behind dialogs. */
 
   color-scheme: light dark;
 }
@@ -54,6 +73,17 @@
   color-scheme: dark;
 }
 
+
+/* The side navigation follows the theme: a light surface in light mode, near black in dark mode. */
+.sidebar-nav {
+  --ink: light-dark(var(--surface), var(--gray-900));
+  --ink-2: light-dark(var(--surface-2), color-mix(in srgb, var(--gray-900), var(--gray-700) 35%));
+  --ink-3: var(--border);
+  --on-ink: var(--text);
+  --on-ink-text: var(--text);
+  --on-ink-muted: var(--text-muted);
+  --on-ink-label: var(--text-muted);
+}
 :root {
   --space-1: 4px;
   --space-2: 8px;

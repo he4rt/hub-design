@@ -23,6 +23,7 @@ Mapa dos estados do domínio para a família semântica de cor. Um estado nunca 
 | contestação aberta | validação | warning | Revisão em andamento |
 | Técnica / Não técnica | item do board | brand-soft / neutral | Técnica · Não técnica |
 | competência | critério de avaliação | brand-soft | nome da competência |
+| `unavailable` | repositório de projeto pessoal | neutral | Repositório indisponível |
 
 Regras:
 
