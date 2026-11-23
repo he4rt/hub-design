@@ -89,8 +89,8 @@ test('legacy requests move once with authors, dates and replies; private history
   const state = structuredClone(db.get())
   state.discussions = state.discussions.filter((discussion) => !discussion.id.startsWith('project-help-'))
   state.feedComments.push(
-    { id: 'old-answer', postId: 'pp1', userId: 'u8', body: 'Separe cancelamento tardio de falta.', createdAt: '2026-11-21T10:15:00Z', deletedAt: null },
-    { id: 'deleted-answer', postId: 'pp1', userId: 'u8', body: 'Resposta excluída pelo autor.', createdAt: '2026-11-21T10:16:00Z', deletedAt: '2026-11-21T10:17:00Z' },
+    { id: 'old-answer', postId: 'pp1', userId: 'u8', body: 'Separe cancelamento tardio de falta.', createdAt: '2026-11-21T10:15:00Z', deletedAt: null, removal: null },
+    { id: 'deleted-answer', postId: 'pp1', userId: 'u8', body: 'Resposta excluída pelo autor.', createdAt: '2026-11-21T10:16:00Z', deletedAt: '2026-11-21T10:17:00Z', removal: null },
   )
   replaceRows(() => writeState(state))
   sql.run("ALTER TABLE member_projects ADD COLUMN intent TEXT NOT NULL DEFAULT 'showcase' CHECK (intent IN ('showcase', 'help'))")

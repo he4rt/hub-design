@@ -32,6 +32,8 @@ function groupBy(rows: R[], key: string): Map<string, R[]> {
 }
 
 const bool = (value: unknown) => value === 1
+const removalOf = (row: R) =>
+  row.removed_at ? { reason: row.removal_reason, removedBy: row.removed_by, removedAt: row.removed_at } : null
 
 export function readUsers(where = '', params: Record<string, unknown> = {}): User[] {
   const users = all<R>(`SELECT * FROM users ${where} ORDER BY rowid`, params)
@@ -158,6 +160,7 @@ export function readFeedPosts(where = '', params: Record<string, unknown> = {}):
     showReactionCounts: bool(p.show_reaction_counts),
     createdAt: p.created_at,
     deletedAt: p.deleted_at,
+    removal: removalOf(p),
     editedAt: p.edited_at,
     revisions: (revisions.get(p.id) ?? []).map((r) => ({
       learned: r.learned,
@@ -385,6 +388,7 @@ export function readState(): MockDb {
       body: c.body,
       createdAt: c.created_at,
       deletedAt: c.deleted_at,
+      removal: removalOf(c),
     })),
     feedAnnouncements: all<R>('SELECT * FROM feed_announcements ORDER BY rowid').map((a) => ({
       id: a.id,

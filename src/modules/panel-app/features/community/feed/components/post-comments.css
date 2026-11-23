@@ -88,6 +88,13 @@
   }
 }
 
+.post-comments__removed {
+  color: var(--text-muted);
+  font: var(--text-body);
+  font-style: italic;
+  overflow-wrap: anywhere;
+}
+
 .post-comments__body {
   color: var(--text);
   font: var(--text-body);

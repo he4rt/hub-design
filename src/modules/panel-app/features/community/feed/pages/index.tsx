@@ -13,6 +13,7 @@ import { useAccount } from '@/modules/panel-app/hooks/use-account'
 import { createComment, createPost, FEED_PAGE_SIZE, loadMorePosts } from '../actions'
 import { AnnouncementCard } from '../components/announcement-card'
 import { PostForm } from '../components/post-form'
+import { RemovedNotice } from '../components/removed-notice'
 import { PostCard, type Notice } from '../components/post-card'
 import { ProjectForm } from '../components/project-form'
 import './index.css'
@@ -37,6 +38,7 @@ function makeCommunityPosts(count: number, authorIds: string[]): FeedPost[] {
     showReactionCounts: false,
     createdAt: new Date(now - (i + 1) * 3_600_000).toISOString(),
     deletedAt: null,
+    removal: null,
     editedAt: null,
     revisions: [],
   }))
@@ -142,6 +144,7 @@ export default function FeedIndex() {
           body: texts[i],
           createdAt: new Date(now - (others.length - i) * 60_000).toISOString(),
           deletedAt: null,
+          removal: null,
         }))
         db.set((s) => ({ ...s, feedComments: [...s.feedComments, ...made] }))
       },
@@ -163,6 +166,7 @@ export default function FeedIndex() {
           body: `Comentário gerado ${i + 1}: anotei para estudar também, obrigado por compartilhar o que funcionou.`,
           createdAt: new Date(now - (25 - i) * 60_000).toISOString(),
           deletedAt: null,
+          removal: null,
         }))
         db.set((s) => ({ ...s, feedComments: [...s.feedComments, ...made] }))
       },
@@ -272,6 +276,10 @@ export default function FeedIndex() {
     ...posts
       .filter((p) => p.deletedAt === null && p.sharedOnFeed)
       .map((p) => ({ kind: 'post' as const, id: p.id, at: p.createdAt, post: p })),
+    // Only its author sees a publication the moderation removed, with the reason, where it was.
+    ...posts
+      .filter((p) => p.removal && p.userId === account?.id)
+      .map((p) => ({ kind: 'removed' as const, id: p.id, at: p.createdAt, post: p })),
   ].toSorted((a, b) => b.at.localeCompare(a.at))
   const visible = [...pinned, ...timeline]
   const page = visible.slice(0, limit)
@@ -333,6 +341,8 @@ export default function FeedIndex() {
             <li key={item.id}>
               {item.kind === 'announcement' ? (
                 <AnnouncementCard announcement={item.announcement} viewer={account} onNotice={setNotice} />
+              ) : item.kind === 'removed' ? (
+                <RemovedNotice what="Sua publicação" createdAt={item.post.createdAt} reason={item.post.removal?.reason ?? ''} />
               ) : (
                 <PostCard
                   post={item.post}

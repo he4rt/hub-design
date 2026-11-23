@@ -1,6 +1,7 @@
 import type { RouteObject } from 'react-router'
 import { AuthLayout } from '@/components/auth-layout'
 import Login from './features/auth/pages/login'
+import Moderation from './features/community/moderation/pages/index'
 import Dashboard from './features/home/pages/dashboard'
 import Users from './features/setup/users/pages/index'
 import EntryTests from './features/squads/entry-tests/pages/index'
@@ -33,6 +34,7 @@ export const panelAdminRoutes: RouteObject = {
         { path: 'squads/entry-tests', Component: EntryTests },
         { path: 'squads/:squad', Component: Squad },
         { path: 'squads/:squad/projects/create', Component: ProjectCreate },
+        { path: 'community/moderation', Component: Moderation },
         { path: 'system/github', Component: Github },
         { path: 'validation/validators', Component: Validators },
         { path: 'validation/queue', Component: ValidationQueue },

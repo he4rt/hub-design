@@ -4,7 +4,7 @@ import { existsSync } from 'node:fs'
 import { createHash } from 'node:crypto'
 import { canSee } from '@/lib/trajectory/visibility'
 import { itemKey, type StatePatch } from '@/mocks/api'
-import { db, makeUser, type MockDb, type User } from '@/mocks/db'
+import { db, makeUser, type MockDb, type Removal, type User } from '@/mocks/db'
 import { MockError } from '@/mocks/mock-action'
 import { completePendingGithubIdentity, enqueueGithubEffects } from './github-effects'
 import { all, first, insert, now, replaceRows, sql } from './database/connection'
@@ -222,6 +222,11 @@ function publicUser(user: User): User {
   })
 }
 
+/** The author reads why the staff removed their text, never who removed it. */
+function hideRemover(removal: Removal | null): Removal | null {
+  return removal && { ...removal, removedBy: '' }
+}
+
 /**
  * The state as the signed-in user may see it, like the props of a page. The staff (admin session)
  * sees everything; a member sees their own records and what others chose to show members; a
@@ -260,7 +265,7 @@ export function viewState(context: Context): MockDb {
   const visibleValidations = new Set(validations.map((v) => v.id))
   const feedPosts = state.feedPosts
     .filter((p) => p.userId === me || (!p.deletedAt && ((me && p.sharedOnFeed) || (p.shownOnProfile && published.has(p.userId)))))
-    .map((p) => p.userId === me ? p : { ...p, revisions: [], reactions: p.showReactionCounts ? p.reactions : p.reactions.filter((r) => r.userId === me) })
+    .map((p) => p.userId === me ? { ...p, removal: hideRemover(p.removal) } : { ...p, revisions: [], reactions: p.showReactionCounts ? p.reactions : p.reactions.filter((r) => r.userId === me) })
   const visibleCollections = new Set(feedPosts.flatMap((p) => p.collectionIds))
   // Comments are for members reading the Feed; a deleted one stays only for moderation.
   const discussed = new Set(feedPosts.filter((p) => p.sharedOnFeed && !p.deletedAt).map((p) => p.id))
@@ -284,7 +289,12 @@ export function viewState(context: Context): MockDb {
     memberProjects: state.memberProjects
       .filter((p) => feedPosts.some((post) => post.projectId === p.id && !post.deletedAt))
       .map((p) => (p.userId === me ? p : { ...p, revisions: [] })),
-    feedComments: me ? state.feedComments.filter((c) => !c.deletedAt && discussed.has(c.postId)) : [],
+    // The author of a comment the staff removed keeps seeing it, with the reason, in its place.
+    feedComments: me
+      ? state.feedComments
+          .filter((c) => discussed.has(c.postId) && (!c.deletedAt || (c.userId === me && c.removal)))
+          .map((c) => ({ ...c, removal: hideRemover(c.removal) }))
+      : [],
     discussions: state.discussions.filter((discussion) => canReadDiscussion(state, discussion, me)),
     feedCollections: state.feedCollections.filter((c) => c.userId === me || visibleCollections.has(c.id)),
     feedBookmarks: state.feedBookmarks.filter((b) => b.userId === me),

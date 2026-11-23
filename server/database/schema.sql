@@ -255,7 +255,11 @@ CREATE TABLE feed_posts (
   created_at TEXT NOT NULL,
   edited_at TEXT,
   -- Soft delete: gone for every member, kept for moderation and audit.
-  deleted_at TEXT
+  deleted_at TEXT,
+  -- Removed by the staff: the author sees the reason; who removed it stays with the administration.
+  removal_reason TEXT,
+  removed_by TEXT REFERENCES users (id),
+  removed_at TEXT
 );
 CREATE INDEX feed_posts_feed_index ON feed_posts (shared_on_feed, deleted_at, created_at);
 CREATE INDEX feed_posts_user_id_index ON feed_posts (user_id, created_at);
@@ -310,7 +314,11 @@ CREATE TABLE feed_comments (
   user_id TEXT NOT NULL REFERENCES users (id) ON DELETE CASCADE,
   body TEXT NOT NULL,
   created_at TEXT NOT NULL,
-  deleted_at TEXT
+  deleted_at TEXT,
+  -- Removed by the staff, like a post.
+  removal_reason TEXT,
+  removed_by TEXT REFERENCES users (id),
+  removed_at TEXT
 );
 CREATE INDEX feed_comments_post_id_index ON feed_comments (post_id, created_at);
 

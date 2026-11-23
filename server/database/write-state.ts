@@ -167,6 +167,9 @@ export function writeState(state: MockDb) {
       created_at: post.createdAt,
       edited_at: post.editedAt,
       deleted_at: post.deletedAt,
+      removal_reason: post.removal?.reason ?? null,
+      removed_by: post.removal?.removedBy ?? null,
+      removed_at: post.removal?.removedAt ?? null,
     })
     for (const r of post.revisions) {
       insert('feed_post_revisions', {
@@ -186,7 +189,9 @@ export function writeState(state: MockDb) {
   }
   for (const b of state.feedBookmarks) insert('feed_bookmarks', { user_id: b.userId, post_id: b.postId, created_at: b.createdAt })
   for (const c of state.feedComments) {
-    insert('feed_comments', { id: c.id, post_id: c.postId, user_id: c.userId, body: c.body, created_at: c.createdAt, deleted_at: c.deletedAt })
+    insert('feed_comments', { id: c.id, post_id: c.postId, user_id: c.userId, body: c.body, created_at: c.createdAt, deleted_at: c.deletedAt,
+      removal_reason: c.removal?.reason ?? null, removed_by: c.removal?.removedBy ?? null, removed_at: c.removal?.removedAt ?? null,
+    })
   }
   for (const a of state.feedAnnouncements) {
     insert('feed_announcements', { id: a.id, author_id: a.authorId, title: a.title, body: a.body, created_at: a.createdAt, pinned_at: a.pinnedAt })

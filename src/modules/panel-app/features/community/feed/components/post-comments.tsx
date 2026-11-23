@@ -120,7 +120,11 @@ function CommentItem({ comment, author, viewerId }: { comment: FeedComment; auth
           ) : <strong className="post-comments__name">{name}</strong>}
           <time dateTime={comment.createdAt} title={formatFullDate(comment.createdAt)}>{formatRelative(comment.createdAt, now)}</time>
         </p>
-        <p className="post-comments__body">{comment.body}</p>
+        {comment.removal ? (
+          <p className="post-comments__removed">Removido pela moderação. Motivo: {comment.removal.reason}</p>
+        ) : (
+          <p className="post-comments__body">{comment.body}</p>
+        )}
         {canDeleteComment(comment, viewerId) && (
           <button type="button" className="post-comments__delete" aria-label="Excluir comentário"
             title="Excluir comentário" onClick={() => setConfirming(true)}>

@@ -76,6 +76,7 @@ Regras que toda funcionalidade precisa manter:
 - **Sair para o mercado é sucesso.** Nenhuma funcionalidade existe para reter o membro.
 - **O que a plataforma apura, o membro não edita.** Métricas, progresso, validações e conquistas não se alteram à mão.
 - **Nada contorna a moderação.** Conteúdo ofensivo é barrado, moderação automática apoia a manual, e não existe rota alternativa de publicação.
+- **Remoção pela staff tem motivo.** A staff remove publicação ou comentário do Feed, no painel de administração, sempre com motivo. O autor vê a remoção e o motivo no lugar do texto; os outros membros só deixam de ver. Quem removeu fica registrado para a administração, não no Feed.
 - **O feed serve ao aprendizado.** Recursos de feed cuja finalidade é disputar atenção ou tempo de permanência não entram.
 - **Squad não é encerrado.** Um squad fica inativo quando não há projeto encaminhado ou necessidade momentânea de desenvolvimento, mas nunca é apagado nem encerrado, e o log e o histórico dos membros são preservados.
 - **O mural é exclusivo.** Vaga restrita nunca fica acessível a quem não é membro, e o mural não agrega vagas de outros sites nem compete por volume.

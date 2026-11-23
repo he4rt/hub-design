@@ -7,6 +7,7 @@ import {
   LogOut,
   MessageSquareWarning,
   ScanSearch,
+  ShieldAlert,
   Settings2,
   UserRound,
   UsersRound,
@@ -72,6 +73,12 @@ export function AdminLayout() {
             <NavLink to="/admin/validation/contestations" className="sidebar-nav__item">
               <MessageSquareWarning size={18} aria-hidden />
               <span>Contestações</span>
+            </NavLink>
+          </SidebarGroup>
+          <SidebarGroup label="Comunidade">
+            <NavLink to="/admin/community/moderation" className="sidebar-nav__item">
+              <ShieldAlert size={18} aria-hidden />
+              <span>Moderação</span>
             </NavLink>
           </SidebarGroup>
           <SidebarGroup label="Sistema">

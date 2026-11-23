@@ -104,6 +104,7 @@ export function createProject(userId: string, input: ProjectInput) {
       showReactionCounts: input.showReactionCounts,
       createdAt: now,
       deletedAt: null,
+      removal: null,
       editedAt: null,
       revisions: [],
     }
@@ -222,6 +223,7 @@ export function createPost(userId: string, input: PostInput) {
       showReactionCounts: input.showReactionCounts,
       createdAt: new Date().toISOString(),
       deletedAt: null,
+      removal: null,
       editedAt: null,
       revisions: [],
     }
@@ -457,6 +459,7 @@ export function createComment(userId: string, postId: string, body: string) {
       body: body.trim(),
       createdAt: new Date().toISOString(),
       deletedAt: null,
+      removal: null,
     }
     db.set((state) => ({ ...state, feedComments: [...state.feedComments, comment] }))
     track('feed_comment_created', { postId, commentId: comment.id, ownPost: post.userId === userId })

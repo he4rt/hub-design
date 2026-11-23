@@ -1,6 +1,7 @@
 import './runtime'
 import { all, hasSchema, sql } from './database/connection'
 import { migrateFeed } from './database/migrate-feed'
+import { migrateFeedRemoval } from './database/migrate-feed-removal'
 import { migrateProfileCover } from './database/migrate-profile-cover'
 import { currentSession } from './auth'
 import { seed } from './database/seed'
@@ -17,6 +18,7 @@ import { confirmEmailVerification, developmentMail, dispatchAuthMail, emailVerif
 if (!hasSchema()) await seed()
 migrateFeed(sql)
 migrateProfileCover(sql)
+migrateFeedRemoval(sql)
 startGithubWorker()
 process.env.APP_URL ??= process.env.HUB_PUBLIC_URL ?? process.env.HUB_PORTAL_URL
 if (process.env.MAIL_TRANSPORT === 'resend' && process.env.MAIL_RESEND_API_KEY && process.env.MAIL_FROM) {

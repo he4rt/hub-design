@@ -450,3 +450,21 @@ test('debug keeps impersonation and safe table inspection without exposing table
   expect(restored).toMatchObject({ email: fixture.users.find((u) => u.id === 'u3')!.email, published: true, startingPoint: fixture.users.find((u) => u.id === 'u3')!.startingPoint })
   expect((await state()).passwordResets).toEqual([])
 })
+
+test('a staff removal reaches only its author, with the reason and without who removed it', async () => {
+  const MODERATION = 'modules/panel-admin/features/community/moderation/actions'
+  const reason = 'Expõe dados pessoais de um cliente. Publique de novo sem nomes e contatos.'
+  const author = await login('u2')
+  expect((await call(MODERATION, 'removePost', ['u2', 'p6', reason], author)).status).toBe(401)
+  const admin = await login('u1', true)
+  expect((await call(MODERATION, 'removePost', ['u1', 'p6', 'Spam.'], admin)).status).not.toBe(200)
+  expect((await call(MODERATION, 'removeComment', ['u1', 'fc1', reason], admin)).status).toBe(200)
+  expect((await call(MODERATION, 'removePost', ['u1', 'p6', reason], admin)).status).toBe(200)
+
+  const mine = await state(author)
+  expect(mine.feedPosts.find((p) => p.id === 'p6')!.removal).toMatchObject({ reason, removedBy: '' })
+  const commenter = await state(await login('u3'))
+  expect(commenter.feedPosts.some((p) => p.id === 'p6')).toBe(false)
+  expect(commenter.feedComments.some((c) => c.id === 'fc1')).toBe(false)
+  expect((await state(admin)).feedPosts.find((p) => p.id === 'p6')!.removal!.removedBy).toBe('u1')
+})

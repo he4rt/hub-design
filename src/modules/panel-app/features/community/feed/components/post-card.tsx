@@ -67,6 +67,8 @@ export function PostCard({
   const project = useDb((state) => state.memberProjects.find((p) => p.id === post.projectId))
   const [commenting, setCommenting] = useState(false)
   const comments = allComments.filter((c) => c.postId === post.id && c.deletedAt === null)
+  // The viewer's own comments the moderation removed stay in the conversation for them, with the reason.
+  const shownComments = allComments.filter((c) => c.postId === post.id && (c.deletedAt === null || (c.removal && c.userId === viewerId)))
   const own = canManagePost(post, viewerId)
   const name = author?.name ?? 'Membro'
   const authorProfile = useDb((state) => state.profiles.find((p) => p.userId === post.userId))
@@ -274,7 +276,7 @@ export function PostCard({
           {commenting && viewer && (
             <PostComments
               postId={post.id}
-              comments={comments}
+              comments={shownComments}
               viewer={viewer}
               onClose={() => setCommenting(false)}
             />

@@ -506,7 +506,15 @@ export type FeedComment = {
   body: string
   createdAt: string
   deletedAt: string | null
+  /** Set when the staff removed it; then `deletedAt` is set too. */
+  removal: Removal | null
 }
+
+/**
+ * The staff took a publication or comment down, with a reason. The author sees the reason; the
+ * other members just stop seeing it; who removed it stays with the administration.
+ */
+export type Removal = { reason: string; removedBy: string; removedAt: string }
 
 /** A publication a member saved to read again, like a bookmark. Only that member sees it. */
 export type FeedBookmark = { userId: string; postId: string; createdAt: string }
@@ -573,8 +581,10 @@ export type FeedPost = {
   /** Everyone sees how many reactions this publication got; off means only the author sees them. */
   showReactionCounts: boolean
   createdAt: string
-  /** Deleted by the author: gone for every member, kept for moderation and audit. */
+  /** Deleted by the author or removed by the staff: gone for every member, kept for moderation and audit. */
   deletedAt: string | null
+  /** Set when the staff removed it; then `deletedAt` is set too. */
+  removal: Removal | null
   /** Last time the author edited the text; members see it on the card. */
   editedAt: string | null
   /** Earlier versions of the text, oldest first, seen only by moderation. */
@@ -726,6 +736,7 @@ const post = (
   reactions: [],
   showReactionCounts: false,
   deletedAt: null,
+  removal: null,
   editedAt: null,
   revisions: [],
   ...fields,
@@ -1012,6 +1023,7 @@ const seed: MockDb = {
       body: 'Boa! Eu ainda uso classe nos meus testes. Vou trocar.',
       createdAt: '2026-11-17T12:05:00Z',
       deletedAt: null,
+      removal: null,
     },
     {
       id: 'fc2',
@@ -1020,6 +1032,7 @@ const seed: MockDb = {
       body: 'O getByRole também ajuda na acessibilidade: se o teste não acha o botão, o leitor de tela também não acha.',
       createdAt: '2026-11-18T09:30:00Z',
       deletedAt: null,
+      removal: null,
     },
   ],
   memberProjects: [
