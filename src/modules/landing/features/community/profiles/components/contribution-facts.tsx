@@ -5,8 +5,8 @@ import type { ContributionFact } from '../lib/activity'
 import './contribution-facts.css'
 
 /**
- * One count per kind of contribution, said as a sentence, each part opening the list it counts in
- * the Atividade tab. Never summed into a reputation, never a scoreboard, and a zero is never shown.
+ * One count per kind of contribution, said as a sentence, each part opening the tab that lists it
+ * (Trajetória or Fórum). Never summed into a reputation, never a scoreboard, and a zero is never shown.
  */
 export function ContributionFacts({ facts }: { facts: ContributionFact[] }) {
   return (
@@ -16,7 +16,7 @@ export function ContributionFacts({ facts }: { facts: ContributionFact[] }) {
         {facts.map((fact, i) => (
           <Fragment key={fact.id}>
             {i > 0 && (i === facts.length - 1 ? ' e ' : ', ')}
-            <Link to={`?aba=atividade&tipo=${fact.group}`}>
+            <Link to={`?aba=${fact.tab}`}>
               {fact.value} {fact.label}
             </Link>
           </Fragment>

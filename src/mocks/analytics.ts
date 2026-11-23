@@ -20,6 +20,7 @@ export type AnalyticsEventName =
   | 'trajectory_record_deleted'
   | 'profile_about_saved'
   | 'profile_focus_updated'
+  | 'profile_cover_updated'
   | 'email_verified'
   | 'feed_post_created'
   | 'feed_post_blocked'

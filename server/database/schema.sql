@@ -129,7 +129,9 @@ CREATE TABLE analytics_events (
 CREATE TABLE member_profiles (
   user_id TEXT PRIMARY KEY REFERENCES users (id) ON DELETE CASCADE,
   readme TEXT,
-  current_focus TEXT
+  current_focus TEXT,
+  -- Picture on top of the profile header, as a data URL; NULL shows the ink band.
+  cover_image_url TEXT
 );
 
 CREATE TABLE declared_knowledge (

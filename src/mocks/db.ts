@@ -412,6 +412,8 @@ export type MemberProfile = {
   /** Longer "Sobre mim", shown as the profile's README. Paragraphs are separated by a blank line. */
   readme: string | null
   currentFocus: string | null
+  /** Picture on top of the profile header, as a data URL; null shows the ink band. */
+  coverImageUrl: string | null
   knowledge: DeclaredKnowledge[]
   learnings: LearningRecord[]
   experiences: ExperienceRecord[]
@@ -1094,6 +1096,7 @@ const seed: MockDb = {
       readme:
         'Passei quatro anos no suporte técnico de um provedor de internet e foi lá que comecei a automatizar tarefas com scripts em Bash.\n\nHoje estudo PHP e Laravel e faço sistemas pequenos para comércios do bairro. Quero trabalhar com back-end em um time que revise código junto.\n\nGosto de entender por que algo quebrou antes de corrigir. É o que mais aparece nas minhas notas do diário.',
       currentFocus: 'Filas e testes de integração em Laravel',
+      coverImageUrl: null,
       knowledge: [
         { id: 'k1', competency: 'PHP', level: 'intermediate', declaredAt: '2025-03-25', visibility: 'public' },
         { id: 'k2', competency: 'SQL', level: 'basic', declaredAt: '2025-03-25', visibility: 'public' },
@@ -1250,6 +1253,7 @@ const seed: MockDb = {
       userId: 'u3',
       readme: null,
       currentFocus: null,
+      coverImageUrl: null,
       knowledge: [{ id: 'k5', competency: 'HTML e CSS', level: 'basic', declaredAt: '2026-10-28', visibility: 'public' }],
       learnings: [],
       experiences: [],
@@ -1261,6 +1265,7 @@ const seed: MockDb = {
       readme:
         'Trabalho com back-end há nove anos, a maior parte em PHP e Go.\n\nComo capitão do squad Loja Comunitária, organizo as entregas e reviso os pull requests. Como validador, leio o trabalho de quem está em outros squads.',
       currentFocus: 'Observabilidade em filas',
+      coverImageUrl: null,
       knowledge: [],
       learnings: [],
       experiences: [

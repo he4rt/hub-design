@@ -1,4 +1,4 @@
-/* Centered identity, the avatar overlapping the ink banner that is the top of the card. */
+/* Centered identity, the avatar overlapping the cover band at the top of the card. */
 .profile-header {
   position: relative;
   align-items: center;
@@ -6,14 +6,6 @@
   overflow: hidden;
   padding-top: 0;
   text-align: center;
-}
-
-/* Solid ink, no gradient: the purple with weight, not with shine. */
-.profile-header__banner {
-  align-self: stretch;
-  height: 88px;
-  margin: 0 calc(-1 * var(--space-5));
-  background: var(--ink);
 }
 
 .profile-header__avatar {
@@ -30,7 +22,7 @@
 
 .profile-header__actions {
   position: absolute;
-  top: calc(88px + var(--space-3));
+  top: calc(64px + var(--space-3));
   right: var(--space-5);
   display: flex;
   gap: var(--space-2);
@@ -124,11 +116,6 @@
 }
 
 @media (max-width: 767px) {
-  .profile-header__banner {
-    height: 72px;
-    margin: 0 calc(-1 * var(--space-4));
-  }
-
   /* On a phone the actions sit under the identity instead of beside the avatar. */
   .profile-header__actions {
     position: static;

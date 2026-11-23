@@ -15,9 +15,7 @@ export function SavedPosts({ ownerId, posts, users }: { ownerId: string; posts: 
   const { run, pending, error } = useActionRunner()
   const projects = useDb((s) => s.memberProjects)
   return (
-    <Card className="saved-posts" aria-labelledby="saved-posts-title">
-      <h2 id="saved-posts-title">Salvos</h2>
-      <p className="saved-posts__muted">Só você vê o que salvou no Feed.</p>
+    <Card className="saved-posts" aria-label="Publicações salvas">
       {posts.length === 0 ? (
         <p className="saved-posts__muted">Nada salvo ainda. Salve no Feed as publicações que quer ler de novo.</p>
       ) : (

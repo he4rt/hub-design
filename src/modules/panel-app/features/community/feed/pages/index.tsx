@@ -1,4 +1,5 @@
 import { useState, useTransition } from 'react'
+import { Bookmark } from 'lucide-react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router'
 import { FormMessage } from '@/components/form-message'
 import { PageHeader } from '@/components/page-header'
@@ -45,8 +46,8 @@ function makeCommunityPosts(count: number, authorIds: string[]): FeedPost[] {
  * Home of the Hub: the learning diary of the community in one column, newest
  * first and ten at a time, never ordered by reactions, the member's own shared
  * ones included, with the community's pinned announcements on top. "Nova
- * publicação" opens over it (`?compose=1`). Their own history and what they
- * saved live in their profile; how complete it is sits in the side navigation.
+ * publicação" opens over it (`?compose=1`). Their own history lives in their
+ * profile and what they saved in Salvos (/app/saved); how complete it is sits in the side navigation.
  */
 export default function FeedIndex() {
   const account = useAccount()
@@ -215,20 +216,6 @@ export default function FeedIndex() {
       },
     },
     {
-      label: 'Outro membro apaga uma publicação que salvei',
-      description: 'Ela some dos Salvos, como some do Feed.',
-      run: () => {
-        const state = db.get()
-        const bookmark = state.feedBookmarks.find((b) => b.userId === account?.id)
-        if (!bookmark) return
-        const deletedAt = new Date().toISOString()
-        db.set((s) => ({
-          ...s,
-          feedPosts: s.feedPosts.map((p) => (p.id === bookmark.postId ? { ...p, deletedAt } : p)),
-        }))
-      },
-    },
-    {
       label: 'Esvaziar o Feed',
       run: () => db.set((state) => ({ ...state, feedPosts: [] })),
     },
@@ -260,8 +247,8 @@ export default function FeedIndex() {
         })),
     },
     {
-      label: 'Ver salvos (no perfil)',
-      run: () => account && navigate(`/members/${account.username}?aba=salvos`),
+      label: 'Ver salvos',
+      run: () => navigate('/app/saved'),
     },
     { label: 'Nova publicação', run: () => setParams({ compose: '1' }) },
     {
@@ -316,11 +303,19 @@ export default function FeedIndex() {
         title="Feed"
         description="Aprendizados e projetos da comunidade."
         actions={
-          <Button asChild>
-            <Link to="/app?compose=1" preventScrollReset>
-              Nova publicação
-            </Link>
-          </Button>
+          <div className="feed__actions">
+            <Button asChild variant="ghost">
+              <Link to="/app/saved" aria-label="Salvos" title="Salvos">
+                <Bookmark size={16} aria-hidden />
+                <span className="feed__actions-label">Salvos</span>
+              </Link>
+            </Button>
+            <Button asChild>
+              <Link to="/app?compose=1" preventScrollReset>
+                Nova publicação
+              </Link>
+            </Button>
+          </div>
         }
       />
       <FormMessage tone={notice?.tone ?? 'success'}>{notice?.text}</FormMessage>

@@ -1,0 +1,4 @@
+.forum-activity__empty {
+  color: var(--text-muted);
+  font: var(--text-caption);
+}

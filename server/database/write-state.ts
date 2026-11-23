@@ -66,7 +66,12 @@ export function writeState(state: MockDb) {
 
   for (const profile of state.profiles) {
     const user_id = profile.userId
-    insert('member_profiles', { user_id, readme: profile.readme, current_focus: profile.currentFocus })
+    insert('member_profiles', {
+      user_id,
+      readme: profile.readme,
+      current_focus: profile.currentFocus,
+      cover_image_url: profile.coverImageUrl,
+    })
     for (const k of profile.knowledge) {
       insert('declared_knowledge', { id: k.id, user_id, competency: k.competency, level: k.level, declared_at: k.declaredAt, visibility: k.visibility })
     }

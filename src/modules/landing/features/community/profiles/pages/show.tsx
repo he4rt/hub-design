@@ -1,4 +1,4 @@
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
+import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-router'
 import { NotFound } from '@/components/not-found'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -9,24 +9,24 @@ import { useNow } from '@/hooks/use-now'
 import { memberAchievements, memberJourney } from '@/mocks/achievements'
 import { db, useDb } from '@/mocks/db'
 import { AchievementsBox } from '../components/achievements-box'
-import { ActivityList } from '../components/activity-list'
+import { ForumActivity } from '../components/forum-activity'
 import { ContributionFacts } from '../components/contribution-facts'
 import { DiaryCard } from '../components/diary-card'
 import { OwnerNotice } from '../components/owner-notice'
 import { ProfileHeader } from '../components/profile-header'
 import { ProfileSidebar } from '../components/profile-sidebar'
 import { ReadmeCard } from '../components/readme-card'
-import { SavedPosts } from '../components/saved-posts'
 import { TrajectoryGraph } from '../components/trajectory-graph'
 import { ValidationsCard } from '../components/validations-card'
 import { shownAchievements } from '../lib/achievements'
-import { activityGroupLabels, memberActivity, type ActivityGroup } from '../lib/activity'
+import { memberActivity } from '../lib/activity'
 import { missingProfileItems } from '../lib/completeness'
 import { emptyProfile, trajectoryGraph } from '@/lib/trajectory/graph'
 import { viewerOptions, type Viewer } from '@/lib/trajectory/visibility'
 import './show.css'
 
-const TABS = { 'visao-geral': 'Visão geral', atividade: 'Atividade', trajetoria: 'Trajetória', salvos: 'Salvos' } as const
+/** Squad work, deliveries and learning live in Trajetória; Fórum adds what only the forum knows. */
+const TABS = { 'visao-geral': 'Visão geral', trajetoria: 'Trajetória', forum: 'Fórum' } as const
 type Tab = keyof typeof TABS
 
 /**
@@ -42,8 +42,6 @@ export default function PublicProfile() {
   const storedProfile = useDb((s) => s.profiles.find((p) => p.userId === user?.id))
   const validatorRecord = useDb((s) => s.validators.find((v) => v.userId === user?.id && v.suspension === null))
   const collections = useDb((s) => s.feedCollections)
-  const bookmarks = useDb((s) => s.feedBookmarks)
-  const users = useDb((s) => s.users)
   const contestations = useDb((s) => s.contestations)
   const sessionUserId = useDb((db) => db.session?.userId)
   const squads = useDb((db) => db.squads)
@@ -57,19 +55,15 @@ export default function PublicProfile() {
   const state = useDb((s) => s)
   const now = useNow()
 
-  const tab: Tab = (params.get('aba') as Tab) in TABS ? (params.get('aba') as Tab) : 'visao-geral'
-  const tipo = params.get('tipo') as ActivityGroup | null
-  const group = tipo && tipo in activityGroupLabels ? tipo : null
+  // Old links: Atividade became Fórum; the saved publications moved to /app/saved.
+  const aba = params.get('aba') === 'atividade' ? 'forum' : params.get('aba')
+  const tab: Tab = aba && aba in TABS ? (aba as Tab) : 'visao-geral'
 
   useDebugActions('Perfil público', [
     { label: 'Abrir Visão geral', run: () => setParams({}) },
-    { label: 'Abrir Atividade', run: () => setParams({ aba: 'atividade' }) },
     { label: 'Abrir Trajetória', run: () => setParams({ aba: 'trajetoria' }) },
-    { label: 'Abrir Salvos (só o dono)', run: () => setParams({ aba: 'salvos' }) },
-    {
-      label: 'Esvaziar meus salvos',
-      run: () => db.set((s) => ({ ...s, feedBookmarks: s.feedBookmarks.filter((b) => b.userId !== s.session?.userId) })),
-    },
+    { label: 'Abrir Fórum (só para quem entrou)', run: () => setParams({ aba: 'forum' }) },
+    { label: 'Abrir link antigo de Salvos', description: 'Leva o dono para /app/saved.', run: () => setParams({ aba: 'salvos' }) },
     { label: 'Ver perfil completo', run: () => navigate('/members/ana-souza') },
     { label: 'Ver perfil sem trajetória', run: () => navigate('/members/leticia-prado') },
     { label: 'Ver perfil de validador', run: () => navigate('/members/diego-ramos') },
@@ -89,6 +83,7 @@ export default function PublicProfile() {
 
   if (!user) return <NotFound />
   const isOwner = sessionUserId === user.id
+  if (isOwner && params.get('aba') === 'salvos') return <Navigate to="/app/saved" replace />
   if (!user.published && !isOwner) {
     return (
       <div className="public-profile-page">
@@ -115,16 +110,14 @@ export default function PublicProfile() {
 
   const graph = trajectoryGraph(profile, { squads, projects, memberships, deliveries, validations, posts, viewer })
   const entries = graph.entries
-  // Salvos only for the owner reading as themselves.
-  const tabs = (Object.keys(TABS) as Tab[]).filter((value) => value !== 'salvos' || asOwner)
+  // The forum is for the community: visitors do not get the tab.
+  const tabs = (Object.keys(TABS) as Tab[]).filter((value) => value !== 'forum' || viewer !== 'visitor')
   const activeTab = tabs.includes(tab) ? tab : 'visao-geral'
   const activity = memberActivity(profile, {
-    squads,
     projects,
     memberships,
     deliveries,
     discussions,
-    posts,
     validations,
     signedIn: viewer !== 'visitor',
   })
@@ -146,11 +139,6 @@ export default function PublicProfile() {
   const shownPosts = posts
     .filter((p) => p.userId === user.id && p.deletedAt === null && (asOwner || p.shownOnProfile))
     .toSorted((a, b) => b.createdAt.localeCompare(a.createdAt))
-  // The rule of the Feed's save: not deleted, shared on the Feed, and by someone else. Newest save first.
-  const savedPosts = bookmarks
-    .filter((b) => b.userId === user.id)
-    .toSorted((a, b) => b.createdAt.localeCompare(a.createdAt))
-    .flatMap((b) => posts.filter((p) => p.id === b.postId && p.deletedAt === null && p.sharedOnFeed && p.userId !== user.id))
   const publishedValidations = validations
     .filter((v) => v.memberId === user.id && v.status === 'recorded' && v.published)
     .filter((v) => !validations.some((n) => n.supersedesId === v.id && n.status === 'recorded' && n.published))
@@ -173,6 +161,7 @@ export default function PublicProfile() {
   return (
     <div className="public-profile-page">
       <ProfileHeader
+        userId={user.id}
         name={user.name}
         username={user.username}
         bio={user.bio}
@@ -182,6 +171,7 @@ export default function PublicProfile() {
         isOwner={asOwner}
         memberSince={user.createdAt}
         state={user.city?.uf ?? null}
+        coverImageUrl={profile.coverImageUrl}
       />
       {activity.facts.length > 0 && <ContributionFacts facts={activity.facts} />}
       {isOwner && !user.published && (
@@ -237,22 +227,14 @@ export default function PublicProfile() {
                 ownerView={asOwner}
               />
             </TabsContent>
-            <TabsContent value="atividade" className="public-profile-page__tab">
-              <Card>
-                <ActivityList
-                  items={activity.items}
-                  group={group}
-                  signedIn={Boolean(sessionUserId)}
-                  onGroupChange={(next) => setParams(next ? { aba: 'atividade', tipo: next } : { aba: 'atividade' })}
-                />
-              </Card>
-            </TabsContent>
             <TabsContent value="trajetoria" className="public-profile-page__tab">
               <Card>{trajectory}</Card>
             </TabsContent>
-            {asOwner && (
-              <TabsContent value="salvos" className="public-profile-page__tab">
-                <SavedPosts ownerId={user.id} posts={savedPosts} users={users} />
+            {viewer !== 'visitor' && (
+              <TabsContent value="forum" className="public-profile-page__tab">
+                <Card>
+                  <ForumActivity items={activity.forum} firstName={firstName} isOwner={asOwner} />
+                </Card>
               </TabsContent>
             )}
           </div>

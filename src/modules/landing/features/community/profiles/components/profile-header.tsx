@@ -5,15 +5,17 @@ import { Avatar } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { formatMonth } from '@/lib/dates'
+import { CoverArt, CoverControls } from './profile-cover'
 import { ShareProfileButton } from './share-profile-button'
 import './profile-header.css'
 
 /**
- * Identity card: the ink banner on top, the avatar over it, the name in display, then facts and links.
+ * Identity card: the cover band on top, the avatar over it, the name in display, then facts and links.
  * Achievements live in one block of the side column. A validator gets a ring and a mark in the info
  * family. No counters, level, or follow button.
  */
 export function ProfileHeader({
+  userId,
   name,
   username,
   bio,
@@ -23,7 +25,9 @@ export function ProfileHeader({
   isOwner,
   memberSince,
   state,
+  coverImageUrl,
 }: {
+  userId: string
   name: string
   username: string
   bio: string
@@ -36,12 +40,14 @@ export function ProfileHeader({
   memberSince: string
   /** UF of the city in the member's account; only the state shows, never the city. */
   state: string | null
+  coverImageUrl: string | null
 }) {
   const validatorDetail = validator && [validator.role, validator.company].filter(Boolean).join(', ')
 
   return (
     <Card className="profile-header" data-validator={validator ? '' : undefined}>
-      <div className="profile-header__banner" aria-hidden />
+      <CoverArt imageUrl={coverImageUrl} />
+      {isOwner && <CoverControls userId={userId} imageUrl={coverImageUrl} />}
       <Avatar src={photoUrl} name={name} size="xl" className="profile-header__avatar" />
       <div className="profile-header__actions">
         <ShareProfileButton handle={username} />

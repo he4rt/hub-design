@@ -2,6 +2,7 @@ import { redirect, type RouteObject } from 'react-router'
 import { AuthLayout } from '@/components/auth-layout'
 import Profile from './features/account/settings/pages/profile'
 import FeedEdit from './features/community/feed/pages/edit'
+import FeedSaved from './features/community/feed/pages/saved'
 import FeedIndex from './features/community/feed/pages/index'
 import FeedProject from './features/community/feed/pages/project'
 import ForgotPassword from './features/auth/pages/forgot-password'
@@ -81,6 +82,7 @@ export const panelAppRoutes: RouteObject = {
         // Nova publicação opens over the home.
         { path: 'feed/new', loader: () => redirect('/app?compose=1') },
         { path: 'feed/:postId/edit', Component: FeedEdit },
+        { path: 'saved', Component: FeedSaved },
         { path: 'projects/:projectId', Component: FeedProject },
         { path: 'settings/profile', Component: Profile },
         { path: 'squads/entry-test', Component: EntryTest },

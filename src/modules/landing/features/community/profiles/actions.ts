@@ -28,6 +28,26 @@ export function updateLearningNow(userId: string, text: string) {
   })
 }
 
+/** A 1600×200 JPEG fits well under this; anything bigger was not made by the cover picker. */
+export const COVER_IMAGE_MAX_LENGTH = 400_000
+
+/** The member sends a cover picture for the profile header, or removes it to go back to the ink band. */
+export function updateProfileCover(userId: string, imageUrl: string | null) {
+  return mockAction('panel-app.members.cover.update', { userId, imageUrl: imageUrl ? '(imagem)' : null }, () => {
+    assertProfileOwner(userId)
+    if (imageUrl !== null && (!imageUrl.startsWith('data:image/') || imageUrl.length > COVER_IMAGE_MAX_LENGTH)) {
+      throw new MockError('Não foi possível usar esta imagem. Tente outra.')
+    }
+    const profile = profileOf(userId)
+    preserveProfileRevision(userId, 'presentation', userId, 'update', { coverImageUrl: profile.coverImageUrl })
+    db.set((state) => ({
+      ...state,
+      profiles: [...state.profiles.filter((p) => p.userId !== userId), { ...profile, coverImageUrl: imageUrl }],
+    }))
+    track('profile_cover_updated', { userId, removed: imageUrl === null })
+    return { removed: imageUrl === null }
+  })
+}
 
 /** The member chooses who sees one trajectory record: only them, the community, or anyone. */
 export function updateRecordVisibility(userId: string, collection: RecordCollection, recordId: string, visibility: Visibility) {
@@ -51,22 +71,6 @@ export function updateRecordVisibility(userId: string, collection: RecordCollect
     }))
     track('trajectory_record_updated', { userId, type: collection, recordId, visibility })
     return { recordId, visibility }
-  })
-}
-
-/**
- * Takes a publication out of the member's saved ones. Saved publications live on the owner's
- * profile; only the member who saved one removes it.
- */
-export function unsavePost(userId: string, postId: string) {
-  return mockAction('panel-app.feed.posts.bookmarks.destroy', { userId, postId }, () => {
-    if (db.get().session?.userId !== userId) throw new MockError('Só quem salvou pode tirar dos salvos.')
-    db.set((state) => ({
-      ...state,
-      feedBookmarks: state.feedBookmarks.filter((b) => !(b.userId === userId && b.postId === postId)),
-    }))
-    track('feed_post_saved', { postId, saved: false })
-    return { saved: false }
   })
 }
 

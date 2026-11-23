@@ -90,6 +90,7 @@ export function readProfiles(where = '', params: Record<string, unknown> = {}): 
     userId: p.user_id,
     readme: p.readme,
     currentFocus: p.current_focus,
+    coverImageUrl: p.cover_image_url,
     knowledge: (knowledge.get(p.user_id) ?? []).map((k) => ({
       id: k.id,
       competency: k.competency,

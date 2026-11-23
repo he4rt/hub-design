@@ -17,6 +17,7 @@ import {
 } from 'lucide-react'
 import { Link, Navigate, NavLink, Outlet, useLocation, useNavigate } from 'react-router'
 import { BrandMark } from '@/components/brand-mark'
+import { cn } from '@/lib/cn'
 import { SidebarFooter, SidebarGroup, SidebarGroups, SidebarNav, SidebarTop } from '@/components/sidebar-nav'
 import { Avatar } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
@@ -78,7 +79,13 @@ export function AppLayout() {
         </SidebarTop>
         <SidebarGroups>
           <SidebarGroup label="Trajetória">
-            <NavLink to="/app" end title="Início" className="sidebar-nav__item">
+            {/* Salvos is part of the Feed, so Início stays active there. */}
+            <NavLink
+              to="/app"
+              end
+              title="Início"
+              className={({ isActive }) => cn('sidebar-nav__item', (isActive || pathname === '/app/saved') && 'active')}
+            >
               <House size={18} aria-hidden />
               <span>Início</span>
             </NavLink>

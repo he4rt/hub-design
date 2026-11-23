@@ -12,6 +12,7 @@ export function emptyProfile(userId: string): MemberProfile {
     userId,
     readme: null,
     currentFocus: null,
+    coverImageUrl: null,
     knowledge: [],
     learnings: [],
     experiences: [],
@@ -142,10 +143,9 @@ export function trajectoryGraph(
   const learnings = shown(profile.learnings)
   const experiences = shown(profile.experiences)
   // The owner reads every publication they kept; members those in the Feed or on the profile; visitors those on the profile.
+  // The rule of every publication on the profile: others read it only when the author showed it there.
   const readable = (post: FeedPost) =>
-    post.projectId === null &&
-    post.deletedAt === null &&
-    (viewer === 'owner' || post.shownOnProfile || (viewer === 'member' && post.sharedOnFeed))
+    post.projectId === null && post.deletedAt === null && (viewer === 'owner' || post.shownOnProfile)
   const squadOf = (project: Project) => squads.find((squad) => squad.id === project.squadId)
   const projectLink = (project: Project) => ({
     label: `${project.name}, squad ${squadOf(project)?.name ?? ''}`,
