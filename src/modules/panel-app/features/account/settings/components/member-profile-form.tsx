@@ -108,7 +108,7 @@ export function MemberProfileForm({ account }: { account: User }) {
         </fieldset>
         <fieldset className="member-profile__group">
           <legend>Ponto de partida</legend>
-          <p className="member-profile__hint">Privado: só você vê.</p>
+          <p className="member-profile__hint">Não aparece no perfil público. Quando você se candidata a um squad, o capitão vê para analisar a candidatura.</p>
           <StartingPointField value={draft.startingPoint} onChange={(startingPoint) => update({ startingPoint })} />
         </fieldset>
         <fieldset className="member-profile__group">

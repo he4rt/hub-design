@@ -43,7 +43,10 @@ const STEP_COPY: Record<OnboardingStep, { title: string; hint: string }> = {
   },
   objective: { title: 'O que você quer agora?', hint: 'Dá para mudar quando quiser.' },
   areas: { title: 'Quais áreas te interessam?', hint: 'Escolha ao menos uma.' },
-  startingPoint: { title: 'Qual é seu ponto de partida?', hint: 'Fica privado: só você vê.' },
+  startingPoint: {
+    title: 'Qual é seu ponto de partida?',
+    hint: 'Não aparece no perfil público. Quando você se candidata a um squad, o capitão vê para analisar a candidatura.',
+  },
   languages: { title: 'Quais linguagens te interessam?', hint: 'Até 5. Pode pular e escolher depois.' },
 }
 
