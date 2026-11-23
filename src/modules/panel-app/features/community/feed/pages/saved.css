@@ -1,0 +1,37 @@
+/* The Feed's reading column, so a saved publication reads as it did there. */
+.saved {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-width: 680px;
+  margin: 0 auto;
+
+  .page-header {
+    margin-bottom: 0;
+  }
+}
+
+.saved__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+}
+
+.saved__when {
+  color: var(--text-muted);
+  font: var(--text-caption);
+  font-variant-numeric: tabular-nums;
+}
+
+.saved__empty {
+  color: var(--text-muted);
+}

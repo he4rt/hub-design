@@ -57,6 +57,12 @@
   }
 }
 
+.post-card__role {
+  display: inline-flex;
+  margin-left: calc(var(--space-1) * -1);
+  color: var(--text-muted);
+}
+
 .post-card__headline {
   overflow: hidden;
   color: var(--text-muted);

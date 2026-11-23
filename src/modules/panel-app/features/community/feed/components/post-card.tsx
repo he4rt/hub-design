@@ -1,5 +1,5 @@
 import { useRef, useState, useTransition } from 'react'
-import { BookOpen, MessageSquare, Wrench } from 'lucide-react'
+import { BadgeCheck, BookOpen, MessageSquare, Wrench } from 'lucide-react'
 import { Link } from 'react-router'
 import { MemberProjectPreview } from '@/components/member-project-preview'
 import { Avatar } from '@/components/ui/avatar'
@@ -69,7 +69,11 @@ export function PostCard({
   const comments = allComments.filter((c) => c.postId === post.id && c.deletedAt === null)
   const own = canManagePost(post, viewerId)
   const name = author?.name ?? 'Membro'
-  const headline = author ? author.bio || areaLabels(author.areas) : ''
+  const authorProfile = useDb((state) => state.profiles.find((p) => p.userId === post.userId))
+  const validator = useDb((state) => state.validators.some((v) => v.userId === post.userId && v.suspension === null))
+  // One line: what the author does today, or their areas. The bio stays on the profile.
+  const currentRole = authorProfile?.experiences.find((e) => e.endedAt === null)?.role
+  const headline = author ? currentRole || areaLabels(author.areas) : ''
   const profilePath = author ? `/members/${author.username}` : null
 
   function run(action: () => Promise<unknown>, success: string) {
@@ -103,6 +107,12 @@ export function PostCard({
               </Link>
             ) : (
               <strong>{name}</strong>
+            )}
+            {/* A function, not a rank: quiet, in the text color, with no colored name or badge box. */}
+            {validator && (
+              <span className="post-card__role" role="img" aria-label="Validador" title="Validador">
+                <BadgeCheck size={15} aria-hidden />
+              </span>
             )}
             <p className="post-card__meta">
               <time dateTime={post.createdAt} title={formatFullDate(post.createdAt)}>
