@@ -1,0 +1,123 @@
+/* Only on a phone: the sidebar covers the navigation on wider screens. */
+.app-tab-bar {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .app-tab-bar {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 20;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    padding: var(--space-1) var(--space-2) calc(var(--space-1) + env(safe-area-inset-bottom));
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+  }
+}
+
+.app-tab-bar__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-width: 0;
+  min-height: 52px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-md);
+  background: none;
+  color: var(--text-muted);
+  font: var(--text-caption);
+  text-decoration: none;
+  cursor: pointer;
+
+  > span:not(.app-tab-bar__icon, .app-tab-bar__sr) {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &.active {
+    color: var(--brand);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: -2px;
+  }
+}
+
+.app-tab-bar__icon {
+  position: relative;
+  display: flex;
+}
+
+/* Something waits in "Mais", such as a captain's pending applications. */
+.app-tab-bar__dot {
+  position: absolute;
+  top: -1px;
+  right: -3px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--brand-bright);
+}
+
+.app-tab-bar__sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+.app-tab-bar__group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  & + & {
+    margin-top: var(--space-4);
+  }
+
+  h2 {
+    padding: 0 var(--space-3) var(--space-1);
+    color: var(--text-muted);
+    font: var(--text-caption);
+  }
+}
+
+.app-tab-bar__link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-md);
+  color: var(--text);
+  font: var(--text-body);
+  text-decoration: none;
+
+  /* The label; a pending count keeps its own width. */
+  > span:first-of-type {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &:hover {
+    background: var(--surface-2);
+  }
+
+  &.active {
+    background: var(--surface-2);
+    font: var(--text-body-strong);
+  }
+}

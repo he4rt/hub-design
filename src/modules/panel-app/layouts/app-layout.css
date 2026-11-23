@@ -68,6 +68,11 @@
   max-width: 960px;
   margin: 0 auto;
   padding: var(--space-8) var(--space-8) var(--space-10);
+
+  &[data-full-width] {
+    max-width: none;
+    padding: 0;
+  }
 }
 
 @media (min-width: 768px) {
@@ -108,7 +113,17 @@
     display: none;
   }
 
+  /* The bottom bar takes the navigation; the top keeps the brand and the account. */
+  .app-layout .sidebar-nav__groups {
+    display: none;
+  }
+
   .app-layout__content {
-    padding: var(--space-6) var(--space-4) var(--space-10);
+    /* Room for the bottom bar, so the last item never hides under it. */
+    padding: var(--space-6) var(--space-4) calc(var(--space-10) + 64px + env(safe-area-inset-bottom));
+
+    &[data-full-width] {
+      padding: 0 0 calc(64px + env(safe-area-inset-bottom));
+    }
   }
 }

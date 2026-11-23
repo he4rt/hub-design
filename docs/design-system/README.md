@@ -42,11 +42,11 @@ A sidebar é a espinha do produto e segue a jornada do `PRODUCT.md`:
 | --- | --- | --- |
 | Trajetória | Início, Meu perfil, Trajetória, Diário de aprendizado | sempre visíveis |
 | Desenvolvimento | Squads, Meu squad, Minhas validações | sempre visíveis |
+| Gestão do squad | Candidaturas recebidas, Entregas para revisar | só aparece para o capitão, com contagem |
 | Oportunidades | Vagas exclusivas | com cadeado até o membro ter squad ou validação |
-| Capitão · *Squad* | Candidaturas, Entregas | só aparece para o capitão, com contagem |
 | Validador | Fila de validação, Registradas por mim | só aparece para validador habilitado |
 
-Abaixo dos grupos, um card "Quero validar" em `ink-2` para quem ainda não é validador. No rodapé, o membro: avatar, nome, `@github · papel`. O capitão é um papel por squad, por isso o grupo leva o nome do squad.
+Abaixo dos grupos, um card "Quero validar" em `ink-2` para quem ainda não é validador. No rodapé, o membro: avatar, nome, `@github · papel`. O grupo do capitão leva o nome do que se faz nele, não do cargo; o nome do squad entra no item ("Candidaturas recebidas, Loja Comunitária") apenas para quem conduz mais de um.
 
 ## O que o Hub não faz (anti-padrões)
 

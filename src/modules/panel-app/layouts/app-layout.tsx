@@ -1,4 +1,5 @@
 import { useTransition } from 'react'
+import { AppTabBar, type NavGroup } from '@/modules/panel-app/components/app-tab-bar'
 import {
   BadgeCheck,
   Flag,
@@ -38,7 +39,8 @@ const sidebar = createStore({ collapsed: false }, { persist: 'he4rt:app-sidebar'
  * Signed-in area of /app. Without a session it sends to the login page and
  * comes back afterwards; an account without the dev profile goes to finish the sign-up.
  */
-export function AppLayout() {
+/** `fullWidth` leaves width and padding to a page with its own frame, such as the public profile. */
+export function AppLayout({ fullWidth = false }: { fullWidth?: boolean }) {
   const account = useAccount()
   const validator = useDb((s) => isActiveValidator(s, s.session?.userId))
   const state = useDb((s) => s)
@@ -57,6 +59,45 @@ export function AppLayout() {
     state.applications.filter((a) => a.status === 'pending' && squadProjects(squadId).includes(a.projectId)).length
   const pendingDeliveries = (squadId: string) =>
     state.deliveries.filter((d) => d.status === 'pending' && squadProjects(squadId).includes(d.projectId)).length
+
+  // One list feeds the sidebar and, on a phone, the bottom bar and its "Mais" sheet.
+  const groups: NavGroup[] = [
+    {
+      label: 'Trajetória',
+      items: [
+        // Salvos is part of the Feed, so Início stays active there.
+        { key: 'home', to: '/app', end: true, label: 'Início', icon: House, alsoActive: pathname === '/app/saved' },
+        { key: 'profile', to: `/members/${account?.username}`, end: true, label: 'Meu perfil', icon: UserRound },
+        { key: 'trajectory', to: `/members/${account?.username}?aba=trajetoria`, label: 'Trajetória', icon: GitCommitVertical },
+        { key: 'forum', to: '/app/discussions', label: 'Fórum', icon: MessagesSquare },
+      ],
+    },
+    {
+      label: 'Desenvolvimento',
+      items: [
+        { key: 'squads', to: '/app/squads', end: true, label: 'Squads', icon: UsersRound },
+        ...(mySquad ? [{ key: 'my-squad', to: `/app/squads/${mySquad.slug}`, end: true, label: 'Meu squad', icon: Flag }] : []),
+        { key: 'validations', to: '/app/validation', end: true, label: 'Minhas validações', icon: BadgeCheck },
+      ],
+    },
+    // The captain's tasks, apart from the member's: the group says what it is for, not the title.
+    ...(captainOf.length > 0
+      ? [{
+          label: 'Gestão do squad',
+          items: captainOf.flatMap((squad) => {
+            // The squad's name only for whoever leads more than one.
+            const of = captainOf.length > 1 ? `, ${squad.name}` : ''
+            return [
+              { key: `applications-${squad.id}`, to: `/app/squads/${squad.slug}/applications`, label: `Candidaturas recebidas${of}`, icon: Inbox, count: pendingApplications(squad.id) },
+              { key: `deliveries-${squad.id}`, to: `/app/squads/${squad.slug}/deliveries`, label: `Entregas para revisar${of}`, icon: PackageCheck, count: pendingDeliveries(squad.id) },
+            ]
+          }),
+        }]
+      : []),
+    ...(validator
+      ? [{ label: 'Validador', items: [{ key: 'queue', to: '/app/validation/queue', label: 'Fila de validação', icon: ListChecks }] }]
+      : []),
+  ]
 
   if (!account) return <Navigate to={`/app/login?redirect=${encodeURIComponent(pathname + search)}`} replace />
   if (needsOnboarding(account)) return <Navigate to="/app/onboarding" replace />
@@ -78,68 +119,23 @@ export function AppLayout() {
           </button>
         </SidebarTop>
         <SidebarGroups>
-          <SidebarGroup label="Trajetória">
-            {/* Salvos is part of the Feed, so Início stays active there. */}
-            <NavLink
-              to="/app"
-              end
-              title="Início"
-              className={({ isActive }) => cn('sidebar-nav__item', (isActive || pathname === '/app/saved') && 'active')}
-            >
-              <House size={18} aria-hidden />
-              <span>Início</span>
-            </NavLink>
-            <NavLink to={`/members/${account.username}`} end title="Meu perfil" className="sidebar-nav__item">
-              <UserRound size={18} aria-hidden />
-              <span>Meu perfil</span>
-            </NavLink>
-            <NavLink to={`/members/${account.username}?aba=trajetoria`} title="Trajetória" className="sidebar-nav__item">
-              <GitCommitVertical size={18} aria-hidden />
-              <span>Trajetória</span>
-            </NavLink>
-            <NavLink to="/app/discussions" title="Fórum" className="sidebar-nav__item">
-              <MessagesSquare size={18} aria-hidden />
-              <span>Fórum</span>
-            </NavLink>
-          </SidebarGroup>
-          <SidebarGroup label="Desenvolvimento">
-            <NavLink to="/app/squads" end title="Squads" className="sidebar-nav__item">
-              <UsersRound size={18} aria-hidden />
-              <span>Squads</span>
-            </NavLink>
-            {mySquad && (
-              <NavLink to={`/app/squads/${mySquad.slug}`} end title="Meu squad" className="sidebar-nav__item">
-                <Flag size={18} aria-hidden />
-                <span>Meu squad</span>
-              </NavLink>
-            )}
-            <NavLink to="/app/validation" end title="Minhas validações" className="sidebar-nav__item">
-              <BadgeCheck size={18} aria-hidden />
-              <span>Minhas validações</span>
-            </NavLink>
-          </SidebarGroup>
-          {captainOf.map((squad) => (
-            <SidebarGroup key={squad.id} label={`Capitão de ${squad.name}`}>
-              <NavLink to={`/app/squads/${squad.slug}/applications`} title="Candidaturas" className="sidebar-nav__item">
-                <Inbox size={18} aria-hidden />
-                <span>Candidaturas</span>
-                {pendingApplications(squad.id) > 0 && <Badge variant="count">{pendingApplications(squad.id)}</Badge>}
-              </NavLink>
-              <NavLink to={`/app/squads/${squad.slug}/deliveries`} title="Entregas" className="sidebar-nav__item">
-                <PackageCheck size={18} aria-hidden />
-                <span>Entregas</span>
-                {pendingDeliveries(squad.id) > 0 && <Badge variant="count">{pendingDeliveries(squad.id)}</Badge>}
-              </NavLink>
+          {groups.map((group) => (
+            <SidebarGroup key={group.label} label={group.label}>
+              {group.items.map((item) => (
+                <NavLink
+                  key={item.key}
+                  to={item.to}
+                  end={item.end}
+                  title={item.label}
+                  className={({ isActive }) => cn('sidebar-nav__item', (isActive || item.alsoActive) && 'active')}
+                >
+                  <item.icon size={18} aria-hidden />
+                  <span>{item.label}</span>
+                  {!!item.count && <Badge variant="count">{item.count}</Badge>}
+                </NavLink>
+              ))}
             </SidebarGroup>
           ))}
-          {validator && (
-            <SidebarGroup label="Validador">
-              <NavLink to="/app/validation/queue" title="Fila de validação" className="sidebar-nav__item">
-                <ListChecks size={18} aria-hidden />
-                <span>Fila de validação</span>
-              </NavLink>
-            </SidebarGroup>
-          )}
         </SidebarGroups>
         {/* One card above the account: finishing the profile comes before inviting to validate. */}
         {account.completeness.percent < 100 ? (
@@ -197,9 +193,10 @@ export function AppLayout() {
           </Button>
         </SidebarFooter>
       </SidebarNav>
-      <main className="app-layout__content">
+      <main className="app-layout__content" data-full-width={fullWidth || undefined}>
         <Outlet />
       </main>
+      <AppTabBar groups={groups} />
     </div>
   )
 }
