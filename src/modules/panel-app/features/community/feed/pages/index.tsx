@@ -414,7 +414,9 @@ export default function FeedIndex() {
               to: '/app',
               notice: input.sharedOnFeed
                 ? 'Publicação adicionada.'
-                : 'Publicação adicionada. Privada.',
+                : input.shownOnProfile
+                  ? 'Publicação adicionada ao seu perfil.'
+                  : 'Publicação adicionada como privada. Ela fica guardada no seu perfil.',
             }
           }}
         />

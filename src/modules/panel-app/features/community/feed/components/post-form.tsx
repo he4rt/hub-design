@@ -195,9 +195,9 @@ export function PostForm({
         </div>
         <p className="post-form__hint">
           {!sharedOnFeed && !shownOnProfile
-            ? 'Privada.'
+            ? 'Esta publicação é privada. Ela fica guardada no seu perfil e não vai para o Feed.'
             : shownOnProfile && !account.published
-              ? 'Seu perfil está privado.'
+              ? 'Seu perfil está privado. A publicação aparece nele quando você publicar o perfil.'
               : null}
         </p>
       </div>

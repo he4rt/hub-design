@@ -71,7 +71,7 @@ export function ReactionSummary({ post, own }: { post: FeedPost; own: boolean })
           </p>
         )}
         {/* Only the author sees the counts of a post that hides them, so only then it says so. */}
-        {own && !post.showReactionCounts && <p className="reaction-summary__hint">Contagem oculta para os outros.</p>}
+        {own && !post.showReactionCounts && <p className="reaction-summary__hint">A contagem de reações está oculta para os outros membros. Você pode mostrá-la pelo menu •••.</p>}
       </PopoverContent>
     </Popover>
   )

@@ -100,7 +100,8 @@ function TrajectoryHistory({ userId }: { userId: string }) {
   const mine = revisions.filter((revision) => revision.userId === userId).toReversed()
   return (
     <Card>
-      <h2 className="profile-page__title">Histórico privado da trajetória</h2>
+      <h2 className="profile-page__title">Histórico da trajetória</h2>
+      <p className="trajectory-settings__hint">Quando você edita ou exclui um registro, a versão anterior fica guardada aqui. O histórico é privado e também pode ser consultado pela administração.</p>
       {mine.length === 0 ? <p className="trajectory-settings__hint">Nenhuma alteração anterior.</p> : (
         <Collapsible>
           <CollapsibleTrigger asChild><Button variant="secondary" size="sm">Ver versões anteriores</Button></CollapsibleTrigger>

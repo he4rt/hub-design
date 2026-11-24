@@ -31,9 +31,9 @@ export function shownAchievements(achievements: MemberAchievement[], isOwner: bo
     if (!achievement) return []
     const privateReason =
       definition.private && !achievement.originPublic
-        ? 'O registro de origem está privado.'
+        ? 'Ela vem de um registro privado e aparece no perfil quando você publicar esse registro.'
         : !achievement.isPublic
-          ? 'Oculta no perfil.'
+          ? 'Você ocultou esta conquista do seu perfil.'
           : null
     if (privateReason && !isOwner) return []
     return [{ achievement, definition, privateReason }]

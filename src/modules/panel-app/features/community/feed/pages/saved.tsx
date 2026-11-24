@@ -51,7 +51,7 @@ export default function Saved() {
 
   return (
     <div className="saved">
-      <PageHeader title="Salvos" description="Privado." />
+      <PageHeader title="Salvos" description="Publicações que você guardou para ler depois. A lista é privada." />
       <FormMessage tone={notice?.tone ?? 'success'}>{notice?.text}</FormMessage>
       {shown.length === 0 ? (
         <p className="saved__empty">Nada salvo ainda. No Feed, toque em Salvar nas publicações que quer ler de novo.</p>

@@ -169,7 +169,7 @@ export default function PublicProfile() {
       />
       {isOwner && !user.published && (
         <Card className="public-profile-page__private">
-          <p>Perfil privado.</p>
+          <p>Seu perfil está privado. A comunidade passa a vê-lo quando você o publicar.</p>
           <Button asChild variant="secondary" size="sm">
             <Link to="/app/settings/profile">Publicar meu perfil</Link>
           </Button>
