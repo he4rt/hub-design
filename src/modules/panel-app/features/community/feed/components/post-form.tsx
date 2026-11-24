@@ -187,18 +187,18 @@ export function PostForm({
         <div className="post-form__check">
           <Checkbox
             id="show-reaction-counts"
-            checked={showReactionCounts}
+            checked={!showReactionCounts}
             disabled={!sharedOnFeed}
-            onCheckedChange={(checked) => setShowReactionCounts(checked === true)}
+            onCheckedChange={(checked) => setShowReactionCounts(checked !== true)}
           />
-          <Label htmlFor="show-reaction-counts">Todos veem os números das reações</Label>
+          <Label htmlFor="show-reaction-counts">Ocultar contagem de reações</Label>
         </div>
         <p className="post-form__hint">
           {!sharedOnFeed && !shownOnProfile
-            ? 'Só você vai ver esta publicação. Ela fica na sua trajetória.'
+            ? 'Privada.'
             : shownOnProfile && !account.published
-              ? 'Seu perfil público está desligado: a publicação só aparece nele quando você o publicar.'
-              : 'Você pode mudar isso depois, no menu da publicação.'}
+              ? 'Seu perfil está privado.'
+              : null}
         </p>
       </div>
 

@@ -1,4 +1,4 @@
-import type { FeedPost, MemberProfile, Visibility, Project, Squad, SquadDelivery, SquadMembership, TechnicalEvidence, Validation } from '@/mocks/db'
+import type { MemberProfile, Visibility, Project, Squad, SquadDelivery, SquadMembership, TechnicalEvidence, Validation } from '@/mocks/db'
 import { formatMonth, formatPeriod } from '@/lib/dates'
 import { evidenceRef } from '@/lib/evidence'
 import { canSee, type Viewer } from './visibility'
@@ -10,8 +10,6 @@ export type RecordCollection = keyof Pick<MemberProfile, 'knowledge' | 'learning
 export function emptyProfile(userId: string): MemberProfile {
   return {
     userId,
-    readme: null,
-    currentFocus: null,
     coverImageUrl: null,
     knowledge: [],
     learnings: [],
@@ -23,16 +21,17 @@ export function emptyProfile(userId: string): MemberProfile {
 
 /**
  * The five kinds of trajectory record in PRODUCT.md, from the weakest to the strongest proof.
- * Drawn as the marker's shape on the line, and named under each record.
+ * Drawn as the marker's shape on the line, and named under each record. `filter` names the kind in the
+ * filters over the line, with the same words as the trajectory settings.
  */
 export type RecordType = 'declared' | 'learning' | 'experience' | 'demonstrated' | 'validated'
 
-export const recordTypes: { value: RecordType; label: string; meaning: string }[] = [
-  { value: 'declared', label: 'Conhecimento declarado', meaning: 'o membro informou' },
-  { value: 'learning', label: 'Aprendizagem registrada', meaning: 'curso, estudo ou artigo' },
-  { value: 'experience', label: 'Experiência registrada', meaning: 'trabalho fora do Hub' },
-  { value: 'demonstrated', label: 'Competência demonstrada', meaning: 'commit, PR ou entrega aceita' },
-  { value: 'validated', label: 'Competência validada', meaning: 'avaliada por um validador' },
+export const recordTypes: { value: RecordType; label: string; filter: string }[] = [
+  { value: 'declared', label: 'Conhecimento declarado', filter: 'Conhecimentos' },
+  { value: 'learning', label: 'Aprendizagem registrada', filter: 'Aprendizagens' },
+  { value: 'experience', label: 'Experiência registrada', filter: 'Experiências' },
+  { value: 'demonstrated', label: 'Competência demonstrada', filter: 'Evidências' },
+  { value: 'validated', label: 'Competência validada', filter: 'Validações' },
 ]
 
 export const recordTypeLabels = Object.fromEntries(recordTypes.map((t) => [t.value, t.label])) as Record<RecordType, string>
@@ -68,8 +67,6 @@ export type TrajectoryEntry = {
   reference: string | null
   /** Squad project of a record, linked to its page. */
   project: { label: string; path: string } | null
-  /** Diary publications the member tied to this learning record that the viewer may read. */
-  notes: FeedPost[]
   /** The record behind the entry, so its owner can choose who sees it; null for squad and validation events. */
   record: { collection: RecordCollection; id: string; visibility: Visibility } | null
 }
@@ -110,8 +107,8 @@ function assignLanes(branches: Branch[]): Map<string, number> {
   return lanes
 }
 
-type Draft = Omit<TrajectoryEntry, 'dateLabel' | 'lines' | 'evidenceKind' | 'url' | 'reference' | 'project' | 'notes' | 'fork' | 'merge' | 'badge' | 'tone' | 'record'> &
-  Partial<Pick<TrajectoryEntry, 'evidenceKind' | 'url' | 'reference' | 'project' | 'notes' | 'fork' | 'merge' | 'badge' | 'tone' | 'record'>>
+type Draft = Omit<TrajectoryEntry, 'dateLabel' | 'lines' | 'evidenceKind' | 'url' | 'reference' | 'project' | 'fork' | 'merge' | 'badge' | 'tone' | 'record'> &
+  Partial<Pick<TrajectoryEntry, 'evidenceKind' | 'url' | 'reference' | 'project' | 'fork' | 'merge' | 'badge' | 'tone' | 'record'>>
 
 /**
  * The member's published records as a `git log --graph`, newest first: the member is the main
@@ -126,7 +123,6 @@ export function trajectoryGraph(
     memberships,
     deliveries,
     validations,
-    posts,
     viewer,
   }: {
     squads: Squad[]
@@ -134,7 +130,6 @@ export function trajectoryGraph(
     memberships: SquadMembership[]
     deliveries: SquadDelivery[]
     validations: Validation[]
-    posts: FeedPost[]
     viewer: Viewer
   },
 ): TrajectoryGraph {
@@ -142,10 +137,6 @@ export function trajectoryGraph(
   const shown = <T extends { visibility: Visibility }>(records: T[]) => records.filter((r) => canSee(r.visibility, viewer))
   const learnings = shown(profile.learnings)
   const experiences = shown(profile.experiences)
-  // The owner reads every publication they kept; members those in the Feed or on the profile; visitors those on the profile.
-  // The rule of every publication on the profile: others read it only when the author showed it there.
-  const readable = (post: FeedPost) =>
-    post.projectId === null && post.deletedAt === null && (viewer === 'owner' || post.shownOnProfile)
   const squadOf = (project: Project) => squads.find((squad) => squad.id === project.squadId)
   const projectLink = (project: Project) => ({
     label: `${project.name}, squad ${squadOf(project)?.name ?? ''}`,
@@ -177,7 +168,7 @@ export function trajectoryGraph(
     })),
     ...participations.map(({ project, membership }) => ({
       id: project.id,
-      label: `squad ${squadOf(project)?.name ?? ''}`,
+      label: `${project.name}, squad ${squadOf(project)?.name ?? ''}`,
       start: membership.joinedAt,
       end: membership.leftAt ?? project.endedAt,
       tone: 'squad' as const,
@@ -208,26 +199,7 @@ export function trajectoryGraph(
       badge: { text: l.origin === 'basement' ? 'Basement' : 'estudo', mono: false },
       detail: l.description,
       origin: l.origin === 'basement' ? 'Concluído na Basement' : 'Registrado pelo membro',
-      notes: posts
-        .filter((post) => post.userId === profile.userId && post.learningId === l.id)
-        .filter(readable)
-        .toSorted((a, b) => a.createdAt.localeCompare(b.createdAt)),
     })),
-    // A diary publication is a learning record too. One tied to a learning the viewer sees shows inside it;
-    // the rest stand on the line by themselves.
-    ...posts
-      .filter((post) => post.userId === profile.userId && readable(post))
-      .filter((post) => !learnings.some((l) => l.id === post.learningId))
-      .map((post) => ({
-        id: `post-${post.id}`,
-        type: 'learning' as const,
-        lane: 0,
-        date: post.createdAt,
-        title: post.learned,
-        badge: { text: 'diário', mono: false },
-        detail: `Como aplicou: ${post.applied}`,
-        origin: post.editedAt ? `Publicação do diário, editada em ${formatMonth(post.editedAt)}` : 'Publicação do diário',
-      })),
     ...articles.map((a) => ({
       id: a.id,
       record: { collection: 'articles' as const, id: a.id, visibility: a.visibility },
@@ -378,7 +350,6 @@ export function trajectoryGraph(
       url: null,
       reference: null,
       project: null,
-      notes: [],
       record: null,
       ...draft,
       lines,

@@ -12,11 +12,11 @@ import { useDebugActions } from '@/debug/use-debug-actions'
 import { useDb, type MemberProfile, type Visibility } from '@/mocks/db'
 import { errorMessage } from '@/mocks/mock-action'
 import { formatDate } from '@/mocks/squads'
-import { deleteTrajectoryRecord, saveTrajectoryRecord, setTrajectoryVisibility, updateProfilePresentation, type TrajectoryCollection, type TrajectoryFields } from '../trajectory/actions'
+import { deleteTrajectoryRecord, saveTrajectoryRecord, setTrajectoryVisibility, type TrajectoryCollection, type TrajectoryFields } from '../trajectory/actions'
 import './trajectory-settings.css'
 
 const VISIBILITY = [
-  { value: 'private', label: 'Só eu' }, { value: 'community', label: 'Comunidade' }, { value: 'public', label: 'Público' },
+  { value: 'private', label: 'Privado' }, { value: 'community', label: 'Comunidade' }, { value: 'public', label: 'Público' },
 ]
 type Field = { name: string; label: string; max?: number; type?: 'date' | 'url' | 'textarea'; optional?: boolean; options?: { value: string; label: string }[] }
 const FIELDS: Record<TrajectoryCollection, { title: string; fields: Field[] }> = {
@@ -61,7 +61,6 @@ export function TrajectorySettings({ userId }: { userId: string }) {
   ])
   return (
     <section id="trajectory" className="trajectory-settings" aria-label="Editar trajetória">
-      <PresentationForm key={userId} userId={userId} profile={profile} />
       <p className="trajectory-settings__hint">Registros novos começam privados. Declarações e links não são validações de competência. Cursos da Basement e evidências de projetos mantêm o conteúdo da origem.</p>
       <FormMessage tone={result?.ok === false ? 'error' : 'success'}>{result?.message}</FormMessage>
       {(Object.keys(FIELDS) as TrajectoryCollection[]).map((collection) => (
@@ -102,7 +101,6 @@ function TrajectoryHistory({ userId }: { userId: string }) {
   return (
     <Card>
       <h2 className="profile-page__title">Histórico privado da trajetória</h2>
-      <p className="trajectory-settings__hint">Edições e exclusões preservam o conteúdo anterior. Só você e a administração podem ler este histórico.</p>
       {mine.length === 0 ? <p className="trajectory-settings__hint">Nenhuma alteração anterior.</p> : (
         <Collapsible>
           <CollapsibleTrigger asChild><Button variant="secondary" size="sm">Ver versões anteriores</Button></CollapsibleTrigger>
@@ -121,36 +119,6 @@ function TrajectoryHistory({ userId }: { userId: string }) {
           </CollapsibleContent>
         </Collapsible>
       )}
-    </Card>
-  )
-}
-
-function PresentationForm({ userId, profile }: { userId: string; profile: MemberProfile | undefined }) {
-  const id = useId()
-  const [readme, setReadme] = useState(profile?.readme ?? '')
-  const [currentFocus, setCurrentFocus] = useState(profile?.currentFocus ?? '')
-  const [result, submit, pending] = useActionState(async (): Promise<Result> => {
-    try { await updateProfilePresentation(userId, { readme, currentFocus }); return { ok: true, message: 'Apresentação salva.' } }
-    catch (error) { return { ok: false, message: errorMessage(error) } }
-  }, null)
-  useDebugActions('Sobre e foco', [
-    { label: 'Preencher apresentação', run: () => { setReadme('Construindo minha trajetória em tecnologia.'); setCurrentFocus('Testes de integração com Bun') } },
-    { label: 'Foco longo (erro esperado)', run: () => setCurrentFocus('a'.repeat(81)) },
-    { label: 'Moderação (erro esperado)', run: () => setReadme('idiota') },
-    { label: 'Limpar Sobre e foco', run: () => { setReadme(''); setCurrentFocus('') } },
-  ])
-  return (
-    <Card>
-      <h2 className="profile-page__title">Sobre e aprendendo agora</h2>
-      <p className="trajectory-settings__hint">A apresentação acompanha a publicação do perfil. Deixe em branco para remover.</p>
-      <form action={submit} className="trajectory-settings__form">
-        <Label htmlFor={`${id}-readme`}>Sobre mim (até 5.000 caracteres)</Label>
-        <Textarea id={`${id}-readme`} value={readme} onChange={(event) => setReadme(event.target.value)} maxLength={5000} rows={5} disabled={pending} />
-        <Label htmlFor={`${id}-focus`}>Aprendendo agora (até 80 caracteres)</Label>
-        <Input id={`${id}-focus`} value={currentFocus} onChange={(event) => setCurrentFocus(event.target.value)} maxLength={80} disabled={pending} />
-        <FormMessage tone={result?.ok === false ? 'error' : 'success'}>{result?.message}</FormMessage>
-        <Button type="submit" variant="secondary" loading={pending}>Salvar apresentação</Button>
-      </form>
     </Card>
   )
 }

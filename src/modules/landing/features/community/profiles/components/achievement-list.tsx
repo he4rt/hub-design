@@ -21,7 +21,7 @@ export function AchievementList({ items, ownerId }: { items: ShownAchievement[];
                     {item.definition.name}
                   </p>
                   <p className="achievement-list__description">{item.definition.description}</p>
-                  {item.privateReason && <p className="achievement-list__private">Só você vê</p>}
+                  {item.privateReason && <p className="achievement-list__private">Privada</p>}
                 </div>
                 <time className="achievement-list__date" dateTime={item.achievement.unlockedAt}>
                   {formatMonth(item.achievement.unlockedAt)}

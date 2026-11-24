@@ -1,34 +1,11 @@
 import { track } from '@/mocks/analytics'
 import type { RecordCollection } from '@/lib/trajectory/graph'
 import { findAchievement, memberAchievements } from '@/mocks/achievements'
-import { db, type Visibility } from '@/mocks/db'
-import { assertProfileOwner, moderateProfileText, preserveProfileRevision, profileOf } from '@/mocks/member-profile'
+import { db, updateUser, type Visibility } from '@/mocks/db'
+import { assertProfileOwner, preserveProfileRevision, profileOf } from '@/mocks/member-profile'
 import { MockError, mockAction } from '@/mocks/mock-action'
 
-export const LEARNING_NOW_MAX = 80
-
-/** What the member is learning now, answered in the bubble of their own profile. Empty clears it. */
-export function updateLearningNow(userId: string, text: string) {
-  return mockAction('panel-app.members.learning-now.update', { userId, text }, () => {
-    assertProfileOwner(userId)
-    const value = text.trim()
-    if (value.length > LEARNING_NOW_MAX) {
-      throw new MockError(`Use até ${LEARNING_NOW_MAX} caracteres.`)
-    }
-    moderateProfileText(value)
-    const profile = profileOf(userId)
-    if (profile.currentFocus === (value || null)) return { currentFocus: value || null }
-    preserveProfileRevision(userId, 'presentation', userId, 'update', { readme: profile.readme, currentFocus: profile.currentFocus })
-    db.set((state) => ({
-      ...state,
-      profiles: [...state.profiles.filter((p) => p.userId !== userId), { ...profile, currentFocus: value || null }],
-    }))
-    track('profile_focus_updated', { userId, filled: !!value })
-    return { currentFocus: value || null }
-  })
-}
-
-/** A 1600×200 JPEG fits well under this; anything bigger was not made by the cover picker. */
+/** A 1584×396 JPEG fits well under this; anything bigger was not made by the cover picker. */
 export const COVER_IMAGE_MAX_LENGTH = 400_000
 
 /** The member sends a cover picture for the profile header, or removes it to go back to the ink band. */
@@ -46,6 +23,21 @@ export function updateProfileCover(userId: string, imageUrl: string | null) {
     }))
     track('profile_cover_updated', { userId, removed: imageUrl === null })
     return { removed: imageUrl === null }
+  })
+}
+
+/** A 400×400 JPEG fits well under this; anything bigger was not made by the photo picker. */
+export const PHOTO_MAX_LENGTH = 200_000
+
+/** The member changes their photo from the camera on their own profile; it is the account's photo. */
+export function updateProfilePhoto(userId: string, photoUrl: string) {
+  return mockAction('panel-app.members.photo.update', { userId, photoUrl: '(imagem)' }, () => {
+    assertProfileOwner(userId)
+    if (!photoUrl.startsWith('data:image/') || photoUrl.length > PHOTO_MAX_LENGTH) {
+      throw new MockError('Não foi possível usar esta foto. Tente outra imagem.')
+    }
+    updateUser(userId, (user) => ({ ...user, photoUrl }))
+    return { saved: true }
   })
 }
 

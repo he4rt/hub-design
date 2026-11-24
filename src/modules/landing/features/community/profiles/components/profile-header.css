@@ -1,45 +1,55 @@
-/* Centered identity, the avatar overlapping the cover band at the top of the card. */
+/* Identity aligned left, the avatar over the lower edge of the cover band, the actions on the right. */
 .profile-header {
   position: relative;
-  align-items: center;
+  align-items: stretch;
   gap: var(--space-3);
   overflow: hidden;
   padding-top: 0;
-  text-align: center;
 }
 
-.profile-header__avatar {
-  box-sizing: content-box;
-  margin-top: calc(-40px - var(--space-3));
-  border: 4px solid var(--surface);
-  background: var(--surface);
+/* The avatar and the action icons share a row under the band. */
+.profile-header__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
 
-  /* A validator's ring, in the info family: the one place it shows besides the mark under the name. */
-  [data-validator] > & {
-    outline: 2px solid var(--info-text);
-  }
+.profile-header__photo {
+  position: relative;
+  flex-shrink: 0;
+}
+
+/* Larger than the xl avatar, as on the design system's profile; the same size for every member. */
+.profile-header__avatar.ui-avatar {
+  box-sizing: content-box;
+  width: 136px;
+  height: 136px;
+  margin-top: -80px;
+  border: 4px solid var(--surface);
+  background: var(--surface-2);
+  /* Only in the dark theme: a thin outer line, so the photo stands apart from the dark cover and card. */
+  box-shadow: 0 0 0 1px light-dark(transparent, var(--border-strong));
+  font-size: 44px;
 }
 
 .profile-header__actions {
-  position: absolute;
-  top: calc(64px + var(--space-3));
-  right: var(--space-5);
   display: flex;
-  gap: var(--space-2);
+  gap: var(--space-1);
+  padding-top: var(--space-3);
 }
 
 .profile-header__identity {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   gap: var(--space-2);
-  width: 100%;
-  max-width: 720px;
   min-width: 0;
 }
 
 .profile-header__name {
   max-width: 100%;
+  margin-top: calc(-1 * var(--space-1));
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -53,30 +63,42 @@
   font: var(--text-body);
 }
 
-.profile-header__bio {
-  max-width: 60ch;
-  margin: 0 auto;
+.profile-header__headline {
+  max-width: 100%;
+  overflow: hidden;
   font: var(--text-body);
-  text-wrap: pretty;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-/* The validator mark: a pill in the info family, with the role in plain text beside it. */
+/* The validator line: the shield and the word in the info color, the role in plain muted text. */
 .profile-header__validator {
   display: inline-flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: center;
   gap: var(--space-1) var(--space-2);
   max-width: 100%;
-  min-height: 24px;
-  padding: var(--space-1) var(--space-3);
-  border-radius: var(--radius-pill);
-  background: var(--info-bg);
-  color: var(--info-text);
-  font: var(--text-label);
+  color: var(--text);
+  font: var(--text-caption);
+
+  strong {
+    font-weight: 600;
+  }
 
   span {
-    font-weight: 400;
+    color: var(--text-muted);
+  }
+}
+
+/* The header actions are quiet icons: square, muted, named in the tooltip and for screen readers. */
+.profile-header__icon-button.ui-button {
+  width: var(--control-h-sm);
+  padding: 0;
+  justify-content: center;
+  color: var(--text-muted);
+
+  &:hover {
+    color: var(--text);
   }
 }
 
@@ -84,7 +106,6 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: center;
   gap: var(--space-2) var(--space-4);
 }
 
@@ -94,6 +115,12 @@
   gap: var(--space-1);
   color: var(--text-muted);
   font: var(--text-caption);
+}
+
+/* The link icons sit together, apart from the facts. */
+.profile-header__links {
+  display: inline-flex;
+  margin-left: calc(-1 * var(--space-2));
 }
 
 .profile-header__link {
@@ -116,11 +143,10 @@
 }
 
 @media (max-width: 767px) {
-  /* On a phone the actions sit under the identity instead of beside the avatar. */
-  .profile-header__actions {
-    position: static;
-    order: 1;
-    flex-wrap: wrap;
-    justify-content: center;
+  .profile-header__avatar.ui-avatar {
+    width: 96px;
+    height: 96px;
+    margin-top: -56px;
+    font-size: 28px;
   }
 }

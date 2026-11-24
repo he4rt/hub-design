@@ -414,7 +414,7 @@ export default function FeedIndex() {
               to: '/app',
               notice: input.sharedOnFeed
                 ? 'Publicação adicionada.'
-                : 'Publicação adicionada, só para você. Ela fica na sua trajetória.',
+                : 'Publicação adicionada. Privada.',
             }
           }}
         />

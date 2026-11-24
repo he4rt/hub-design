@@ -4,7 +4,7 @@ import type { Visibility } from '@/mocks/db'
 export type Viewer = 'owner' | 'member' | 'visitor'
 
 export const visibilityOptions: { value: Visibility; label: string }[] = [
-  { value: 'private', label: 'Só eu' },
+  { value: 'private', label: 'Privado' },
   { value: 'community', label: 'Comunidade' },
   { value: 'public', label: 'Público' },
 ]

@@ -42,7 +42,7 @@ export default function FeedEdit() {
           await updatePost(account.id, post.id, input)
           return {
             to: '/app',
-            notice: input.sharedOnFeed ? 'Publicação atualizada.' : 'Publicação atualizada, só para você. Ela fica na sua trajetória.',
+            notice: input.sharedOnFeed ? 'Publicação atualizada.' : 'Publicação atualizada. Privada.',
           }
         }}
       />

@@ -55,23 +55,6 @@ function editable(collection: TrajectoryCollection, record: MemberProfile[Trajec
     !(collection === 'evidences' && 'projectId' in record && record.projectId !== null)
 }
 
-/** About and focus share the existing member profile, including for a newly registered account. */
-export function updateProfilePresentation(userId: string, input: { readme: string; currentFocus: string }) {
-  return mockAction('panel-app.settings.presentation.update', { userId }, () => {
-    assertProfileOwner(userId)
-    const readme = text(input, 'readme', 5000, true)
-    const currentFocus = text(input, 'currentFocus', 80, true)
-    const previous = profileOf(userId)
-    if (previous.readme !== (readme || null) || previous.currentFocus !== (currentFocus || null)) {
-      preserveProfileRevision(userId, 'presentation', userId, 'update', { readme: previous.readme, currentFocus: previous.currentFocus })
-    }
-    persist({ ...previous, readme: readme || null, currentFocus: currentFocus || null })
-    if (previous.readme !== (readme || null)) track('profile_about_saved', { userId, filled: !!readme })
-    if (previous.currentFocus !== (currentFocus || null)) track('profile_focus_updated', { userId, filled: !!currentFocus })
-    return { saved: true }
-  })
-}
-
 /** Only member-declared records can be authored here; no computed metrics or validations. */
 export function saveTrajectoryRecord(userId: string, collection: TrajectoryCollection, recordId: string | null, input: TrajectoryFields) {
   return mockAction(recordId ? 'panel-app.settings.trajectory.update' : 'panel-app.settings.trajectory.store', { userId, collection, recordId }, () => {

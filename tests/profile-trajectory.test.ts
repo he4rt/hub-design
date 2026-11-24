@@ -74,21 +74,17 @@ async function state(session = cookie): Promise<MockDb> {
   return (await fetch(`${origin}/api/state`, { headers: { cookie: session } })).json() as Promise<MockDb>
 }
 
-test('AC-27: actual registration without MemberProfile can save, reload and clear About/focus', async () => {
+test('AC-27: actual registration without MemberProfile can save and reload a trajectory record', async () => {
   const registration = await call(AUTH, 'register', [{ name: 'Pessoa Nova', email: 'trajectory@example.test', username: 'trajectory-new', password: 'password', birthDate: '2000-01-01', acceptedUsageNotice: true }])
   expect(registration.status).toBe(200)
   const session = registration.headers.get('set-cookie')!.split(';')[0]
   const initial = await state(session)
   const userId = initial.session!.userId
   expect(initial.profiles.find((profile) => profile.userId === userId)).toBeUndefined()
-  for (const input of [{ readme: 'Minha trajetória', currentFocus: 'Testes com Bun' }, { readme: '', currentFocus: '' }]) {
-    expect((await call(MODULE, 'updateProfilePresentation', [userId, input], session)).status).toBe(200)
-    const saved = (await state(session)).profiles.filter((profile) => profile.userId === userId)
-    expect(saved).toHaveLength(1)
-    expect(saved[0]).toMatchObject({ readme: input.readme || null, currentFocus: input.currentFocus || null, knowledge: [], learnings: [] })
-  }
-  const events = connection.all<{ event: string; props: string }>("SELECT event, props FROM analytics_events WHERE event IN ('profile_about_saved', 'profile_focus_updated')")
-  expect(events.filter((event) => JSON.parse(event.props).userId === userId).map((event) => event.event).sort()).toEqual(['profile_about_saved', 'profile_about_saved', 'profile_focus_updated', 'profile_focus_updated'])
+  expect((await call(MODULE, 'saveTrajectoryRecord', [userId, 'knowledge', null, { competency: 'Bun', level: 'basic', declaredAt: '2025-01-02', visibility: 'private' }], session)).status).toBe(200)
+  const saved = (await state(session)).profiles.filter((profile) => profile.userId === userId)
+  expect(saved).toHaveLength(1)
+  expect(saved[0].knowledge.map((k) => k.competency)).toEqual(['Bun'])
 })
 
 const inputs = {
@@ -135,25 +131,20 @@ for (const [collection, fields] of Object.entries(inputs)) {
   })
 }
 
-test('the public profile editor also upserts focus, moderates text and refuses unknown visibility/collections', async () => {
+test('the public profile editor refuses unknown visibility/collections', async () => {
   const landing = 'modules/landing/features/community/profiles/actions'
-  const registration = await call(AUTH, 'register', [{ name: 'Pessoa Nova', email: 'focus@example.test', username: 'focus-new', password: 'password', birthDate: '2000-01-01', acceptedUsageNotice: true }])
+  const registration = await call(AUTH, 'register', [{ name: 'Pessoa Nova', email: 'visibility@example.test', username: 'visibility-new', password: 'password', birthDate: '2000-01-01', acceptedUsageNotice: true }])
   expect(registration.status).toBe(200)
   const session = registration.headers.get('set-cookie')!.split(';')[0]
   const userId = (await state(session)).session!.userId
-  expect((await call(landing, 'updateLearningNow', [userId, 'Filas e recuperação após falhas'], session)).status).toBe(200)
-  expect((await state(session)).profiles.find((profile) => profile.userId === userId)?.currentFocus).toBe('Filas e recuperação após falhas')
-  expect((await call(landing, 'updateLearningNow', [userId, 'idiota'], session)).status).toBe(422)
   for (const args of [['unknown', 'missing', 'public'], ['knowledge', 'missing', 'everyone']]) {
     expect((await call(landing, 'updateRecordVisibility', [userId, ...args], session)).status).toBe(422)
   }
-  expect((await state(session)).profiles.find((profile) => profile.userId === userId)?.currentFocus).toBe('Filas e recuperação após falhas')
 })
 
 test('all trajectory writes refuse anonymous and foreign actors without mutation', async () => {
   const before = (await state()).profiles
   for (const [name, args] of [
-    ['updateProfilePresentation', [{ readme: 'Não autorizado', currentFocus: '' }]],
     ['saveTrajectoryRecord', ['knowledge', null, { ...inputs.knowledge, visibility: 'public' }]],
     ['setTrajectoryVisibility', ['knowledge', 'missing', 'public']],
     ['deleteTrajectoryRecord', ['knowledge', 'missing']],
@@ -161,15 +152,6 @@ test('all trajectory writes refuse anonymous and foreign actors without mutation
     expect((await call(MODULE, name, ['u1', ...args])).status).toBe(401)
     expect((await call(MODULE, name, ['u2', ...args], cookie)).status).toBe(403)
   }
-  expect((await state()).profiles).toEqual(before)
-})
-
-test('invalid/moderated About and focus retain the prior persisted data', async () => {
-  const before = (await state()).profiles
-  for (const input of [
-    { readme: 'a'.repeat(5001), currentFocus: '' }, { readme: '', currentFocus: 'a'.repeat(81) },
-    { readme: 'idiota', currentFocus: '' }, { readme: '', currentFocus: 'OTÁRIO' },
-  ]) expect((await call(MODULE, 'updateProfilePresentation', ['u1', input], cookie)).status).toBe(422)
   expect((await state()).profiles).toEqual(before)
 })
 

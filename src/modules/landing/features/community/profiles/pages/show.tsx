@@ -4,22 +4,20 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useDebugActions } from '@/debug/use-debug-actions'
-import { areaLabels } from '@/lib/member-profile'
+import { AREAS, areaLabels, LANGUAGE_LEVELS, labelOf } from '@/lib/member-profile'
 import { useNow } from '@/hooks/use-now'
-import { memberAchievements, memberJourney } from '@/mocks/achievements'
+import { memberAchievements } from '@/mocks/achievements'
 import { db, useDb } from '@/mocks/db'
 import { AchievementsBox } from '../components/achievements-box'
 import { ForumActivity } from '../components/forum-activity'
-import { ContributionFacts } from '../components/contribution-facts'
 import { DiaryCard } from '../components/diary-card'
 import { OwnerNotice } from '../components/owner-notice'
 import { ProfileHeader } from '../components/profile-header'
-import { ProfileSidebar } from '../components/profile-sidebar'
 import { ReadmeCard } from '../components/readme-card'
 import { TrajectoryGraph } from '../components/trajectory-graph'
 import { ValidationsCard } from '../components/validations-card'
 import { shownAchievements } from '../lib/achievements'
-import { memberActivity } from '../lib/activity'
+import { memberForum } from '../lib/activity'
 import { missingProfileItems } from '../lib/completeness'
 import { emptyProfile, trajectoryGraph } from '@/lib/trajectory/graph'
 import { viewerOptions, type Viewer } from '@/lib/trajectory/visibility'
@@ -108,25 +106,17 @@ export default function PublicProfile() {
       return result
     })
 
-  const graph = trajectoryGraph(profile, { squads, projects, memberships, deliveries, validations, posts, viewer })
+  const graph = trajectoryGraph(profile, { squads, projects, memberships, deliveries, validations, viewer })
   const entries = graph.entries
   // The forum is for the community: visitors do not get the tab.
   const tabs = (Object.keys(TABS) as Tab[]).filter((value) => value !== 'forum' || viewer !== 'visitor')
   const activeTab = tabs.includes(tab) ? tab : 'visao-geral'
-  const activity = memberActivity(profile, {
-    projects,
-    memberships,
-    deliveries,
-    discussions,
-    validations,
-    signedIn: viewer !== 'visitor',
-  })
+  const forum = memberForum(profile, discussions, viewer !== 'visitor')
   const github = user.linkedAccounts.find((account) => account.provider === 'github')
   const linkedin = user.linkedAccounts.find((account) => account.provider === 'linkedin')
   const links = [
     github && { label: 'GitHub', url: `https://github.com/${github.handle}` },
     linkedin && { label: 'LinkedIn', url: `https://www.linkedin.com/in/${linkedin.handle}` },
-    user.portfolioUrl && { label: 'Portfólio', url: user.portfolioUrl },
   ].filter((link) => !!link)
   const validator = validatorRecord
     ? {
@@ -144,11 +134,13 @@ export default function PublicProfile() {
     .filter((v) => !validations.some((n) => n.supersedesId === v.id && n.status === 'recorded' && n.published))
     .toSorted((a, b) => (b.recordedAt ?? '').localeCompare(a.recordedAt ?? ''))
   const firstName = user.name.split(' ')[0]
+  // One line under the name: what the member does today, or their areas. Their own text is Sobre.
+  const currentRole = profile.experiences.find((e) => e.endedAt === null)?.role
   const achievements = shownAchievements(memberAchievements(state, user.id, now), asOwner)
 
   const trajectory =
     entries.length > 0 ? (
-      <TrajectoryGraph graph={graph} forum={{ discussions, isOwner: asOwner }} editorId={asOwner ? user.id : null} />
+      <TrajectoryGraph graph={graph} editorId={asOwner ? user.id : null} />
     ) : asOwner ? (
       <div className="public-profile-page__empty">
         <p className="public-profile-page__empty-title">Sua trajetória ainda não tem registros publicados.</p>
@@ -164,26 +156,27 @@ export default function PublicProfile() {
         userId={user.id}
         name={user.name}
         username={user.username}
-        bio={user.bio}
+        headline={currentRole || areaLabels(user.areas)}
         photoUrl={user.photoUrl}
         links={links}
+        portfolioUrl={user.portfolioUrl}
+        viewAs={isOwner ? { viewer, onChange: setViewer } : null}
         validator={validator}
         isOwner={asOwner}
         memberSince={user.createdAt}
         state={user.city?.uf ?? null}
         coverImageUrl={profile.coverImageUrl}
       />
-      {activity.facts.length > 0 && <ContributionFacts facts={activity.facts} />}
       {isOwner && !user.published && (
         <Card className="public-profile-page__private">
-          <p>Seu perfil está privado: só você vê esta página.</p>
+          <p>Perfil privado.</p>
           <Button asChild variant="secondary" size="sm">
             <Link to="/app/settings/profile">Publicar meu perfil</Link>
           </Button>
         </Card>
       )}
       {isOwner && (
-        <OwnerNotice missing={missingProfileItems(user, profile, entries.length > 0)} viewer={viewer} onViewerChange={setViewer} />
+        <OwnerNotice missing={missingProfileItems(user, profile, entries.length > 0)} viewer={viewer} onBack={() => setViewer('owner')} />
       )}
 
       <Tabs value={activeTab} onValueChange={(value) =>
@@ -202,10 +195,8 @@ export default function PublicProfile() {
 
         <div className="public-profile-page__grid">
           <div className="public-profile-page__side">
-            <ProfileSidebar profile={profile} areas={areaLabels(user.areas)} languages={user.languages} isOwner={asOwner} viewer={viewer} />
             <AchievementsBox
               items={achievements}
-              journey={memberJourney(state, user.id)}
               ownerId={asOwner ? user.id : null}
               firstName={firstName}
             />
@@ -214,7 +205,12 @@ export default function PublicProfile() {
           <div className="public-profile-page__main">
             <TabsContent value="visao-geral" className="public-profile-page__tab">
               <ReadmeCard
-                readme={profile.readme}
+                readme={user.bio || null}
+                groups={[
+                  { label: 'Áreas', items: user.areas.map((area) => labelOf(AREAS, area)) },
+                  { label: 'Tecnologias', items: user.languages },
+                  { label: 'Idiomas', items: user.spokenLanguages.map(({ language, level }) => `${language} (${labelOf(LANGUAGE_LEVELS, level).toLowerCase()})`) },
+                ]}
                 empty={asOwner ? 'Conte quem você é no texto "Sobre", em Editar perfil.' : `${firstName} ainda não escreveu o texto "Sobre".`}
               />
               {publishedValidations.length > 0 && (
@@ -233,7 +229,7 @@ export default function PublicProfile() {
             {viewer !== 'visitor' && (
               <TabsContent value="forum" className="public-profile-page__tab">
                 <Card>
-                  <ForumActivity items={activity.forum} firstName={firstName} isOwner={asOwner} />
+                  <ForumActivity items={forum} firstName={firstName} isOwner={asOwner} />
                 </Card>
               </TabsContent>
             )}

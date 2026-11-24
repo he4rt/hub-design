@@ -215,7 +215,7 @@ function publicUser(user: User): User {
     role: user.role, photoUrl: user.photoUrl, createdAt: user.createdAt, onboardedAt: user.onboardedAt,
     published: user.published,
     ...(user.published ? {
-      bio: user.bio, objective: user.objective, areas: user.areas, languages: user.languages,
+      bio: user.bio, objective: user.objective, areas: user.areas, languages: user.languages, spokenLanguages: user.spokenLanguages,
       situation: user.situation, city: user.city, portfolioUrl: user.portfolioUrl,
       linkedAccounts: user.linkedAccounts,
     } : {}),

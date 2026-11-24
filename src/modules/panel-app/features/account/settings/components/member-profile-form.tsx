@@ -17,6 +17,7 @@ import { MUNICIPALITIES } from '@/mocks/municipalities'
 import {
   AreasField,
   LanguagesField,
+  SpokenLanguagesField,
   ObjectiveField,
   StartingPointField,
 } from '@/modules/panel-app/components/dev-profile-fields'
@@ -50,6 +51,7 @@ export function MemberProfileForm({ account }: { account: User }) {
     areas: account.areas,
     startingPoint: account.startingPoint,
     languages: account.languages,
+    spokenLanguages: account.spokenLanguages,
     situation: account.situation,
     openToOpportunities: account.openToOpportunities,
     city: account.city,
@@ -79,6 +81,7 @@ export function MemberProfileForm({ account }: { account: User }) {
           areas: draft.areas.length ? draft.areas : ['back-end'],
           startingPoint: 'junior',
           languages: draft.languages.length ? draft.languages : ['PHP'],
+          spokenLanguages: [{ language: 'Português', level: 'native' }, { language: 'Inglês', level: 'intermediate' }],
           situation: 'seeking',
           openToOpportunities: true,
           city: { name: 'Curitiba', uf: 'PR' },
@@ -114,6 +117,10 @@ export function MemberProfileForm({ account }: { account: User }) {
         <fieldset className="member-profile__group">
           <legend>Linguagens</legend>
           <LanguagesField value={draft.languages} onChange={(languages) => update({ languages })} />
+        </fieldset>
+        <fieldset className="member-profile__group">
+          <legend>Idiomas</legend>
+          <SpokenLanguagesField value={draft.spokenLanguages} onChange={(spokenLanguages) => update({ spokenLanguages })} />
         </fieldset>
       </Card>
 
@@ -159,7 +166,7 @@ export function MemberProfileForm({ account }: { account: User }) {
 
         <div className="member-profile__field">
           <div className="member-profile__label-row">
-            <Label htmlFor="bio">Bio</Label>
+            <Label htmlFor="bio">Sobre</Label>
             <span className="member-profile__count">
               {draft.bio.length}/{BIO_MAX_LENGTH}
             </span>
@@ -169,7 +176,8 @@ export function MemberProfileForm({ account }: { account: User }) {
             maxLength={BIO_MAX_LENGTH}
             value={draft.bio}
             aria-invalid={invalid('bio')}
-            placeholder="O que você faz, estuda ou quer construir."
+            rows={6}
+            placeholder="Quem você é, o que faz, estuda ou quer construir. Aparece no Sobre do seu perfil; separe parágrafos com uma linha em branco."
             onChange={(e) => update({ bio: e.target.value })}
           />
         </div>

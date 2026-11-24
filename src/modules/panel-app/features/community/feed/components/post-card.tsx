@@ -191,14 +191,14 @@ export function PostCard({
                           showReactionCounts: !post.showReactionCounts,
                         }),
                       post.showReactionCounts
-                        ? 'Só você vê os números desta publicação.'
-                        : 'Todos veem os números desta publicação.',
+                        ? 'Contagem de reações oculta.'
+                        : 'Contagem de reações visível.',
                     )
                   }
                 >
                   {post.showReactionCounts
-                    ? 'Esconder os números das reações'
-                    : 'Mostrar os números das reações a todos'}
+                    ? 'Ocultar contagem de reações'
+                    : 'Mostrar contagem de reações'}
                 </DropdownMenuItem>
               )}
               <DropdownMenuItem

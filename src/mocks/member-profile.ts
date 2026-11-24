@@ -18,7 +18,7 @@ export function moderateProfileText(value: string) {
 
 export function profileOf(userId: string): MemberProfile {
   return db.get().profiles.find((profile) => profile.userId === userId) ?? {
-    userId, readme: null, currentFocus: null, coverImageUrl: null, knowledge: [], learnings: [], experiences: [], articles: [], evidences: [],
+    userId, coverImageUrl: null, knowledge: [], learnings: [], experiences: [], articles: [], evidences: [],
   }
 }
 

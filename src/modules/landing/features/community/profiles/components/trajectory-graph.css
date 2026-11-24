@@ -4,7 +4,7 @@
   gap: var(--space-3);
 }
 
-/* The kinds of record by marker shape, then one line per branch with its color. */
+/* Filters by kind of record, each with its marker, then one line per branch with its color. */
 .trajectory-graph__legend {
   display: flex;
   flex-direction: column;
@@ -15,8 +15,8 @@
   font: var(--text-caption);
 
   ul {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    display: flex;
+    flex-wrap: wrap;
     gap: var(--space-1) var(--space-4);
     margin: 0;
     padding: 0;
@@ -39,6 +39,11 @@
     color: var(--text);
     font-weight: 600;
   }
+}
+
+.trajectory-graph__filter-marker {
+  flex-shrink: 0;
+  overflow: visible;
 }
 
 .trajectory-graph__swatch {
@@ -153,6 +158,15 @@
 
 .trajectory-graph__body {
   min-width: 0;
+  margin-bottom: var(--space-1);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+
+  /* An open record reads as one card: its title, its text and its footer together. */
+  &[data-state='open'] {
+    border-color: var(--border);
+    background: var(--surface);
+  }
 }
 
 .trajectory-graph__trigger {
@@ -170,8 +184,7 @@
   text-align: left;
   cursor: pointer;
 
-  &:hover,
-  &[data-state='open'] {
+  &[data-state='closed']:hover {
     background: var(--surface-2);
   }
 
@@ -189,29 +202,25 @@
   min-width: 0;
 }
 
-/* The kind of record, named under the title; a validation in the validator's info family. */
+/* The kind of record, named under the title; a validation in the text color, the strongest. */
 .trajectory-graph__type {
   color: var(--text-muted);
   font: var(--text-caption);
 
   &[data-type='validated'] {
-    color: var(--info-text);
+    color: var(--text);
     font-weight: 600;
   }
 }
 
+/* Two lines before the ellipsis, so a long title still reads; the full title is in the open record. */
 .trajectory-graph__title {
+  display: -webkit-box;
   min-width: 0;
-  font-weight: 500;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.trajectory-graph__note-icon {
-  margin-left: var(--space-2);
-  color: var(--brand-text);
-  vertical-align: -2px;
+  font-weight: 500;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .trajectory-graph__badge {
@@ -234,15 +243,35 @@
 .trajectory-graph__detail {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
-  padding: var(--space-2) var(--space-2) var(--space-4);
-  font: var(--text-body);
+  gap: var(--space-3);
+  padding: 0 var(--space-3) var(--space-3);
   overflow-wrap: anywhere;
+}
+
+.trajectory-graph__detail-text {
+  max-width: 64ch;
+  font: var(--text-body);
+  text-wrap: pretty;
+}
+
+/* The squad project the record belongs to: a quiet line with its icon. */
+.trajectory-graph__project {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--text-muted);
+  font: var(--text-caption);
+
+  svg {
+    flex-shrink: 0;
+  }
 
   a {
-    display: inline-flex;
-    align-items: center;
-    gap: 2px;
+    min-width: 0;
+    overflow: hidden;
+    color: var(--text);
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 }
 
@@ -268,89 +297,36 @@
   }
 }
 
-.trajectory-graph__muted,
-.trajectory-graph__origin {
-  color: var(--text-muted);
-}
-
-.trajectory-graph__origin {
-  font: var(--text-caption);
-}
-
-.trajectory-graph__links {
+/* The record's footer: where it came from on the left; its link and, for the owner, who sees it on the right. */
+.trajectory-graph__footer {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-1) var(--space-4);
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-1) var(--space-3);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--border);
+}
+
+.trajectory-graph__origin {
+  min-width: 0;
+  color: var(--text-muted);
   font: var(--text-caption);
 }
 
-/* Links from a diary note to the forum: quiet, with no reply count. */
-.trajectory-graph__forum {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-  margin: 0;
-  padding: var(--space-2) 0 0;
-  border-top: 1px solid var(--border);
-  list-style: none;
-  font: var(--text-caption);
-
-  li {
-    display: flex;
-    align-items: center;
-    gap: var(--space-1);
-    min-width: 0;
-    color: var(--text-muted);
-  }
-
-  svg {
-    flex-shrink: 0;
-  }
-
-  a {
-    display: block;
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-}
-
-/* The diary post reads as the body of the record, set apart by a border line. */
-.trajectory-graph__note {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  max-width: 720px;
-  padding-top: var(--space-3);
-  border-top: 1px solid var(--border);
-
-  dl {
-    display: grid;
-    gap: var(--space-1);
-    margin: 0;
-  }
-
-  dt {
-    color: var(--text-muted);
-    font: var(--text-label);
-  }
-
-  dd {
-    margin: 0 0 var(--space-1);
-  }
-}
-
-.trajectory-graph__note-meta {
+.trajectory-graph__footer-actions {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  color: var(--text-muted);
-  font: var(--text-caption);
+  margin-left: auto;
+}
 
-  svg {
-    flex-shrink: 0;
-  }
+.trajectory-graph__link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font: var(--text-caption);
+  font-weight: 600;
 }
 
 .trajectory-graph__more {
@@ -396,7 +372,7 @@
   }
 
   .trajectory-graph__title {
-    white-space: normal;
+    -webkit-line-clamp: 3;
   }
 
   .trajectory-graph__badge {

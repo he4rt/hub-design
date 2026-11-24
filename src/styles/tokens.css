@@ -135,9 +135,10 @@
 
   /* App extensions. Focus: a 2px ring with a 2px gap, on every control. */
   --focus-ring: 0 0 0 2px var(--surface), 0 0 0 4px var(--focus);
-  /* Trajectory branches: one color per squad, from the trail palette. */
-  --lane-1: var(--brand-bright);
-  --lane-2: var(--success-text);
-  --lane-3: var(--info-text);
-  --lane-4: var(--warning-text);
+  /* Trajectory branches, like metro lines: one strong, distinct color per squad, apart from the brand. */
+  --lane-1: light-dark(#0455a1, #5aa2f0); /* Blue line. */
+  --lane-2: light-dark(#00875a, #3ccf91); /* Green line. */
+  --lane-3: light-dark(#d9480f, #ff8a4c); /* Orange line. */
+  --lane-4: light-dark(#c2255c, #f472a6); /* Pink line. */
+  --lane-5: light-dark(#a17800, #f2c230); /* Yellow line. */
 }

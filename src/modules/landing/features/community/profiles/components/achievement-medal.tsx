@@ -36,7 +36,7 @@ export function AchievementMedal({
         data-size={size}
         data-private={privateReason ? '' : undefined}
         data-manual={manual || undefined}
-        aria-label={`${definition.name}${privateReason ? ' (só você vê)' : ''}`}
+        aria-label={`${definition.name}${privateReason ? ' (privada)' : ''}`}
         title={definition.name}
       >
         <span className="achievement-medal__glyph" aria-hidden>
@@ -54,7 +54,7 @@ export function AchievementMedal({
         {manual && achievement.grantReason && <p className="achievement-medal__reason">{achievement.grantReason}</p>}
         {privateReason && (
           <Callout icon={<EyeOff size={16} aria-hidden />}>
-            <strong>Só você vê.</strong> {privateReason}
+            <strong>Privada.</strong> {privateReason}
           </Callout>
         )}
         {ownerId && (

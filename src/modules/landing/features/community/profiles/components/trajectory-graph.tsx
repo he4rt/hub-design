@@ -1,12 +1,11 @@
 import { useId, useState, type CSSProperties } from 'react'
-import { Link } from 'react-router'
-import { ChevronDown, ExternalLink, MessageSquareText, MessagesSquare } from 'lucide-react'
+import { Link, useSearchParams } from 'react-router'
+import { ChevronDown, ExternalLink, FolderGit2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
-import type { Discussion } from '@/mocks/db'
-import { formatDay } from '@/lib/dates'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { evidenceIcons } from '@/lib/evidence'
 import { recordTypeLabels, recordTypes, type BranchTone, type RecordType, type TrajectoryEntry, type TrajectoryGraph as Graph } from '@/lib/trajectory/graph'
 import { RecordVisibility } from './record-visibility'
@@ -17,13 +16,16 @@ const INITIAL = 8
 const ROW = 48
 const MID = ROW / 2
 const laneX = (lane: number) => 10 + lane * 16
-/** The main line in the primary color; each branch in its own color, like the branches of `git log --graph`. */
+/**
+ * The main line in the primary color; each squad in its own metro-line color. A validation draws in the
+ * text color, the strongest stroke, with a ring: the strongest proof, without looking like a badge.
+ */
 const laneColor = (lane: number, tone: BranchTone) =>
   tone === 'validation'
-    ? 'var(--info-text)'
+    ? 'var(--text)'
     : lane === 0
       ? 'var(--brand)'
-      : `var(--lane-${((lane - 1) % 4) + 1})`
+      : `var(--lane-${((lane - 1) % 5) + 1})`
 const laneStyle = (lane: number, tone: BranchTone) => ({ '--lane': laneColor(lane, tone) }) as CSSProperties
 
 /** The marker's shape tells the kind of record: dashed, hollow, filled, filled with a ring. */
@@ -36,30 +38,29 @@ function Marker({ type, x, y, lane, tone }: { type: RecordType | null; x: number
   )
 }
 
-/** The five kinds of record, then one line per branch with its color. */
-function Legend({ types, lanes }: { types: RecordType[]; lanes: Graph['lanes'] }) {
+/** The kinds of record present, as filters that carry their marker; then one line per branch with its color. */
+function Filters({ types, lanes, value, onChange }: { types: RecordType[]; lanes: Graph['lanes']; value: RecordType | 'all'; onChange: (value: RecordType | 'all') => void }) {
   return (
     <div className="trajectory-graph__legend">
-      <ul aria-label="Tipos de registro">
+      <ToggleGroup type="single" variant="chips" value={value} aria-label="Tipos de registro" onValueChange={(next) => next && onChange(next as RecordType | 'all')}>
+        <ToggleGroupItem value="all">Tudo</ToggleGroupItem>
         {recordTypes
           .filter((t) => types.includes(t.value))
           .map((t) => (
-            <li key={t.value}>
-              <svg width={18} height={18} aria-hidden>
+            <ToggleGroupItem key={t.value} value={t.value} title={t.label}>
+              <svg width={18} height={18} aria-hidden className="trajectory-graph__filter-marker">
                 <Marker type={t.value} x={9} y={9} lane={0} tone={t.value === 'validated' ? 'validation' : 'main'} />
               </svg>
-              <span>
-                <strong>{t.label}</strong>: {t.meaning}
-              </span>
-            </li>
+              {t.filter}
+            </ToggleGroupItem>
           ))}
-      </ul>
+      </ToggleGroup>
       {lanes.length > 0 && (
         <ul aria-label="Ramos">
           {lanes.map(({ lane, label, tone }) => (
             <li key={`${lane}-${label}`} title={label}>
               <i className="trajectory-graph__swatch" style={laneStyle(lane, tone)} aria-hidden />
-              <span className="trajectory-graph__legend-label">Ramo: {label}</span>
+              <span className="trajectory-graph__legend-label">{label}</span>
             </li>
           ))}
         </ul>
@@ -94,10 +95,7 @@ function Rail({ entry, width, cut }: { entry: TrajectoryEntry; width: number; cu
   )
 }
 
-/** Forum discussions opened from one of these notes, and, for the owner, a way to open one. */
-type NoteForum = { discussions: Discussion[]; isOwner: boolean }
-
-function EntryDetail({ entry, forum, editorId }: { entry: TrajectoryEntry; forum: NoteForum; editorId: string | null }) {
+function EntryDetail({ entry, editorId }: { entry: TrajectoryEntry; editorId: string | null }) {
   const EvidenceIcon = entry.evidenceKind ? evidenceIcons[entry.evidenceKind] : null
   return (
     <div className="trajectory-graph__detail">
@@ -115,82 +113,33 @@ function EntryDetail({ entry, forum, editorId }: { entry: TrajectoryEntry; forum
           )}
         </Card>
       )}
-      {entry.detail && <p>{entry.detail}</p>}
-      {editorId && entry.record && <RecordVisibility ownerId={editorId} record={entry.record} />}
-      {entry.type !== null && entry.project && (
-        <p className="trajectory-graph__muted">
-          Ligado a: <Link to={entry.project.path}>{entry.project.label}</Link>
+      {entry.detail && <p className="trajectory-graph__detail-text">{entry.detail}</p>}
+      {entry.project && (
+        <p className="trajectory-graph__project">
+          <FolderGit2 size={14} aria-hidden />
+          <Link to={entry.project.path}>{entry.project.label}</Link>
         </p>
       )}
-      {entry.notes.map((note) => (
-        <article key={note.id} className="trajectory-graph__note" aria-label="Publicação do diário">
-          <p className="trajectory-graph__note-meta">
-            <MessageSquareText size={16} aria-hidden />
-            <span>
-              Publicação do diário de <time dateTime={note.createdAt}>{formatDay(note.createdAt)}</time>
-              {note.editedAt && <>, editada em {formatDay(note.editedAt)}</>}
-            </span>
-          </p>
-          <dl>
-            <dt>O que aprendi</dt>
-            <dd>{note.learned}</dd>
-            <dt>Como apliquei</dt>
-            <dd>{note.applied}</dd>
-          </dl>
-          <NoteDiscussions noteId={note.id} forum={forum} />
-        </article>
-      ))}
-      <p className="trajectory-graph__origin">
-        {entry.type ? `${recordTypeLabels[entry.type]}. ` : ''}
-        {entry.origin}.
-      </p>
-      {((entry.type === null && entry.project) || (entry.url && !(EvidenceIcon && entry.reference))) && (
-        <p className="trajectory-graph__links">
-          {entry.type === null && entry.project && <Link to={entry.project.path}>Ver o projeto</Link>}
+      {/* The kind is already under the title: the footer says where the record came from, its link and who sees it. */}
+      <div className="trajectory-graph__footer">
+        <p className="trajectory-graph__origin">{entry.origin}</p>
+        <div className="trajectory-graph__footer-actions">
           {entry.url && !(EvidenceIcon && entry.reference) && (
-            <a href={entry.url} target="_blank" rel="noreferrer">
+            <a href={entry.url} target="_blank" rel="noreferrer" className="trajectory-graph__link">
               {entry.evidenceKind ? 'Abrir no GitHub' : 'Abrir o link'}
               <ExternalLink size={12} aria-hidden />
             </a>
           )}
-        </p>
-      )}
+          {/* Records the member wrote are edited in the settings, where they were registered. */}
+          {editorId && entry.record && !['Concluído na Basement'].includes(entry.origin) && (
+            <Link to="/app/settings/profile#trajectory" className="trajectory-graph__link">
+              Editar
+            </Link>
+          )}
+          {editorId && entry.record && <RecordVisibility ownerId={editorId} record={entry.record} />}
+        </div>
+      </div>
     </div>
-  )
-}
-
-/**
- * The trajectory as a `git log`: one line where every record, experiences included, is an
- * event, and each marker shows how strong a record's evidence is. It opens with the newest
- * records and never shows counts, streaks, or activity density.
- */
-/**
- * The link from a diary note to the forum: the discussions it started, without a reply count,
- * and "Perguntar no fórum" for the owner. Only the author opens a discussion from their note.
- */
-function NoteDiscussions({ noteId, forum }: { noteId: string; forum: NoteForum }) {
-  const related = forum.discussions.filter(
-    (discussion) => discussion.context?.type === 'post' && discussion.context.id === noteId,
-  )
-  if (related.length === 0 && !forum.isOwner) return null
-  return (
-    <ul className="trajectory-graph__forum" aria-label="No fórum">
-      {related.map((discussion) => (
-        <li key={discussion.id}>
-          <MessagesSquare size={16} aria-hidden />
-          <span>No fórum:</span>
-          <Link to={`/app/discussions/${discussion.id}`} title={discussion.title}>
-            {discussion.title}
-          </Link>
-        </li>
-      ))}
-      {forum.isOwner && (
-        <li>
-          <MessagesSquare size={16} aria-hidden />
-          <Link to={`/app/discussions/new?post=${noteId}`}>Perguntar no fórum sobre esta nota</Link>
-        </li>
-      )}
-    </ul>
   )
 }
 
@@ -200,18 +149,28 @@ function NoteDiscussions({ noteId, forum }: { noteId: string; forum: NoteForum }
  * of record. It opens with the newest records and never shows counts, streaks, or activity density.
  */
 /** `editorId` is the owner's id while they read their own profile as themselves; it shows who sees each record. */
-export function TrajectoryGraph({ graph, forum, editorId }: { graph: Graph; forum: NoteForum; editorId: string | null }) {
+export function TrajectoryGraph({ graph, editorId }: { graph: Graph; editorId: string | null }) {
   const listId = useId()
   const [expanded, setExpanded] = useState(false)
-  const { entries } = graph
+  const [params, setParams] = useSearchParams()
+  const types = [...new Set(graph.entries.flatMap((entry) => (entry.type ? [entry.type] : [])))]
+  const filter = types.find((t) => t === params.get('tipo')) ?? 'all'
+  const setFilter = (next: RecordType | 'all') =>
+    setParams((current) => {
+      const result = new URLSearchParams(current)
+      if (next === 'all') result.delete('tipo')
+      else result.set('tipo', next)
+      return result
+    }, { replace: true })
+  // A filter shows only the records of that kind; squad joins and leaves go with the evidence.
+  const entries = filter === 'all' ? graph.entries : graph.entries.filter((entry) => entry.type === filter || (entry.type === null && filter === 'demonstrated'))
   const visible = expanded ? entries : entries.slice(0, INITIAL)
   const hasMore = entries.length > INITIAL
   const width = laneX(graph.laneCount) + 10
-  const types = [...new Set(entries.flatMap((entry) => (entry.type ? [entry.type] : [])))]
 
   return (
     <div className="trajectory-graph">
-      <Legend types={types} lanes={graph.lanes} />
+      <Filters types={types} lanes={graph.lanes} value={filter} onChange={setFilter} />
       <ol className="trajectory-graph__list" id={listId}>
         {visible.map((entry, i) => {
           const EvidenceIcon = entry.evidenceKind ? evidenceIcons[entry.evidenceKind] : null
@@ -227,9 +186,6 @@ export function TrajectoryGraph({ graph, forum, editorId }: { graph: Graph; foru
                   <span className="trajectory-graph__text">
                     <span className="trajectory-graph__title">
                       {entry.title}
-                      {entry.notes.length > 0 && (
-                        <MessageSquareText size={14} className="trajectory-graph__note-icon" aria-label="Tem nota do diário" />
-                      )}
                     </span>
                     <span className="trajectory-graph__type" data-type={entry.type ?? 'branch'}>
                       {entry.type ? recordTypeLabels[entry.type] : 'Squad'}
@@ -244,7 +200,7 @@ export function TrajectoryGraph({ graph, forum, editorId }: { graph: Graph; foru
                   <ChevronDown size={16} className="trajectory-graph__chevron" aria-hidden />
                 </CollapsibleTrigger>
                 <CollapsibleContent>
-                  <EntryDetail entry={entry} forum={forum} editorId={editorId} />
+                  <EntryDetail entry={entry} editorId={editorId} />
                 </CollapsibleContent>
               </Collapsible>
             </li>

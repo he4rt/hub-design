@@ -7,16 +7,6 @@
 }
 
 /* Recognition in text-muted, never louder than the trajectory. */
-.achievements-box__stage {
-  color: var(--text-muted);
-  font: var(--text-caption);
-
-  strong {
-    color: var(--text);
-    font-weight: 600;
-  }
-}
-
 /* Four marks a row in the side column; the row count is fixed by SHOWN, so nothing jumps. */
 .achievements-box__grid {
   display: grid;

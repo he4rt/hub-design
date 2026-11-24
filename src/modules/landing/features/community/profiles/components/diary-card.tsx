@@ -83,8 +83,8 @@ export function DiaryCard({
                   {post.editedAt && `, editada em ${formatPostDate(post.editedAt)}`}
                 </time>
                 {ownerView && !post.shownOnProfile && (
-                  <Badge title={post.sharedOnFeed ? 'Membros veem no Feed; não aparece aqui para ninguém além de você.' : 'Ninguém além de você vê esta publicação.'}>
-                    {post.sharedOnFeed ? 'Só no Feed' : 'Só você vê'}
+                  <Badge>
+                    {post.sharedOnFeed ? 'Só no Feed' : 'Privada'}
                   </Badge>
                 )}
                 {ownerView && (

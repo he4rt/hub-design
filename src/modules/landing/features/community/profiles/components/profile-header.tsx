@@ -1,26 +1,31 @@
 import { Link } from 'react-router'
-import { CalendarDays, Globe, MapPin, Pencil, ShieldCheck } from 'lucide-react'
+import { CalendarDays, Check, Eye, Globe, LayoutGrid, MapPin, Pencil, BadgeCheck } from 'lucide-react'
 import { siDevdotto, siGithub, siGitlab, siX } from 'simple-icons'
 import { Avatar } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { formatMonth } from '@/lib/dates'
-import { CoverArt, CoverControls } from './profile-cover'
+import { viewerOptions, type Viewer } from '@/lib/trajectory/visibility'
+import { CoverArt, CoverControls, PhotoControl } from './profile-cover'
 import { ShareProfileButton } from './share-profile-button'
 import './profile-header.css'
 
 /**
- * Identity card: the cover band on top, the avatar over it, the name in display, then facts and links.
- * Achievements live in one block of the side column. A validator gets a ring and a mark in the info
- * family. No counters, level, or follow button.
+ * Identity card, aligned left: the cover band on top, the avatar over its lower edge with the actions
+ * as quiet icons on the right, the name in display, one line of what
+ * the member does, then facts and links as quiet icons. Squads live in the trajectory; achievements
+ * in the side column. A validator gets the Feed's mark and a plain line, in the text color. No counters, level, or follow button.
  */
 export function ProfileHeader({
   userId,
   name,
   username,
-  bio,
+  headline,
   photoUrl,
   links,
+  portfolioUrl,
+  viewAs,
   validator,
   isOwner,
   memberSince,
@@ -30,9 +35,14 @@ export function ProfileHeader({
   userId: string
   name: string
   username: string
-  bio: string
+  /** One line: the current role, or the areas. The member's own text lives in Sobre. */
+  headline: string
   photoUrl: string | null
   links: { label: string; url: string }[]
+  /** Its own mark, whatever site it is on: a portfolio on GitHub is still the portfolio. */
+  portfolioUrl: string
+  /** Only for the profile's owner, who may read it as a member or a visitor would. */
+  viewAs: { viewer: Viewer; onChange: (viewer: Viewer) => void } | null
   /** From the validators the administration enabled; role and company only when the validator allowed. */
   validator: { since: string; role: string | null; company: string | null } | null
   isOwner: boolean
@@ -48,17 +58,38 @@ export function ProfileHeader({
     <Card className="profile-header" data-validator={validator ? '' : undefined}>
       <CoverArt imageUrl={coverImageUrl} />
       {isOwner && <CoverControls userId={userId} imageUrl={coverImageUrl} />}
-      <Avatar src={photoUrl} name={name} size="xl" className="profile-header__avatar" />
+      <div className="profile-header__top">
+      <span className="profile-header__photo">
+        <Avatar src={photoUrl} name={name} size="xl" className="profile-header__avatar" />
+        {isOwner && <PhotoControl userId={userId} />}
+      </span>
       <div className="profile-header__actions">
         <ShareProfileButton handle={username} />
+        {viewAs && (
+          <DropdownMenu modal={false}>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="profile-header__icon-button" aria-label="Ver como" title="Ver como">
+                <Eye size={16} aria-hidden />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              {viewerOptions.map((option) => (
+                <DropdownMenuItem key={option.value} onSelect={() => viewAs.onChange(option.value)}>
+                  <Check size={16} aria-hidden style={{ visibility: option.value === viewAs.viewer ? 'visible' : 'hidden' }} />
+                  {option.label}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
         {isOwner && (
-          <Button asChild variant="secondary" size="sm">
-            <Link to="/app/settings/profile">
+          <Button asChild variant="ghost" size="sm" className="profile-header__icon-button">
+            <Link to="/app/settings/profile" aria-label="Editar perfil" title="Editar perfil">
               <Pencil size={16} aria-hidden />
-              Editar perfil
             </Link>
           </Button>
         )}
+      </div>
       </div>
 
       <div className="profile-header__identity">
@@ -66,10 +97,14 @@ export function ProfileHeader({
           {name}
         </h1>
         <p className="profile-header__handle">@{username}</p>
-        {bio && <p className="profile-header__bio">{bio}</p>}
+        {headline && (
+          <p className="profile-header__headline" title={headline}>
+            {headline}
+          </p>
+        )}
         {validator && (
           <p className="profile-header__validator">
-            <ShieldCheck size={16} aria-hidden />
+            <BadgeCheck size={15} aria-hidden />
             <strong>Validador</strong>
             <span>
               desde <time dateTime={validator.since}>{formatMonth(validator.since)}</time>
@@ -79,28 +114,35 @@ export function ProfileHeader({
         )}
         <div className="profile-header__facts">
           {state && (
-            <p className="profile-header__fact">
+            <p className="profile-header__fact" title={STATES[state] ?? state}>
               <MapPin size={14} aria-hidden />
-              {STATES[state] ?? state}
+              {state}
             </p>
           )}
           <p className="profile-header__fact">
             <CalendarDays size={14} aria-hidden />
             Membro desde <time dateTime={memberSince}>{formatMonth(memberSince)}</time>
           </p>
-          {links.map((link) => (
-            <a
-              key={link.url}
-              href={link.url}
-              target="_blank"
-              rel="noreferrer"
-              title={link.url}
-              aria-label={link.label}
-              className="profile-header__link"
-            >
-              <LinkIcon url={link.url} />
-            </a>
-          ))}
+          <span className="profile-header__links">
+            {links.map((link) => (
+              <a
+                key={link.url}
+                href={link.url}
+                target="_blank"
+                rel="noreferrer"
+                title={link.url}
+                aria-label={link.label}
+                className="profile-header__link"
+              >
+                <LinkIcon url={link.url} />
+              </a>
+            ))}
+            {portfolioUrl && (
+              <a href={portfolioUrl} target="_blank" rel="noreferrer" title={`Portfólio: ${portfolioUrl}`} aria-label="Portfólio" className="profile-header__link">
+                <LayoutGrid size={16} aria-hidden />
+              </a>
+            )}
+          </span>
         </div>
       </div>
 

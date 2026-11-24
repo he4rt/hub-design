@@ -29,9 +29,8 @@ export function ShareProfileButton({ handle }: { handle: string }) {
   return (
     <Popover onOpenChange={onOpenChange}>
       <PopoverTrigger asChild>
-        <Button variant="secondary" size="sm">
+        <Button variant="ghost" size="sm" className="profile-header__icon-button" aria-label="Compartilhar" title="Compartilhar">
           <Share2 size={16} aria-hidden />
-          Compartilhar
         </Button>
       </PopoverTrigger>
       <PopoverContent align="end" aria-label="Compartilhar perfil" className="share-profile">
@@ -42,8 +41,8 @@ export function ShareProfileButton({ handle }: { handle: string }) {
             {result?.ok ? <Check size={16} aria-hidden /> : <Copy size={16} aria-hidden />}
           </Button>
         </div>
-        <FormMessage tone={result?.ok === false ? 'error' : 'success'}>{result?.message}</FormMessage>
-        <p className="share-profile__hint">Quem abrir o link vê só o que você escolheu publicar.</p>
+        {/* The check on the button confirms the copy; only a failure needs words. */}
+        {result?.ok === false && <FormMessage tone="error">{result.message}</FormMessage>}
       </PopoverContent>
     </Popover>
   )

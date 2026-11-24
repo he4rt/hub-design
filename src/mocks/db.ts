@@ -38,6 +38,9 @@ export type ProfileField =
   | 'portfolio'
 
 /** Suggestion made from the member's GitHub repositories, waiting for confirmation. */
+export type LanguageLevel = 'basic' | 'intermediate' | 'advanced' | 'fluent' | 'native'
+export type SpokenLanguage = { language: string; level: LanguageLevel }
+
 export type GithubSuggestion = { areas: Area[]; languages: string[] }
 
 /**
@@ -69,6 +72,8 @@ export type User = {
   /** Private: only the member sees it. */
   startingPoint: StartingPoint | null
   languages: string[]
+  /** Spoken languages (idiomas) with the member's level, shown in the profile's Sobre. */
+  spokenLanguages: SpokenLanguage[]
   situation: Situation | null
   /** Only the administration sees it. */
   openToOpportunities: boolean
@@ -404,14 +409,11 @@ export type TechnicalEvidence = {
 
 /** Public profile of a member (Fundação stage: no squads, validations, or XP yet). */
 /**
- * Trajectory records of a member. Identity (name, photo, bio, areas, languages, links) lives only
+ * Trajectory records of a member. Identity (name, photo, bio, which is the profile's "Sobre", areas, languages, links) lives only
  * in `User`, the shared He4rt account; nothing here copies it.
  */
 export type MemberProfile = {
   userId: string
-  /** Longer "Sobre mim", shown as the profile's README. Paragraphs are separated by a blank line. */
-  readme: string | null
-  currentFocus: string | null
   /** Picture on top of the profile header, as a data URL; null shows the ink band. */
   coverImageUrl: string | null
   knowledge: DeclaredKnowledge[]
@@ -689,6 +691,7 @@ export function makeUser(
     areas: [],
     startingPoint: null,
     languages: [],
+    spokenLanguages: [],
     situation: null,
     openToOpportunities: false,
     city: null,
@@ -796,10 +799,13 @@ const seed: MockDb = {
       areas: ['back-end', 'front-end'],
       startingPoint: 'junior',
       languages: ['PHP', 'SQL', 'TypeScript', 'Shell'],
+      spokenLanguages: [{ language: 'Português', level: 'native' }, { language: 'Inglês', level: 'intermediate' }],
       situation: 'seeking',
       openToOpportunities: true,
       city: { name: 'Recife', uf: 'PE' },
-      bio: 'Quatro anos no suporte técnico, onde comecei a automatizar tarefas com scripts. Hoje estudo PHP e Laravel e faço sistemas pequenos para comércios do bairro.',
+      portfolioUrl: 'https://ana-souza.dev',
+      bio:
+        'Passei quatro anos no suporte técnico de um provedor de internet e foi lá que comecei a automatizar tarefas com scripts em Bash.\n\nHoje estudo PHP e Laravel e faço sistemas pequenos para comércios do bairro. Quero trabalhar com back-end em um time que revise código junto.\n\nGosto de entender por que algo quebrou antes de corrigir. É o que mais aparece nas minhas notas do diário.',
       published: true,
     }),
     makeUser({
@@ -893,7 +899,8 @@ const seed: MockDb = {
       startingPoint: 'senior',
       languages: ['PHP', 'Go'],
       situation: 'working',
-      bio: 'Capitão do squad Loja Comunitária.',
+      bio:
+        'Trabalho com back-end há nove anos, a maior parte em PHP e Go.\n\nComo capitão do squad Loja Comunitária, organizo as entregas e reviso os pull requests. Como validador, leio o trabalho de quem está em outros squads.',
       published: true,
       linkedAccounts: [linked('github', 'rafael-costa', '2025-02-03T12:00:00Z')],
     }),
@@ -1106,9 +1113,6 @@ const seed: MockDb = {
   profiles: [
     {
       userId: 'u2',
-      readme:
-        'Passei quatro anos no suporte técnico de um provedor de internet e foi lá que comecei a automatizar tarefas com scripts em Bash.\n\nHoje estudo PHP e Laravel e faço sistemas pequenos para comércios do bairro. Quero trabalhar com back-end em um time que revise código junto.\n\nGosto de entender por que algo quebrou antes de corrigir. É o que mais aparece nas minhas notas do diário.',
-      currentFocus: 'Filas e testes de integração em Laravel',
       coverImageUrl: null,
       knowledge: [
         { id: 'k1', competency: 'PHP', level: 'intermediate', declaredAt: '2025-03-25', visibility: 'public' },
@@ -1264,8 +1268,6 @@ const seed: MockDb = {
     },
     {
       userId: 'u3',
-      readme: null,
-      currentFocus: null,
       coverImageUrl: null,
       knowledge: [{ id: 'k5', competency: 'HTML e CSS', level: 'basic', declaredAt: '2026-10-28', visibility: 'public' }],
       learnings: [],
@@ -1275,9 +1277,6 @@ const seed: MockDb = {
     },
     {
       userId: 'u6',
-      readme:
-        'Trabalho com back-end há nove anos, a maior parte em PHP e Go.\n\nComo capitão do squad Loja Comunitária, organizo as entregas e reviso os pull requests. Como validador, leio o trabalho de quem está em outros squads.',
-      currentFocus: 'Observabilidade em filas',
       coverImageUrl: null,
       knowledge: [],
       learnings: [],

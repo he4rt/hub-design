@@ -1,5 +1,6 @@
 import { useTransition } from 'react'
-import { AppTabBar, type NavGroup } from '@/modules/panel-app/components/app-tab-bar'
+import { AppTabBar } from '@/modules/panel-app/components/app-tab-bar'
+import { currentItem, type NavGroup } from '@/modules/panel-app/lib/nav'
 import {
   BadgeCheck,
   Flag,
@@ -99,6 +100,7 @@ export function AppLayout({ fullWidth = false }: { fullWidth?: boolean }) {
       : []),
   ]
 
+  const current = currentItem(groups.flatMap((group) => group.items), pathname, search)
   if (!account) return <Navigate to={`/app/login?redirect=${encodeURIComponent(pathname + search)}`} replace />
   if (needsOnboarding(account)) return <Navigate to="/app/onboarding" replace />
 
@@ -127,7 +129,7 @@ export function AppLayout({ fullWidth = false }: { fullWidth?: boolean }) {
                   to={item.to}
                   end={item.end}
                   title={item.label}
-                  className={({ isActive }) => cn('sidebar-nav__item', (isActive || item.alsoActive) && 'active')}
+                  className={() => cn('sidebar-nav__item', current?.key === item.key && 'active')}
                 >
                   <item.icon size={18} aria-hidden />
                   <span>{item.label}</span>

@@ -7,6 +7,7 @@ import type {
   Situation,
   SocialProvider,
   StartingPoint,
+  LanguageLevel,
 } from '@/mocks/db'
 import type { ProfileAction } from '@/mocks/profile-completeness'
 
@@ -34,6 +35,18 @@ export const LANGUAGES = [
 ]
 
 export const LANGUAGES_MAX = 5
+
+/** Spoken languages a member can show on the profile, apart from the programming languages. */
+export const SPOKEN_LANGUAGES = ['Português', 'Inglês', 'Espanhol', 'Francês', 'Alemão', 'Italiano', 'Japonês', 'Libras']
+
+/** Proficiency in a spoken language: short names that map to the CEFR levels (A1–A2, B1–B2, C1, C2) plus native. */
+export const LANGUAGE_LEVELS: { value: LanguageLevel; label: string; cefr: string }[] = [
+  { value: 'basic', label: 'Básico', cefr: 'A1–A2' },
+  { value: 'intermediate', label: 'Intermediário', cefr: 'B1–B2' },
+  { value: 'advanced', label: 'Avançado', cefr: 'C1' },
+  { value: 'fluent', label: 'Fluente', cefr: 'C2' },
+  { value: 'native', label: 'Nativo', cefr: '' },
+]
 
 export const OBJECTIVES: { value: Objective; label: string; description: string }[] = [
   { value: 'learn', label: 'Aprender', description: 'Estudar e montar a base.' },
@@ -78,7 +91,7 @@ export const PROFILE_FIELD_LABELS: Record<ProfileField, string> = {
   situation: 'Situação',
   city: 'Cidade',
   photo: 'Foto',
-  bio: 'Bio',
+  bio: 'Sobre',
   github: 'GitHub vinculado',
   linkedin: 'LinkedIn vinculado',
   portfolio: 'Portfólio',

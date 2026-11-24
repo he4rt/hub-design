@@ -70,11 +70,8 @@ export function ReactionSummary({ post, own }: { post: FeedPost; own: boolean })
             {helpers.join(', ')} {helpers.length === 1 ? 'disse' : 'disseram'} que isso ajudou.
           </p>
         )}
-        {own && (
-          <p className="reaction-summary__hint">
-            {post.showReactionCounts ? 'Todos veem os números.' : 'Só você vê os números.'} Mude no menu •••.
-          </p>
-        )}
+        {/* Only the author sees the counts of a post that hides them, so only then it says so. */}
+        {own && !post.showReactionCounts && <p className="reaction-summary__hint">Contagem oculta para os outros.</p>}
       </PopoverContent>
     </Popover>
   )

@@ -1,6 +1,8 @@
 import { ShieldAlert } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
 import { Callout } from '@/components/ui/callout'
 import { formatFullDate } from '@/lib/feed-post'
+import './removed-notice.css'
 
 /**
  * What the author sees where their text was, after the staff removed it: that it left the Feed and
@@ -9,8 +11,10 @@ import { formatFullDate } from '@/lib/feed-post'
 export function RemovedNotice({ what, createdAt, reason }: { what: string; createdAt: string; reason: string }) {
   return (
     <Callout variant="warning" icon={<ShieldAlert size={16} aria-hidden />}>
-      <p>
-        <strong>{what} de {formatFullDate(createdAt)} foi removida pela moderação.</strong> Só você vê este aviso.
+      {/* Only the author reads this notice; the same mark as every private item. */}
+      <p className="removed-notice__title">
+        <strong>{what} de {formatFullDate(createdAt)} foi removida pela moderação.</strong>
+        <Badge>Privado</Badge>
       </p>
       <p>Motivo: {reason}</p>
     </Callout>

@@ -9,7 +9,7 @@ export const DialogClose = DialogPrimitive.Close
 
 type DialogContentProps = ComponentProps<typeof DialogPrimitive.Content> & {
   title: ReactNode
-  description: ReactNode
+  description?: ReactNode
   /** Actions pinned under the scrolling body. */
   footer?: ReactNode
 }
@@ -19,10 +19,10 @@ export function DialogContent({ title, description, footer, className, children,
   return (
     <DialogPrimitive.Portal>
       <DialogPrimitive.Overlay className="ui-dialog__overlay" />
-      <DialogPrimitive.Content className={cn('ui-dialog', className)} {...props}>
+      <DialogPrimitive.Content className={cn('ui-dialog', className)} {...(description ? {} : { 'aria-describedby': undefined })} {...props}>
         <header className="ui-dialog__header">
           <DialogPrimitive.Title className="ui-dialog__title">{title}</DialogPrimitive.Title>
-          <DialogPrimitive.Description className="ui-dialog__description">{description}</DialogPrimitive.Description>
+          {description && <DialogPrimitive.Description className="ui-dialog__description">{description}</DialogPrimitive.Description>}
         </header>
         {children && <div className="ui-dialog__body">{children}</div>}
         {footer && <footer className="ui-dialog__footer">{footer}</footer>}

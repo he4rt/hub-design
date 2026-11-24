@@ -62,6 +62,14 @@ CREATE TABLE user_languages (
   PRIMARY KEY (user_id, language)
 );
 
+CREATE TABLE user_spoken_languages (
+  user_id TEXT NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+  language TEXT NOT NULL,
+  level TEXT NOT NULL CHECK (level IN ('basic', 'intermediate', 'advanced', 'fluent', 'native')),
+  position INTEGER NOT NULL,
+  PRIMARY KEY (user_id, language)
+);
+
 -- Discord, GitHub and Google sign in; LinkedIn only links. One account per provider and handle.
 CREATE TABLE linked_accounts (
   user_id TEXT NOT NULL REFERENCES users (id) ON DELETE CASCADE,
@@ -128,8 +136,6 @@ CREATE TABLE analytics_events (
 
 CREATE TABLE member_profiles (
   user_id TEXT PRIMARY KEY REFERENCES users (id) ON DELETE CASCADE,
-  readme TEXT,
-  current_focus TEXT,
   -- Picture on top of the profile header, as a data URL; NULL shows the ink band.
   cover_image_url TEXT
 );

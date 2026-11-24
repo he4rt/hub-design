@@ -1,32 +1,14 @@
 import { useState } from 'react'
-import { Menu, type LucideIcon } from 'lucide-react'
+import { Menu } from 'lucide-react'
 import { NavLink, useLocation } from 'react-router'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog'
 import { cn } from '@/lib/cn'
+import { isCurrent, type NavGroup } from '@/modules/panel-app/lib/nav'
 import './app-tab-bar.css'
-
-export type NavItem = {
-  key: string
-  to: string
-  label: string
-  icon: LucideIcon
-  end?: boolean
-  /** Active on another page too, such as Início on Salvos. */
-  alsoActive?: boolean
-  count?: number
-}
-
-export type NavGroup = { label: string; items: NavItem[] }
 
 /** The four destinations a member opens every day; the rest of the navigation lives under "Mais". */
 const TABS = ['home', 'forum', 'squads', 'profile']
-
-function isCurrent(item: NavItem, pathname: string, search: string) {
-  const [path, query] = item.to.split('?')
-  if (query) return pathname === path && search.includes(query)
-  return item.alsoActive || pathname === path || (!item.end && pathname.startsWith(`${path}/`))
-}
 
 /**
  * Bottom navigation on a phone, within reach of the thumb. It takes the sidebar's groups: the daily

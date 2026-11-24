@@ -1,51 +1,40 @@
 import { Eye } from 'lucide-react'
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
-import { viewerOptions, type Viewer } from '@/lib/trajectory/visibility'
+import { Button } from '@/components/ui/button'
+import type { Viewer } from '@/lib/trajectory/visibility'
 import './owner-notice.css'
 
-const READING: Record<Viewer, string> = {
-  owner: 'Você vê tudo, inclusive o que é só seu, e escolhe quem vê cada registro.',
-  member: 'Assim um membro logado vê o seu perfil: o que é da comunidade e o que é público.',
-  visitor: 'Assim um visitante sem conta vê o seu perfil: só o que é público.',
+const READING: Record<Exclude<Viewer, 'owner'>, string> = {
+  member: 'Você está vendo como membro.',
+  visitor: 'Você está vendo como visitante.',
 }
 
 /**
- * Shown only to the profile's owner, above the page: "Ver como" switches between their own view
- * and what a member or a visitor sees, plus what is still missing. Visitors never see the gaps.
+ * Shown only to the profile's owner, and only when there is something to say: that they are reading
+ * it as someone else (switched in "Ver como", in the header) or what the profile still lacks.
  */
 export function OwnerNotice({
   missing,
   viewer,
-  onViewerChange,
+  onBack,
 }: {
   missing: string[]
   viewer: Viewer
-  onViewerChange: (viewer: Viewer) => void
+  onBack: () => void
 }) {
+  if (viewer === 'owner' && missing.length === 0) return null
   return (
     <div className="owner-notice" role="note">
       <Eye size={16} aria-hidden />
-      <div className="owner-notice__text">
-        <p>
-          <strong>Só você vê este aviso.</strong> {READING[viewer]}
-          {missing.length > 0 && ` Para o perfil contar melhor a sua trajetória, faltam: ${missing.join(', ')}.`}
-        </p>
-        <div className="owner-notice__view">
-          <span id="owner-notice-view">Ver como</span>
-          <ToggleGroup
-            type="single"
-            value={viewer}
-            aria-labelledby="owner-notice-view"
-            onValueChange={(next) => next && onViewerChange(next as Viewer)}
-          >
-            {viewerOptions.map((option) => (
-              <ToggleGroupItem key={option.value} value={option.value}>
-                {option.label}
-              </ToggleGroupItem>
-            ))}
-          </ToggleGroup>
-        </div>
-      </div>
+      <p className="owner-notice__text">
+        {viewer === 'owner'
+          ? `Para o perfil contar melhor a sua trajetória, faltam: ${missing.join(', ')}.`
+          : READING[viewer]}
+      </p>
+      {viewer !== 'owner' && (
+        <Button variant="secondary" size="sm" onClick={onBack}>
+          Voltar
+        </Button>
+      )}
     </div>
   )
 }

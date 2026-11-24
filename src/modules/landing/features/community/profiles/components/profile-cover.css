@@ -1,9 +1,18 @@
-/* A low band: it frames the avatar without taking over the profile. Solid ink by default, no gradient. */
+/*
+ * The band keeps LinkedIn's 4:1 proportion, up to 200px tall. Without a picture, ink with a faint
+ * grid, like the design system's masthead; no gradient.
+ */
 .profile-cover {
   align-self: stretch;
-  height: 64px;
+  aspect-ratio: 4;
+  min-height: 80px;
+  max-height: 200px;
   margin: 0 calc(-1 * var(--space-5));
-  background: var(--ink);
+  background-color: var(--ink);
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--on-ink) 7%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--on-ink) 7%, transparent) 1px, transparent 1px);
+  background-size: 16px 16px;
 
   &[data-image] {
     background-position: center;
@@ -14,7 +23,7 @@
 /* Small icons at the band's top right corner. */
 .profile-cover__controls {
   position: absolute;
-  top: var(--space-2);
+  top: var(--space-3);
   right: var(--space-3);
   display: flex;
   flex-wrap: wrap;
@@ -23,16 +32,30 @@
   max-width: calc(100% - 2 * var(--space-3));
 }
 
+/* Round light buttons with a border, over the band and on the photo, as in the design system. */
 .ui-button.profile-cover__icon {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  color: var(--text);
+
+  &:hover {
+    border-color: var(--border-strong);
+    background: var(--surface);
+  }
+}
+
+/* On the avatar's lower right edge. */
+.ui-button.profile-cover__photo-edit {
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
   width: 32px;
   height: 32px;
-  padding: 0;
-  opacity: 0.85;
-
-  &:hover,
-  &:focus-visible {
-    opacity: 1;
-  }
 }
 
 /* Over the band, so it never pushes the header down. */
@@ -48,7 +71,6 @@
 
 @media (max-width: 767px) {
   .profile-cover {
-    height: 56px;
     margin: 0 calc(-1 * var(--space-4));
   }
 }

@@ -43,6 +43,7 @@ export function writeState(state: MockDb) {
     })
     user.areas.forEach((area, position) => insert('user_areas', { user_id: user.id, area, position }))
     user.languages.forEach((language, position) => insert('user_languages', { user_id: user.id, language, position }))
+    user.spokenLanguages.forEach(({ language, level }, position) => insert('user_spoken_languages', { user_id: user.id, language, level, position }))
     for (const account of user.linkedAccounts) {
       insert('linked_accounts', { user_id: user.id, provider: account.provider, handle: account.handle, linked_at: account.linkedAt })
     }
@@ -68,8 +69,6 @@ export function writeState(state: MockDb) {
     const user_id = profile.userId
     insert('member_profiles', {
       user_id,
-      readme: profile.readme,
-      current_focus: profile.currentFocus,
       cover_image_url: profile.coverImageUrl,
     })
     for (const k of profile.knowledge) {

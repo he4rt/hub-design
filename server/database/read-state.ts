@@ -39,6 +39,7 @@ export function readUsers(where = '', params: Record<string, unknown> = {}): Use
   const users = all<R>(`SELECT * FROM users ${where} ORDER BY rowid`, params)
   const areas = groupBy(all('SELECT * FROM user_areas ORDER BY position'), 'user_id')
   const languages = groupBy(all('SELECT * FROM user_languages ORDER BY position'), 'user_id')
+  const spoken = groupBy(all('SELECT * FROM user_spoken_languages ORDER BY position'), 'user_id')
   const accounts = groupBy(all('SELECT * FROM linked_accounts ORDER BY rowid'), 'user_id')
   const suggestions = groupBy(all('SELECT * FROM github_suggestion_items ORDER BY position'), 'user_id')
   return users.map((u) => {
@@ -60,6 +61,7 @@ export function readUsers(where = '', params: Record<string, unknown> = {}): Use
       areas: (areas.get(u.id) ?? []).map((a) => a.area as Area),
       startingPoint: u.starting_point,
       languages: (languages.get(u.id) ?? []).map((l) => l.language),
+      spokenLanguages: (spoken.get(u.id) ?? []).map((l) => ({ language: l.language, level: l.level })),
       situation: u.situation,
       openToOpportunities: bool(u.open_to_opportunities),
       city: u.city_name ? { name: u.city_name, uf: u.city_uf } : null,
@@ -90,8 +92,6 @@ export function readProfiles(where = '', params: Record<string, unknown> = {}): 
   const evidences = byUser('technical_evidences')
   return all<R>(`SELECT * FROM member_profiles ${where} ORDER BY rowid`, params).map((p) => ({
     userId: p.user_id,
-    readme: p.readme,
-    currentFocus: p.current_focus,
     coverImageUrl: p.cover_image_url,
     knowledge: (knowledge.get(p.user_id) ?? []).map((k) => ({
       id: k.id,

@@ -2,8 +2,8 @@ import { useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { RadioCard, RadioCards } from '@/components/ui/radio-cards'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
-import { AREAS, LANGUAGES, LANGUAGES_MAX, OBJECTIVES, STARTING_POINTS } from '@/lib/member-profile'
-import type { Area, Objective, StartingPoint } from '@/mocks/db'
+import { AREAS, LANGUAGE_LEVELS, LANGUAGES, LANGUAGES_MAX, OBJECTIVES, SPOKEN_LANGUAGES, STARTING_POINTS } from '@/lib/member-profile'
+import type { Area, LanguageLevel, Objective, SpokenLanguage, StartingPoint } from '@/mocks/db'
 import './dev-profile-fields.css'
 
 /*
@@ -146,6 +146,56 @@ export function LanguagesField({ value, onChange }: { value: string[]; onChange:
             </ToggleGroupItem>
           ))}
         </ToggleGroup>
+      )}
+    </div>
+  )
+}
+
+/**
+ * The spoken languages (idiomas): a chip per language, and for each one chosen a row with its level.
+ * A language starts at "Básico" and keeps its place in the list.
+ */
+export function SpokenLanguagesField({ value, onChange }: { value: SpokenLanguage[]; onChange: (languages: SpokenLanguage[]) => void }) {
+  return (
+    <div className="dev-profile-fields__group">
+      <ToggleGroup
+        type="multiple"
+        variant="chips"
+        value={value.map((item) => item.language)}
+        aria-label="Idiomas"
+        onValueChange={(languages) =>
+          onChange(languages.map((language) => value.find((item) => item.language === language) ?? { language, level: 'basic' }))
+        }
+      >
+        {SPOKEN_LANGUAGES.map((language) => (
+          <ToggleGroupItem key={language} value={language}>
+            {language}
+          </ToggleGroupItem>
+        ))}
+      </ToggleGroup>
+      {value.length > 0 && (
+        <ul className="dev-profile-fields__levels">
+          {value.map((item) => (
+            <li key={item.language}>
+              <span className="dev-profile-fields__level-name">{item.language}</span>
+              <ToggleGroup
+                type="single"
+                variant="chips"
+                value={item.level}
+                aria-label={`Nível em ${item.language}`}
+                onValueChange={(level) =>
+                  level && onChange(value.map((other) => (other.language === item.language ? { ...other, level: level as LanguageLevel } : other)))
+                }
+              >
+                {LANGUAGE_LEVELS.map((level) => (
+                  <ToggleGroupItem key={level.value} value={level.value} title={level.cefr ? `Equivale a ${level.cefr} no Quadro Europeu` : undefined}>
+                    {level.label}
+                  </ToggleGroupItem>
+                ))}
+              </ToggleGroup>
+            </li>
+          ))}
+        </ul>
       )}
     </div>
   )

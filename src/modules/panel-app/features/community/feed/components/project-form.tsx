@@ -195,10 +195,10 @@ export function ProjectForm({
                 <div className="project-form__check">
                   <Checkbox
                     id="project-counts"
-                    checked={showReactionCounts}
-                    onCheckedChange={(v) => setShowReactionCounts(v === true)}
+                    checked={!showReactionCounts}
+                    onCheckedChange={(v) => setShowReactionCounts(v !== true)}
                   />
-                  <Label htmlFor="project-counts">Todos veem os números das reações</Label>
+                  <Label htmlFor="project-counts">Ocultar contagem de reações</Label>
                 </div>
               </fieldset>
               <FormMessage tone="error">{error}</FormMessage>

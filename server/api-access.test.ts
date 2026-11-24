@@ -63,10 +63,9 @@ async function startApi(directory: string, debug: boolean, databasePath = proces
 beforeEach(() => {
   fixture = structuredClone(seedState)
   fixture.passwords = passwords
-  fixture.users = fixture.users.map((u) => ({ ...u, published: u.id === 'u2' }))
+  fixture.users = fixture.users.map((u) => ({ ...u, published: u.id === 'u2', bio: u.id === 'u2' ? 'Published biography' : u.bio }))
   const profile = structuredClone(fixture.profiles[0])
   profile.userId = 'u2'
-  profile.readme = 'Published biography'
   profile.knowledge = (['public', 'community', 'private'] as const).map((visibility) => ({ ...profile.knowledge[0], id: `${visibility}-knowledge`, visibility }))
   fixture.profiles = [...fixture.profiles.filter((p) => p.userId !== 'u2'), profile]
   const validation = fixture.validations[0]
@@ -374,6 +373,9 @@ test('upgrades an existing database without losing accounts or sessions', async 
   connection.sql.query('VACUUM INTO $path').run({ path })
   const old = new Database(path)
   for (const table of ['github_repositories', 'squad_delivery_decisions', 'board_item_pull_request_reviewers', 'profile_revisions']) old.run(`DROP TABLE ${table}`)
+  // Before the bio became the profile's single "Sobre", the longer text lived in member_profiles.readme.
+  old.run('ALTER TABLE member_profiles ADD COLUMN readme TEXT')
+  old.run("UPDATE member_profiles SET readme = 'Texto Sobre antigo' WHERE user_id = 'u2'")
   old.close()
   const upgraded = await startApi(directory, false, path)
   const response = await fetch(`${upgraded}/api/state`, { headers: { cookie } })
@@ -381,7 +383,7 @@ test('upgrades an existing database without losing accounts or sessions', async 
   const view = await response.json() as MockDb
   expect(view.session?.userId).toBe('u2')
   expect(view.users.find((u) => u.id === 'u2')?.email).toBe('ana@he4rt.dev')
-  expect(view.profiles.find((p) => p.userId === 'u2')?.readme).toBe('Published biography')
+  expect(view.users.find((u) => u.id === 'u2')?.bio).toBe('Texto Sobre antigo')
   expect(view.githubSync.repositories).toEqual([])
 })
 

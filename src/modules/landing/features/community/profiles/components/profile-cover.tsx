@@ -2,11 +2,12 @@ import { Camera, X } from 'lucide-react'
 import { useId, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { useActionRunner } from '@/hooks/use-action-runner'
-import { updateProfileCover } from '../actions'
+import { updateProfileCover, updateProfilePhoto } from '../actions'
 import './profile-cover.css'
 
-const COVER_WIDTH = 1600
-const COVER_HEIGHT = 200
+/** LinkedIn's cover size, 4:1. */
+const COVER_WIDTH = 1584
+const COVER_HEIGHT = 396
 
 /** The band on top of the profile header: the member's picture, or the ink band. */
 export function CoverArt({ imageUrl }: { imageUrl: string | null }) {
@@ -20,18 +21,18 @@ export function CoverArt({ imageUrl }: { imageUrl: string | null }) {
   )
 }
 
-/** Crops the picture to the band's proportion (8:1) and shrinks it before it goes to the action. */
-async function readCover(file: File): Promise<string> {
+/** Crops the picture to the given proportion from its center and shrinks it before it goes to an action. */
+async function readImage(file: File, outWidth: number, outHeight: number): Promise<string> {
   const bitmap = await createImageBitmap(file)
-  const ratio = COVER_WIDTH / COVER_HEIGHT
+  const ratio = outWidth / outHeight
   const width = Math.min(bitmap.width, bitmap.height * ratio)
   const height = width / ratio
   const canvas = document.createElement('canvas')
-  canvas.width = COVER_WIDTH
-  canvas.height = COVER_HEIGHT
+  canvas.width = outWidth
+  canvas.height = outHeight
   canvas
     .getContext('2d')
-    ?.drawImage(bitmap, (bitmap.width - width) / 2, (bitmap.height - height) / 2, width, height, 0, 0, COVER_WIDTH, COVER_HEIGHT)
+    ?.drawImage(bitmap, (bitmap.width - width) / 2, (bitmap.height - height) / 2, width, height, 0, 0, outWidth, outHeight)
   return canvas.toDataURL('image/jpeg', 0.82)
 }
 
@@ -55,7 +56,7 @@ export function CoverControls({ userId, imageUrl }: { userId: string; imageUrl: 
         onChange={(event) => {
           const file = event.target.files?.[0]
           event.target.value = ''
-          if (file) run(async () => updateProfileCover(userId, await readCover(file)))
+          if (file) run(async () => updateProfileCover(userId, await readImage(file, COVER_WIDTH, COVER_HEIGHT)))
         }}
       />
       {imageUrl && (
@@ -68,7 +69,7 @@ export function CoverControls({ userId, imageUrl }: { userId: string; imageUrl: 
           disabled={pending}
           onClick={() => run(() => updateProfileCover(userId, null))}
         >
-          <X size={16} aria-hidden />
+          <X size={18} aria-hidden />
         </Button>
       )}
       <Button
@@ -80,7 +81,7 @@ export function CoverControls({ userId, imageUrl }: { userId: string; imageUrl: 
         loading={pending}
         onClick={() => input.current?.click()}
       >
-        <Camera size={16} aria-hidden />
+        <Camera size={18} aria-hidden />
       </Button>
       {error && (
         <p role="alert" className="profile-cover__error">
@@ -88,5 +89,39 @@ export function CoverControls({ userId, imageUrl }: { userId: string; imageUrl: 
         </p>
       )}
     </div>
+  )
+}
+
+const PHOTO_SIZE = 400
+
+/** The owner's camera on the avatar: opens the file picker and saves the square-cropped photo. */
+export function PhotoControl({ userId }: { userId: string }) {
+  const input = useRef<HTMLInputElement>(null)
+  const { run, pending, error } = useActionRunner()
+  return (
+    <>
+      <input
+        ref={input}
+        type="file"
+        accept="image/*"
+        hidden
+        onChange={(event) => {
+          const file = event.target.files?.[0]
+          event.target.value = ''
+          if (file) run(async () => updateProfilePhoto(userId, await readImage(file, PHOTO_SIZE, PHOTO_SIZE)))
+        }}
+      />
+      <Button
+        variant="secondary"
+        size="sm"
+        className="profile-cover__icon profile-cover__photo-edit"
+        aria-label="Trocar a foto"
+        title={error ?? 'Trocar a foto'}
+        loading={pending}
+        onClick={() => input.current?.click()}
+      >
+        <Camera size={16} aria-hidden />
+      </Button>
+    </>
   )
 }

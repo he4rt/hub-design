@@ -1,13 +1,13 @@
-import { LINKED_PROVIDERS, SITUATIONS } from '@/lib/member-profile'
+import { LANGUAGE_LEVELS, LINKED_PROVIDERS, SITUATIONS, SPOKEN_LANGUAGES } from '@/lib/member-profile'
 import { track } from '@/mocks/analytics'
-import { db, findUser, updateUser, type City, type LinkedProvider, type Situation } from '@/mocks/db'
+import { db, findUser, updateUser, type City, type LinkedProvider, type Situation, type SpokenLanguage } from '@/mocks/db'
 import { MockError, mockAction } from '@/mocks/mock-action'
 import { MUNICIPALITIES } from '@/mocks/municipalities'
 import { validateDevProfile, type DevProfileInput } from '@/modules/panel-app/lib/dev-profile'
 import { canUnlink, linkAccount } from '@/modules/panel-app/lib/linked-accounts'
 import { assertProfileOwner, moderateProfileText } from '@/mocks/member-profile'
 
-export const BIO_MAX_LENGTH = 280
+export const BIO_MAX_LENGTH = 5000
 /** A photo arrives resized to a small JPEG data URL; this caps it. */
 const PHOTO_MAX_LENGTH = 200_000
 const PORTFOLIO_PATTERN = /^https?:\/\/[^\s.]+\.[^\s]+$/
@@ -38,6 +38,7 @@ export type MemberProfileInput = DevProfileInput & {
   situation: Situation | null
   openToOpportunities: boolean
   city: City | null
+  spokenLanguages: SpokenLanguage[]
   photoUrl: string | null
   bio: string
   portfolioUrl: string
@@ -58,8 +59,15 @@ export function updateMemberProfile(userId: string, input: MemberProfileInput) {
       if (input.city && !MUNICIPALITIES.some((c) => c.name === input.city?.name && c.uf === input.city.uf)) {
         throw new MockError('Escolha a cidade na lista.', 'city')
       }
+      if (
+        !Array.isArray(input.spokenLanguages) ||
+        !input.spokenLanguages.every((item) => SPOKEN_LANGUAGES.includes(item?.language) && LANGUAGE_LEVELS.some((l) => l.value === item.level)) ||
+        new Set(input.spokenLanguages.map((item) => item.language)).size !== input.spokenLanguages.length
+      ) {
+        throw new MockError('Escolha cada idioma uma vez, com o nível.', 'spokenLanguages')
+      }
       if (input.bio.length > BIO_MAX_LENGTH) {
-        throw new MockError(`A bio tem no máximo ${BIO_MAX_LENGTH} caracteres.`, 'bio')
+        throw new MockError(`O texto Sobre tem no máximo ${BIO_MAX_LENGTH.toLocaleString('pt-BR')} caracteres.`, 'bio')
       }
       if (input.photoUrl && (!input.photoUrl.startsWith('data:image/') || input.photoUrl.length > PHOTO_MAX_LENGTH)) {
         throw new MockError('Não foi possível usar esta foto. Tente outra imagem.', 'photo')
@@ -75,6 +83,7 @@ export function updateMemberProfile(userId: string, input: MemberProfileInput) {
         areas: input.areas,
         startingPoint: input.startingPoint,
         languages: input.languages,
+        spokenLanguages: input.spokenLanguages.map(({ language, level }) => ({ language, level })),
         situation: input.situation,
         openToOpportunities: input.openToOpportunities,
         city: input.city,
