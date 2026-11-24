@@ -3,13 +3,15 @@ import { MoreHorizontal } from 'lucide-react'
 import { MemberProjectPreview } from '@/components/member-project-preview'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { formatPostDate, OBJECTIVE_PROGRESS } from '@/lib/feed-post'
 import { labelOf } from '@/lib/member-profile'
 import { useDb, type FeedCollection, type FeedPost } from '@/mocks/db'
 import './diary-card.css'
+
+/** Publications shown at first, and how many more each "Carregar mais" adds. */
+const PAGE = 8
 
 /**
  * The member's diary, newest first, filtered by trilha. Members and visitors read the
@@ -38,9 +40,11 @@ export function DiaryCard({
     .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name))
   const selected = trilhas.find((c) => c.id === params.get('trilha'))?.id ?? 'all'
   const shown = selected === 'all' ? posts : posts.filter((p) => p.collectionIds.includes(selected))
+  const limit = Math.max(PAGE, Number(params.get('limit')) || PAGE)
+  const hasMore = shown.length > limit
 
   return (
-    <Card className="diary-card" aria-labelledby="diary-card-title">
+    <section className="public-profile-page__section diary-card" aria-labelledby="diary-card-title">
       <h2 id="diary-card-title">Publicações</h2>
       {trilhas.length > 0 && (
         <ToggleGroup
@@ -55,9 +59,11 @@ export function DiaryCard({
                 const result = new URLSearchParams(current)
                 if (next === 'all') result.delete('trilha')
                 else result.set('trilha', next)
+                // Another trilha starts from its newest publications again.
+                result.delete('limit')
                 return result
               },
-              { replace: true },
+              { replace: true, preventScrollReset: true },
             )
           }
         >
@@ -74,8 +80,8 @@ export function DiaryCard({
       {shown.length === 0 ? (
         <p className="diary-card__muted">{empty}</p>
       ) : (
-        <ol className="diary-card__posts">
-          {shown.map((post) => (
+        <ol className="diary-card__posts" data-more={hasMore || undefined}>
+          {shown.slice(0, limit).map((post) => (
             <li key={post.id}>
               <div className="diary-card__meta">
                 <time dateTime={post.createdAt}>
@@ -111,6 +117,23 @@ export function DiaryCard({
           ))}
         </ol>
       )}
-    </Card>
+      {hasMore && (
+        <Button
+          variant="secondary"
+          className="diary-card__more"
+          onClick={() =>
+            setParams(
+              (current) => {
+                current.set('limit', String(limit + PAGE))
+                return current
+              },
+              { replace: true, preventScrollReset: true },
+            )
+          }
+        >
+          Carregar mais
+        </Button>
+      )}
+    </section>
   )
 }

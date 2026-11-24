@@ -1,4 +1,5 @@
-import { useActionState, useId, useState } from 'react'
+import { useActionState, useEffect, useId, useState } from 'react'
+import { useSearchParams } from 'react-router'
 import { FormMessage } from '@/components/form-message'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -53,7 +54,23 @@ export function TrajectorySettings({ userId }: { userId: string }) {
   const profiles = useDb((state) => state.profiles)
   const posts = useDb((state) => state.feedPosts)
   const profile = profiles.find((item) => item.userId === userId)
-  const [editing, setEditing] = useState<{ collection: TrajectoryCollection; record: TrajectoryRecord | null } | null>(null)
+  const [params, setParams] = useSearchParams()
+  // "Novo registro" in the profile links here with ?novo=<collection>: that form opens, in view.
+  const [editing, setEditing] = useState<{ collection: TrajectoryCollection; record: TrajectoryRecord | null } | null>(() => {
+    const requested = params.get('novo')
+    return requested && requested in FIELDS ? { collection: requested as TrajectoryCollection, record: null } : null
+  })
+  useEffect(() => {
+    const requested = params.get('novo')
+    if (!requested || !(requested in FIELDS)) return
+    document.getElementById(`trajectory-${requested}`)?.scrollIntoView({ block: 'start' })
+    setParams((current) => {
+      current.delete('novo')
+      return current
+    }, { replace: true, preventScrollReset: true })
+    // Only the link that opened the page asks for a form.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
   const [result, setResult] = useState<Result>(null)
   useDebugActions('Trajetória', [
     { label: 'Abrir novo conhecimento (vazio)', run: () => setEditing({ collection: 'knowledge', record: null }) },
@@ -64,7 +81,7 @@ export function TrajectorySettings({ userId }: { userId: string }) {
       <p className="trajectory-settings__hint">Registros novos começam privados. Declarações e links não são validações de competência. Cursos da Basement e evidências de projetos mantêm o conteúdo da origem.</p>
       <FormMessage tone={result?.ok === false ? 'error' : 'success'}>{result?.message}</FormMessage>
       {(Object.keys(FIELDS) as TrajectoryCollection[]).map((collection) => (
-        <Card key={collection}>
+        <Card key={collection} id={`trajectory-${collection}`}>
           <div className="trajectory-settings__heading">
             <h2 className="profile-page__title">{FIELDS[collection].title}</h2>
             <Button size="sm" variant="secondary" disabled={editing !== null} onClick={() => { setResult(null); setEditing({ collection, record: null }) }}>Adicionar</Button>

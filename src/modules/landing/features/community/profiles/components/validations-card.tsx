@@ -1,5 +1,4 @@
 import { StateChip } from '@/components/state-chip'
-import { Card } from '@/components/ui/card'
 import { ValidationRecord } from '@/components/validation/validation-record'
 import type { Contestation, Project, Validation } from '@/mocks/db'
 import './validations-card.css'
@@ -18,7 +17,7 @@ export function ValidationsCard({
   contestations: Contestation[]
 }) {
   return (
-    <Card className="validations-card" aria-labelledby="validations-card-title">
+    <section className="public-profile-page__section validations-card" aria-labelledby="validations-card-title">
       <h2 id="validations-card-title">Validações</h2>
       <p className="validations-card__muted">
         Registradas por validadores de fora do squad. Cada uma aparece inteira, com pontos fortes e de melhoria.
@@ -31,6 +30,6 @@ export function ValidationsCard({
           <ValidationRecord validation={v} projectName={projects.find((p) => p.id === v.projectId)?.name} />
         </div>
       ))}
-    </Card>
+    </section>
   )
 }

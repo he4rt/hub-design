@@ -1,4 +1,3 @@
-import { Card, CardHeader } from '@/components/ui/card'
 import { byRecent, type ShownAchievement } from '../lib/achievements'
 import { AchievementMedal } from './achievement-medal'
 import { AllAchievementsDialog } from './all-achievements-dialog'
@@ -23,11 +22,11 @@ export function AchievementsBox({
   const isOwner = ownerId !== null
 
   return (
-    <Card className="achievements-box" aria-labelledby="achievements-box-title">
-      <CardHeader className="achievements-box__header">
+    <section className="public-profile-page__section achievements-box" aria-labelledby="achievements-box-title">
+      <header className="achievements-box__header">
         <h2 id="achievements-box-title">Conquistas</h2>
         {items.length > SHOWN && <AllAchievementsDialog items={items} firstName={firstName} ownerId={ownerId} />}
-      </CardHeader>
+      </header>
       {items.length > 0 ? (
         <ul className="achievements-box__grid">
           {byRecent(items)
@@ -43,6 +42,6 @@ export function AchievementsBox({
           {isOwner ? 'Suas conquistas aparecem aqui conforme você avança.' : `${firstName} ainda não mostrou conquistas.`}
         </p>
       )}
-    </Card>
+    </section>
   )
 }

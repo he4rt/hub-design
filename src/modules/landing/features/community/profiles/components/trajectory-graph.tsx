@@ -1,8 +1,9 @@
-import { useId, useState, type CSSProperties } from 'react'
+import { useId, type CSSProperties, type ReactNode } from 'react'
 import { Link, useSearchParams } from 'react-router'
-import { ChevronDown, ExternalLink, FolderGit2 } from 'lucide-react'
+import { ChevronDown, CircleHelp, ExternalLink, FolderGit2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { evidenceIcons } from '@/lib/evidence'
@@ -10,21 +11,18 @@ import { recordTypeLabels, recordTypes, type BranchTone, type RecordType, type T
 import { RecordVisibility } from './record-visibility'
 import './trajectory-graph.css'
 
-/** Records shown before "Ver trajetória completa". */
-const INITIAL = 8
+/** Records shown at first, and how many more each "Carregar mais" adds. */
+const PAGE = 8
 const ROW = 48
 const MID = ROW / 2
 const laneX = (lane: number) => 10 + lane * 16
 /**
- * The main line in the primary color; each squad in its own metro-line color. A validation draws in the
- * text color, the strongest stroke, with a ring: the strongest proof, without looking like a badge.
+ * The member's line in purple and the first squad branch in a lighter purple; later squads in the
+ * metro colors except green, which is the validation's: the strongest proof, drawn with a ring.
  */
+const SQUAD_LANES = ['var(--trajectory-branch)', 'var(--lane-1)', 'var(--lane-3)', 'var(--lane-4)', 'var(--lane-5)']
 const laneColor = (lane: number, tone: BranchTone) =>
-  tone === 'validation'
-    ? 'var(--text)'
-    : lane === 0
-      ? 'var(--brand)'
-      : `var(--lane-${((lane - 1) % 5) + 1})`
+  tone === 'validation' ? 'var(--success-text)' : lane === 0 ? 'var(--brand)' : SQUAD_LANES[(lane - 1) % SQUAD_LANES.length]
 const laneStyle = (lane: number, tone: BranchTone) => ({ '--lane': laneColor(lane, tone) }) as CSSProperties
 
 /** The marker's shape tells the kind of record: dashed, hollow, filled, filled with a ring. */
@@ -37,42 +35,98 @@ function Marker({ type, x, y, lane, tone }: { type: RecordType | null; x: number
   )
 }
 
-/** The kinds of record present, as filters that carry their marker; then one line per branch with its color. */
-function Filters({ types, lanes, value, onChange }: { types: RecordType[]; lanes: Graph['lanes']; value: RecordType | 'all'; onChange: (value: RecordType | 'all') => void }) {
+/** What each marker on the line means, for the legend over the graph. */
+const MEANINGS: Record<RecordType, string> = {
+  declared: 'o membro informou',
+  learning: 'curso, estudo ou artigo',
+  experience: 'trabalho fora do Hub',
+  demonstrated: 'commit, PR ou entrega aceita',
+  validated: 'avaliada por um validador',
+}
+
+/**
+ * For the owner, a line on how the trajectory fills with "Novo registro" beside it. Then one quiet
+ * bar: the kinds as filters, each with its marker; what each marker and branch means opens on
+ * demand, so the line itself leads.
+ */
+function Toolbar({
+  types,
+  lanes,
+  value,
+  onChange,
+  action,
+}: {
+  types: RecordType[]
+  lanes: Graph['lanes']
+  value: RecordType | 'all'
+  onChange: (value: RecordType | 'all') => void
+  action: ReactNode
+}) {
+  const present = recordTypes.filter((t) => types.includes(t.value))
   return (
-    <div className="trajectory-graph__legend">
+    <>
+    {action && (
+      <div className="trajectory-graph__head">
+        <p>Do mais recente ao mais antigo. Entregas e validações entram sozinhas.</p>
+        {action}
+      </div>
+    )}
+    <div className="trajectory-graph__toolbar">
       <ToggleGroup type="single" variant="chips" value={value} aria-label="Tipos de registro" onValueChange={(next) => next && onChange(next as RecordType | 'all')}>
         <ToggleGroupItem value="all">Tudo</ToggleGroupItem>
-        {recordTypes
-          .filter((t) => types.includes(t.value))
-          .map((t) => (
-            <ToggleGroupItem key={t.value} value={t.value} title={t.label}>
-              <svg width={18} height={18} aria-hidden className="trajectory-graph__filter-marker">
-                <Marker type={t.value} x={9} y={9} lane={0} tone={t.value === 'validated' ? 'validation' : 'main'} />
-              </svg>
-              {t.filter}
-            </ToggleGroupItem>
-          ))}
+        {present.map((t) => (
+          <ToggleGroupItem key={t.value} value={t.value} title={`${t.label}: ${MEANINGS[t.value]}`}>
+            <svg width={14} height={14} aria-hidden className="trajectory-graph__chip-marker">
+              <Marker type={t.value} x={7} y={7} lane={0} tone={t.value === 'validated' ? 'validation' : 'main'} />
+            </svg>
+            {t.filter}
+          </ToggleGroupItem>
+        ))}
       </ToggleGroup>
-      {lanes.length > 0 && (
-        <ul aria-label="Ramos">
-          {lanes.map(({ lane, label, tone }) => (
-            <li key={`${lane}-${label}`} title={label}>
-              <i className="trajectory-graph__swatch" style={laneStyle(lane, tone)} aria-hidden />
-              <span className="trajectory-graph__legend-label">{label}</span>
-            </li>
-          ))}
-        </ul>
-      )}
+      <div className="trajectory-graph__toolbar-end">
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="ghost" size="sm" className="trajectory-graph__legend-trigger">
+              <CircleHelp size={16} aria-hidden />
+              Legenda
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent align="end" aria-label="Legenda da trajetória" className="trajectory-graph__legend">
+            <ul aria-label="O que cada marcador significa">
+              {present.map((t) => (
+                <li key={t.value}>
+                  <svg width={18} height={18} aria-hidden>
+                    <Marker type={t.value} x={9} y={9} lane={0} tone={t.value === 'validated' ? 'validation' : 'main'} />
+                  </svg>
+                  <span>
+                    <strong>{t.label}</strong>: {MEANINGS[t.value]}
+                  </span>
+                </li>
+              ))}
+            </ul>
+            {lanes.length > 0 && (
+              <ul aria-label="Ramos">
+                {lanes.map(({ lane, label, tone }) => (
+                  <li key={`${lane}-${label}`} title={label}>
+                    <i className="trajectory-graph__swatch" style={laneStyle(lane, tone)} aria-hidden />
+                    <span className="trajectory-graph__legend-label">Ramo: {label}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </PopoverContent>
+        </Popover>
+      </div>
     </div>
+    </>
   )
 }
 
-function Rail({ entry, width, cut }: { entry: TrajectoryEntry; width: number; cut: boolean }) {
+function Rail({ entry, width }: { entry: TrajectoryEntry; width: number }) {
   const x = laneX(entry.lane)
   const main = laneX(0)
   return (
-    <span className="trajectory-graph__rail" style={{ width }} data-cut={cut || undefined} aria-hidden>
+    <span className="trajectory-graph__rail" style={{ width }} aria-hidden>
       {entry.lines.map((line) => (
         <i
           key={line.lane}
@@ -142,10 +196,10 @@ function EntryDetail({ entry, editorId }: { entry: TrajectoryEntry; editorId: st
  * of record. It opens with the newest records and never shows counts, streaks, or activity density.
  */
 /** `editorId` is the owner's id while they read their own profile as themselves; it shows who sees each record. */
-export function TrajectoryGraph({ graph, editorId }: { graph: Graph; editorId: string | null }) {
+export function TrajectoryGraph({ graph, editorId, action }: { graph: Graph; editorId: string | null; action?: ReactNode }) {
   const listId = useId()
-  const [expanded, setExpanded] = useState(false)
   const [params, setParams] = useSearchParams()
+  const limit = Math.max(PAGE, Number(params.get('limit')) || PAGE)
   const types = [...new Set(graph.entries.flatMap((entry) => (entry.type ? [entry.type] : [])))]
   const filter = types.find((t) => t === params.get('tipo')) ?? 'all'
   const setFilter = (next: RecordType | 'all') =>
@@ -153,43 +207,57 @@ export function TrajectoryGraph({ graph, editorId }: { graph: Graph; editorId: s
       const result = new URLSearchParams(current)
       if (next === 'all') result.delete('tipo')
       else result.set('tipo', next)
+      // Another kind starts from its newest records again.
+      result.delete('limit')
       return result
-    }, { replace: true })
+    }, { replace: true, preventScrollReset: true })
+  const loadMore = () =>
+    setParams((current) => {
+      current.set('limit', String(limit + PAGE))
+      return current
+    }, { replace: true, preventScrollReset: true })
   // A filter shows only the records of that kind; squad joins and leaves go with the evidence.
   const entries = filter === 'all' ? graph.entries : graph.entries.filter((entry) => entry.type === filter || (entry.type === null && filter === 'demonstrated'))
-  const visible = expanded ? entries : entries.slice(0, INITIAL)
-  const hasMore = entries.length > INITIAL
+  const visible = entries.slice(0, limit)
+  const hasMore = entries.length > visible.length
   const width = laneX(graph.laneCount) + 10
 
   return (
     <div className="trajectory-graph">
-      <Filters types={types} lanes={graph.lanes} value={filter} onChange={setFilter} />
-      <ol className="trajectory-graph__list" id={listId}>
-        {visible.map((entry, i) => {
+      <Toolbar types={types} lanes={graph.lanes} value={filter} onChange={setFilter} action={action} />
+      {/* With more below, the last rows fade into the button that brings them. */}
+      <ol className="trajectory-graph__list" id={listId} data-more={hasMore || undefined}>
+        {visible.map((entry) => {
           const EvidenceIcon = entry.evidenceKind ? evidenceIcons[entry.evidenceKind] : null
           return (
             <li key={entry.id} className="trajectory-graph__row" data-type={entry.type ?? undefined}>
               <time dateTime={entry.date} className="trajectory-graph__date">
                 {entry.dateLabel}
               </time>
-              {/* Older records are hidden below: the lines fade out instead of ending. */}
-              <Rail entry={entry} width={width} cut={!expanded && hasMore && i === visible.length - 1} />
+              <Rail entry={entry} width={width} />
               <Collapsible className="trajectory-graph__body">
                 <CollapsibleTrigger className="trajectory-graph__trigger">
                   <span className="trajectory-graph__text">
                     <span className="trajectory-graph__title">
                       {entry.title}
                     </span>
+                    {/* The kind, then its reference: a GitHub reference in purple mono, anything else a tag. */}
                     <span className="trajectory-graph__type" data-type={entry.type ?? 'branch'}>
                       {entry.type ? recordTypeLabels[entry.type] : 'Squad'}
+                      {entry.badge &&
+                        (entry.badge.mono ? (
+                          <span className="trajectory-graph__ref" title={entry.reference ?? entry.badge.text}>
+                            {EvidenceIcon && <EvidenceIcon size={12} aria-hidden />}
+                            {entry.badge.text}
+                          </span>
+                        ) : (
+                          <Badge className="trajectory-graph__badge" title={entry.reference ?? entry.badge.text}>
+                            {EvidenceIcon && <EvidenceIcon size={12} aria-hidden />}
+                            {entry.badge.text}
+                          </Badge>
+                        ))}
                     </span>
                   </span>
-                  {entry.badge && (
-                    <Badge mono={entry.badge.mono} className="trajectory-graph__badge" title={entry.reference ?? entry.badge.text}>
-                      {EvidenceIcon && <EvidenceIcon size={12} aria-hidden />}
-                      {entry.badge.text}
-                    </Badge>
-                  )}
                   <ChevronDown size={16} className="trajectory-graph__chevron" aria-hidden />
                 </CollapsibleTrigger>
                 <CollapsibleContent>
@@ -201,16 +269,8 @@ export function TrajectoryGraph({ graph, editorId }: { graph: Graph; editorId: s
         })}
       </ol>
       {hasMore && (
-        <Button
-          variant="ghost"
-          size="sm"
-          className="trajectory-graph__more"
-          aria-expanded={expanded}
-          aria-controls={listId}
-          onClick={() => setExpanded(!expanded)}
-        >
-          <ChevronDown size={16} aria-hidden />
-          {expanded ? 'Mostrar só os mais recentes' : 'Ver trajetória completa'}
+        <Button variant="secondary" className="trajectory-graph__more" aria-controls={listId} onClick={loadMore}>
+          Carregar mais
         </Button>
       )}
     </div>

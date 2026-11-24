@@ -4,7 +4,6 @@ import { currentItem, type NavGroup } from '@/modules/panel-app/lib/nav'
 import {
   BadgeCheck,
   Flag,
-  GitBranch,
   House,
   Inbox,
   ListChecks,
@@ -69,7 +68,6 @@ export function AppLayout({ fullWidth = false }: { fullWidth?: boolean }) {
         // Salvos is part of the Feed, so Início stays active there.
         { key: 'home', to: '/app', end: true, label: 'Início', icon: House, alsoActive: pathname === '/app/saved' },
         { key: 'profile', to: `/members/${account?.username}`, end: true, label: 'Meu perfil', icon: UserRound },
-        { key: 'trajectory', to: `/members/${account?.username}?aba=trajetoria`, label: 'Trajetória', icon: GitBranch },
         { key: 'forum', to: '/app/discussions', label: 'Fórum', icon: MessagesSquare },
       ],
     },

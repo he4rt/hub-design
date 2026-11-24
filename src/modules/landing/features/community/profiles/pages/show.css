@@ -1,9 +1,9 @@
-/* The identity card on top, then a sticky side column and the tabs, each section one card on the page. */
+/* The identity card on top, then the tabs: the tab's sections on the page, the summary in a side column. */
 .public-profile-page {
   display: flex;
   flex-direction: column;
   gap: var(--space-6);
-  max-width: 1024px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: var(--space-8) var(--space-8) var(--space-10);
 }
@@ -11,9 +11,9 @@
 .public-profile-page__grid {
   display: grid;
   padding-top: var(--space-6);
-  grid-template-columns: 272px minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) 300px;
   align-items: start;
-  gap: var(--space-5);
+  gap: var(--space-10);
 }
 
 .public-profile-page__main {
@@ -23,7 +23,7 @@
 .public-profile-page__tab {
   display: flex;
   flex-direction: column;
-  gap: var(--space-5);
+  gap: var(--space-10);
 
   /* Radix hides inactive panels with the attribute, which display: flex would override. */
   &[hidden] {
@@ -34,7 +34,13 @@
 .public-profile-page__empty {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   gap: var(--space-1);
+
+  .ui-button {
+    margin-top: var(--space-3);
+  }
+
   color: var(--text-muted);
   font: var(--text-body);
 }
@@ -63,15 +69,28 @@
   }
 }
 
-/* Side column: the summary box and, in the "vitrine" model, the achievements under it. */
+/* Side column: facts, journey and achievements, each a titled group on the page, no card. */
 .public-profile-page__side {
   position: sticky;
   top: var(--space-4);
   display: flex;
   flex-direction: column;
-  gap: var(--space-5);
+  gap: var(--space-8);
   min-width: 0;
 }
+
+/* A section of a tab: its title, then its content, on the page itself. */
+.public-profile-page__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+
+  h2 {
+    font: var(--text-heading);
+  }
+}
+
 
 .public-profile-page__private {
   flex-direction: row;
@@ -94,4 +113,8 @@
     color: var(--text-muted);
     font: var(--text-body);
   }
+}
+
+.public-profile-page__side h2 {
+  font: var(--text-subheading);
 }

@@ -41,7 +41,7 @@ A sidebar é a espinha do produto e segue a jornada do `PRODUCT.md`:
 
 | Grupo | Itens | Regra |
 | --- | --- | --- |
-| Trajetória | Início, Meu perfil, Trajetória, Diário de aprendizado | sempre visíveis |
+| Trajetória | Início, Meu perfil (com a aba Trajetória), Fórum | sempre visíveis |
 | Desenvolvimento | Squads, Meu squad, Minhas validações | sempre visíveis |
 | Gestão do squad | Candidaturas recebidas, Entregas para revisar | só aparece para o capitão, com contagem |
 | Oportunidades | Vagas exclusivas | com cadeado até o membro ter squad ou validação |

@@ -336,7 +336,7 @@ export default function FeedIndex() {
           </Button>
         </Card>
       ) : (
-        <ol className="feed__list">
+        <ol className="feed__list" data-more={hasMore || undefined}>
           {page.map((item) => (
             <li key={item.id}>
               {item.kind === 'announcement' ? (

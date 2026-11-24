@@ -24,7 +24,7 @@ export function AppTabBar({ groups }: { groups: NavGroup[] }) {
     .filter((group) => group.items.length > 0)
   const moreItems = more.flatMap((group) => group.items)
   const moreCount = moreItems.reduce((sum, item) => sum + (item.count ?? 0), 0)
-  // On the profile, Trajetória (?aba=trajetoria) is the more precise match than Meu perfil.
+  // An item under "Mais" that is open lights "Mais", not the tab beside it.
   const moreActive = moreItems.some((item) => isCurrent(item, pathname, search))
 
   return (

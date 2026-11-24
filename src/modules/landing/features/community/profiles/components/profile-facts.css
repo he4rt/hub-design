@@ -1,0 +1,30 @@
+.profile-facts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin: 0;
+
+  > div {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    min-width: 0;
+  }
+
+  dt {
+    color: var(--text-muted);
+    font: var(--text-caption);
+  }
+
+  dd {
+    margin: 0;
+    font: var(--text-body);
+    overflow-wrap: anywhere;
+  }
+}
+
+.profile-facts__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}

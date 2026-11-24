@@ -28,6 +28,7 @@ export function ProfileHeader({
   viewAs,
   validator,
   isOwner,
+  primaryEdit = true,
   memberSince,
   state,
   coverImageUrl,
@@ -46,6 +47,8 @@ export function ProfileHeader({
   /** From the validators the administration enabled; role and company only when the validator allowed. */
   validator: { since: string; role: string | null; company: string | null } | null
   isOwner: boolean
+  /** "Editar perfil" is the screen's main action unless the open tab has its own. */
+  primaryEdit?: boolean
   /** When the account was created in the Hub; it does not know how long someone has been in He4rt. */
   memberSince: string
   /** UF of the city in the member's account; only the state shows, never the city. */
@@ -68,8 +71,9 @@ export function ProfileHeader({
         {viewAs && (
           <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="profile-header__icon-button" aria-label="Ver como" title="Ver como">
+              <Button variant="secondary" size="sm">
                 <Eye size={16} aria-hidden />
+                {viewAs.viewer === 'owner' ? 'Ver como' : `Vendo como ${viewerOptions.find((option) => option.value === viewAs.viewer)?.label.toLowerCase()}`}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
@@ -83,9 +87,10 @@ export function ProfileHeader({
           </DropdownMenu>
         )}
         {isOwner && (
-          <Button asChild variant="ghost" size="sm" className="profile-header__icon-button">
-            <Link to="/app/settings/profile" aria-label="Editar perfil" title="Editar perfil">
+          <Button asChild variant={primaryEdit ? 'primary' : 'secondary'} size="sm">
+            <Link viewTransition to="/app/settings/profile">
               <Pencil size={16} aria-hidden />
+              Editar perfil
             </Link>
           </Button>
         )}

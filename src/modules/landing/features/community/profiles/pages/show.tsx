@@ -6,13 +6,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useDebugActions } from '@/debug/use-debug-actions'
 import { AREAS, areaLabels, LANGUAGE_LEVELS, labelOf } from '@/lib/member-profile'
 import { useNow } from '@/hooks/use-now'
-import { memberAchievements } from '@/mocks/achievements'
+import { memberAchievements, memberJourney } from '@/mocks/achievements'
 import { db, useDb } from '@/mocks/db'
 import { AchievementsBox } from '../components/achievements-box'
 import { ForumActivity } from '../components/forum-activity'
 import { DiaryCard } from '../components/diary-card'
+import { NewRecordDialog } from '../components/new-record-dialog'
 import { OwnerNotice } from '../components/owner-notice'
+import { ProfileFacts } from '../components/profile-facts'
 import { ProfileHeader } from '../components/profile-header'
+import { ProfileJourney } from '../components/profile-journey'
 import { ReadmeCard } from '../components/readme-card'
 import { TrajectoryGraph } from '../components/trajectory-graph'
 import { ValidationsCard } from '../components/validations-card'
@@ -135,16 +138,20 @@ export default function PublicProfile() {
     .toSorted((a, b) => (b.recordedAt ?? '').localeCompare(a.recordedAt ?? ''))
   const firstName = user.name.split(' ')[0]
   // One line under the name: what the member does today, or their areas. Their own text is Sobre.
-  const currentRole = profile.experiences.find((e) => e.endedAt === null)?.role
+  const current = profile.experiences.find((e) => e.endedAt === null)
+  const currentRole = current?.role
   const achievements = shownAchievements(memberAchievements(state, user.id, now), asOwner)
+  // Others see the stage the member published; the owner, the one they reached.
+  const journey = memberJourney(state, user.id)
 
   const trajectory =
     entries.length > 0 ? (
-      <TrajectoryGraph graph={graph} editorId={asOwner ? user.id : null} />
+      <TrajectoryGraph graph={graph} editorId={asOwner ? user.id : null} action={asOwner && <NewRecordDialog />} />
     ) : asOwner ? (
       <div className="public-profile-page__empty">
         <p className="public-profile-page__empty-title">Sua trajetória ainda não tem registros publicados.</p>
-        <p>Registre o que você aprendeu e escolha o que aparece aqui.</p>
+        <p>Registre o que você aprendeu e escolha o que aparece aqui. Entregas e validações entram sozinhas.</p>
+        <NewRecordDialog />
       </div>
     ) : (
       <p className="public-profile-page__empty">{firstName} ainda não publicou registros na trajetória.</p>
@@ -163,6 +170,8 @@ export default function PublicProfile() {
         viewAs={isOwner ? { viewer, onChange: setViewer } : null}
         validator={validator}
         isOwner={asOwner}
+        // One purple action per screen: on Trajetória it is "Novo registro".
+        primaryEdit={activeTab !== 'trajetoria'}
         memberSince={user.createdAt}
         state={user.city?.uf ?? null}
         coverImageUrl={profile.coverImageUrl}
@@ -193,24 +202,12 @@ export default function PublicProfile() {
           ))}
         </TabsList>
 
+        {/* The tab's content on the left; who the member is, their journey and achievements beside it. */}
         <div className="public-profile-page__grid">
-          <div className="public-profile-page__side">
-            <AchievementsBox
-              items={achievements}
-              ownerId={asOwner ? user.id : null}
-              firstName={firstName}
-            />
-          </div>
-
           <div className="public-profile-page__main">
             <TabsContent value="visao-geral" className="public-profile-page__tab">
               <ReadmeCard
                 readme={user.bio || null}
-                groups={[
-                  { label: 'Áreas', items: user.areas.map((area) => labelOf(AREAS, area)) },
-                  { label: 'Tecnologias', items: user.languages },
-                  { label: 'Idiomas', items: user.spokenLanguages.map(({ language, level }) => `${language} (${labelOf(LANGUAGE_LEVELS, level).toLowerCase()})`) },
-                ]}
                 empty={asOwner ? 'Conte quem você é no texto "Sobre", em Editar perfil.' : `${firstName} ainda não escreveu o texto "Sobre".`}
               />
               {publishedValidations.length > 0 && (
@@ -224,16 +221,31 @@ export default function PublicProfile() {
               />
             </TabsContent>
             <TabsContent value="trajetoria" className="public-profile-page__tab">
-              <Card>{trajectory}</Card>
+              {/* The tab names it; the line starts right under the tabs. */}
+              <section className="public-profile-page__section" aria-label="Trajetória">
+                {trajectory}
+              </section>
             </TabsContent>
             {viewer !== 'visitor' && (
               <TabsContent value="forum" className="public-profile-page__tab">
-                <Card>
+                <section className="public-profile-page__section" aria-labelledby="profile-forum-title">
+                  <h2 id="profile-forum-title">Fórum</h2>
                   <ForumActivity items={forum} firstName={firstName} isOwner={asOwner} />
-                </Card>
+                </section>
               </TabsContent>
             )}
           </div>
+
+          <aside className="public-profile-page__side" aria-label="Resumo">
+            <ProfileFacts
+              areas={user.areas.map((area) => labelOf(AREAS, area))}
+              currentRole={current ? `${current.role}, ${current.organization}` : null}
+              technologies={user.languages}
+              languages={user.spokenLanguages.map(({ language, level }) => `${language} (${labelOf(LANGUAGE_LEVELS, level).toLowerCase()})`)}
+            />
+            <ProfileJourney stage={asOwner ? journey.stage : journey.publicStage} own={asOwner} />
+            <AchievementsBox items={achievements} ownerId={asOwner ? user.id : null} firstName={firstName} />
+          </aside>
         </div>
       </Tabs>
     </div>

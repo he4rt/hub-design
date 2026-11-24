@@ -1,15 +1,16 @@
 .diary-card {
   gap: var(--space-4);
-
-  h2 {
-    font: var(--text-subheading);
-  }
 }
 
 /* Each publication is text, with a border line between them. */
 .diary-card__posts {
   display: flex;
   flex-direction: column;
+
+  /* With more below, the last publications fade into the button that brings them. */
+  &[data-more] {
+    mask-image: var(--fade-continuation);
+  }
   margin: 0;
   padding: 0;
   list-style: none;
@@ -67,4 +68,8 @@
 
 .diary-card__menu {
   margin-left: auto;
+}
+
+.diary-card__more {
+  align-self: center;
 }
