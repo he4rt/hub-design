@@ -246,7 +246,6 @@ export function PostCard({
         <footer className="post-card__footer">
           {/* What others did with it; hidden when there is nothing to show. */}
           <div className="post-card__stats">
-            <ReactionSummary post={post} own={own} />
             {comments.length > 0 && (
               <button
                 type="button"
@@ -259,7 +258,8 @@ export function PostCard({
             )}
           </div>
           <div className="post-card__actions">
-            {!own && <ReactButton post={post} viewerId={viewerId} onNotice={onNotice} />}
+            {/* The author cannot react: the same pills, read-only, open what each reaction got. */}
+            {own ? <ReactionSummary post={post} /> : <ReactButton post={post} viewerId={viewerId} onNotice={onNotice} />}
             <Button
               variant="ghost"
               className="post-action"

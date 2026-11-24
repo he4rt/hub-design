@@ -18,7 +18,7 @@ Sistema visual do He4rt Hub, a plataforma que registra a trajetória dos membros
 - `brand-tint` + `brand-tint-text` (lilás) marcam competências (critérios de avaliação) e as áreas do perfil: são os únicos chips roxos; estados usam a família semântica. `brand-soft` é neutro: avatar e seleção em listas.
 - Estados: `success` (aprovado, aceito, merged, registrada), `warning` (pendente, devolvida, vacancy, obrigatório), `info` (em andamento: aguardando revisão, atribuído), `neutral` (inativo, rascunho, não técnica). Cores que precisam ser distinguidas também diferem em luminosidade.
 - Recusar e devolver usam `danger-text` sobre `surface` com `border-strong`. Nunca botão vermelho sólido: a ação exige motivo, e o visual pede a mesma calma.
-- O tema escuro fica perto do preto: a página abaixo de #0D0D0D, os cards e a sidebar em #0D0D0D, texto #F2F2F2 e apoio #BFBFBF. A sidebar acompanha o tema: branca com texto #0D0D0D no claro, #0D0D0D no escuro, separada da página por uma borda. O membro escolhe o tema no menu; sem escolha, vale o do sistema.
+- O tema escuro fica perto do preto: a página abaixo de #0D0D0D, os cards e a sidebar em #0D0D0D, texto #F2F2F2 e apoio #BFBFBF. A sidebar acompanha o tema: faixa `surface-2` com texto #0D0D0D no claro, #0D0D0D no escuro, separada da página por uma borda. O membro escolhe o tema no menu; sem escolha, vale o do sistema.
 - Na trajetória o roxo é a linha do membro e os nós; os ramos dos squads usam as cores de metrô (`lane-1` a `lane-5`). Avatares e o anel de foco ficam neutros.
 - No Feed e nas discussões de projeto do Fórum, azul orienta contexto, documentos e conversa; âmbar destaca a dúvida no Fórum e o marcador de uma publicação salva. Nas reações, verde significa “Isso me ajudou”, azul acompanha aprendizado e âmbar acompanha “Inspirador”. A cor fica nos ícones, links e fundos discretos; ícone e rótulo explicam o significado sem depender dela. Um projeto pessoal nunca recebe verde de aprovação ou validação.
 
@@ -59,7 +59,7 @@ Lista de tells de interface genérica que esta UI evita de propósito. Quem for 
 - **Seta `→` em botão ou link.** O texto do botão diz o que acontece: "Enviar candidatura", e pronto.
 - **Ícone em caixinha colorida** ao lado de cada item de lista. Lista é texto com um fio `border` entre itens.
 - **Gradiente, sombra em tudo, borda esquerda colorida em card.** Card não tem sombra; ela fica na tab ativa e no que flutua (menus, popovers, dialogs). Destaque é fundo sólido ou borda `brand-soft-border`. A exceção ao gradiente é a sombra de continuação (`fade-continuation`), que esmaece os últimos itens acima de "Carregar mais".
-- **Uma palavra colorida no título.** O nome é He4rt Hub, em uma cor. A marca é o quadrado com o 4, não a letra destacada.
+- **Uma palavra colorida no título.** O nome é He4rt Hub, em uma cor. A marca é o coração da He4rt em `brand`, não a letra destacada.
 - **Monospace decorativa.** `mono` só para referências ao GitHub, que é informação (de onde o dado veio), nunca para rótulos pequenos ou atalhos.
 - **Copy de slogan sob o título.** A linha abaixo do título da página diz algo que a pessoa usa ("Toda recusa vem com retorno") ou não existe.
 
@@ -67,7 +67,7 @@ Lista de tells de interface genérica que esta UI evita de propósito. Quem for 
 
 - Raios `radius-sm` 8, `radius-md` 14 (botões, inputs, itens da navegação), `radius-lg` 20 (cards). Chips, badges, avatares e toggles são pílula ou círculo.
 - Controles com 44px (`control-h`); o pequeno, em cabeçalho de card, com 40px (`control-h-sm`).
-- Toda mudança de estado é suave: cor, borda e fundo em `dur-fast`; abrir, fechar e trocar de vista em `dur-medium` com `ease-out` na entrada e `ease-in` na saída; troca de tema e de página em `dur-slow`, com View Transitions. `ease-spring` só para um retorno pequeno, como uma reação. Com `prefers-reduced-motion`, nada se move.
+- Toda mudança de estado é suave: cor, borda e fundo em `dur-fast`; abrir, fechar e trocar de vista em `dur-medium` com `ease-out` na entrada e `ease-in` na saída; troca de tema e de página em `dur-slow`, com View Transitions. `ease-spring` só para um retorno pequeno, como uma reação. Menus, popovers, tooltips e dialogs entram e saem com `shadow-float` e uma animação curta. Um botão só com ícone tem `Tooltip` com o nome da ação. Com `prefers-reduced-motion`, nada se move.
 
 ## Iconografia
 

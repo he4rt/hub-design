@@ -12,18 +12,10 @@
   }
 }
 
-/* The mark is the square with the 4, not a highlighted letter. */
-.brand-mark__four {
-  display: inline-flex;
+/* The mark is the He4rt heart, in the brand purple. */
+.brand-mark__heart {
   flex: none;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 9px;
-  background: var(--brand);
-  color: var(--on-brand);
-  font: 700 17px/1 var(--font-display);
+  color: var(--brand);
 }
 
 .brand-mark__text {
@@ -35,7 +27,7 @@
 
 .brand-mark__name {
   color: var(--text);
-  font: 700 17px/1.1 var(--font-display);
+  font: 600 17px/1.1 var(--font-display);
   letter-spacing: -0.01em;
   white-space: nowrap;
 

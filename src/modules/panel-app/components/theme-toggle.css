@@ -1,0 +1,10 @@
+.theme-toggle__icon {
+  animation: theme-toggle-in var(--dur-slow) var(--ease-spring);
+}
+
+@keyframes theme-toggle-in {
+  from {
+    opacity: 0;
+    transform: rotate(-90deg) scale(0.6);
+  }
+}

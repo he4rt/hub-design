@@ -21,7 +21,6 @@
   &[data-variant='tag'] {
     padding: 0 9px;
     border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
     background: var(--surface);
     color: var(--text-muted);
     font-weight: 500;

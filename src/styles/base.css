@@ -58,6 +58,27 @@ kbd {
   stroke-width: 1.75;
 }
 
+/* Menus, popovers and tooltips float in from where they open. */
+@keyframes ui-overlay-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.97);
+  }
+}
+
+@keyframes ui-overlay-out {
+  to {
+    opacity: 0;
+    transform: translateY(4px) scale(0.97);
+  }
+}
+
+/* Theme and page switches cross-fade in dur-slow. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: var(--dur-slow);
+}
+
 /* Every change of state is smooth; those who ask the system for less motion get none. */
 @media (prefers-reduced-motion: reduce) {
   *,

@@ -80,10 +80,10 @@
 }
 
 
-/* The side navigation follows the theme: a light surface in light mode, near black in dark mode. */
+/* The side navigation follows the theme: a gray band beside the page in light mode, near black in dark mode. */
 .sidebar-nav {
-  --ink: light-dark(var(--surface), var(--gray-900));
-  --ink-2: light-dark(var(--surface-2), color-mix(in srgb, var(--gray-900), var(--gray-700) 35%));
+  --ink: light-dark(var(--surface-2), var(--gray-900));
+  --ink-2: light-dark(var(--surface), color-mix(in srgb, var(--gray-900), var(--gray-700) 35%));
   --ink-3: var(--border);
   --on-ink: var(--text);
   --on-ink-text: var(--text);

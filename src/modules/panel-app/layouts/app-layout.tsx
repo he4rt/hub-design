@@ -4,7 +4,7 @@ import { currentItem, type NavGroup } from '@/modules/panel-app/lib/nav'
 import {
   BadgeCheck,
   Flag,
-  GitCommitVertical,
+  GitBranch,
   House,
   Inbox,
   ListChecks,
@@ -69,7 +69,7 @@ export function AppLayout({ fullWidth = false }: { fullWidth?: boolean }) {
         // Salvos is part of the Feed, so Início stays active there.
         { key: 'home', to: '/app', end: true, label: 'Início', icon: House, alsoActive: pathname === '/app/saved' },
         { key: 'profile', to: `/members/${account?.username}`, end: true, label: 'Meu perfil', icon: UserRound },
-        { key: 'trajectory', to: `/members/${account?.username}?aba=trajetoria`, label: 'Trajetória', icon: GitCommitVertical },
+        { key: 'trajectory', to: `/members/${account?.username}?aba=trajetoria`, label: 'Trajetória', icon: GitBranch },
         { key: 'forum', to: '/app/discussions', label: 'Fórum', icon: MessagesSquare },
       ],
     },
@@ -108,7 +108,7 @@ export function AppLayout({ fullWidth = false }: { fullWidth?: boolean }) {
     <div className="app-layout" data-collapsed={collapsed || undefined}>
       <SidebarNav collapsed={collapsed} aria-label="Navegação">
         <SidebarTop>
-          <BrandMark to="/app" tone="ink" tagline="da comunidade para a comunidade" />
+          <BrandMark to="/app" tone="ink" />
           <button
             type="button"
             className="sidebar-nav__icon sidebar-nav__hide-mobile"
@@ -167,7 +167,6 @@ export function AppLayout({ fullWidth = false }: { fullWidth?: boolean }) {
             </span>
             {github && <span className="app-layout__handle">@{github}</span>}
           </span>
-          <ThemeToggle />
           <NavLink
             to="/app/settings/profile"
             className="sidebar-nav__icon"
@@ -176,6 +175,7 @@ export function AppLayout({ fullWidth = false }: { fullWidth?: boolean }) {
           >
             <Settings size={18} aria-hidden />
           </NavLink>
+          <ThemeToggle />
           <Button
             variant="ghost"
             size="sm"

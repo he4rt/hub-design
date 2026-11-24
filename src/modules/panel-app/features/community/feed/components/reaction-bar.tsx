@@ -1,8 +1,7 @@
-import { useState, useTransition } from 'react'
-import { Smile, Flame, Lightbulb, Target, UsersRound, type LucideIcon } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { useRef, useState, useTransition, type CSSProperties } from 'react'
+import { SmilePlus, Flame, Lightbulb, Target, UsersRound, type LucideIcon } from 'lucide-react'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import { Tooltip, TooltipProvider } from '@/components/ui/tooltip'
 import { REACTIONS } from '@/lib/feed-post'
 import { useDb, type FeedPost, type ReactionType } from '@/mocks/db'
 import { errorMessage } from '@/mocks/mock-action'
@@ -19,38 +18,39 @@ const ICONS: Record<ReactionType, LucideIcon> = {
 }
 
 /**
- * What people marked on a publication, where the numbers show: to the author
- * always, and to readers only when the author chose so. It opens the breakdown.
+ * What people marked on the author's own publication, as the same pills readers see, read-only.
+ * The author always sees the counts; the pills open the breakdown and who said it helped.
  */
-export function ReactionSummary({ post, own }: { post: FeedPost; own: boolean }) {
+export function ReactionSummary({ post }: { post: FeedPost }) {
   const users = useDb((state) => state.users)
-  const counted = REACTIONS.map((r) => ({ ...r, count: post.reactions.filter((x) => x.type === r.value).length }))
-    .filter((r) => r.count > 0)
-    .sort((a, b) => b.count - a.count)
-  if (counted.length === 0 || !(own || post.showReactionCounts)) return null
+  const counted = REACTIONS.map((r) => ({ ...r, count: post.reactions.filter((x) => x.type === r.value).length })).filter(
+    (r) => r.count > 0,
+  )
+  if (counted.length === 0) return <span />
   const helpers = post.reactions
     .filter((r) => r.type === 'helped')
     .map((r) => users.find((u) => u.id === r.userId)?.name ?? 'Membro')
-  const more = counted.length > 2 ? ` e mais ${counted.length - 2}` : ''
 
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <button type="button" className="reaction-summary" title="Ver as reações">
-          {counted.slice(0, 2).map((r) => {
+        <button
+          type="button"
+          className="react-button react-button__summary"
+          aria-label={`Ver as reações: ${counted.map((r) => `${r.label} ${r.count}`).join(', ')}`}
+        >
+          {counted.map((r) => {
             const Icon = ICONS[r.value]
-            return <Icon key={r.value} data-reaction={r.value} size={14} aria-hidden />
+            return (
+              <span key={r.value} className="react-button__given">
+                <Icon data-reaction={r.value} size={18} aria-hidden />
+                <span>{r.count}</span>
+              </span>
+            )
           })}
-          <span>
-            {counted
-              .slice(0, 2)
-              .map((r) => r.label)
-              .join(', ')}
-            {more} <span className="reaction-summary__total">({post.reactions.length})</span>
-          </span>
         </button>
       </PopoverTrigger>
-      <PopoverContent align="start" aria-label="Reações">
+      <PopoverContent align="start" side="top" aria-label="Reações">
         <ul className="reaction-summary__breakdown">
           {REACTIONS.map((r) => {
             const Icon = ICONS[r.value]
@@ -65,22 +65,22 @@ export function ReactionSummary({ post, own }: { post: FeedPost; own: boolean })
             )
           })}
         </ul>
-        {own && helpers.length > 0 && (
+        {helpers.length > 0 && (
           <p className="reaction-summary__hint">
             {helpers.join(', ')} {helpers.length === 1 ? 'disse' : 'disseram'} que isso ajudou.
           </p>
         )}
         {/* Only the author sees the counts of a post that hides them, so only then it says so. */}
-        {own && !post.showReactionCounts && <p className="reaction-summary__hint">A contagem de reações está oculta para os outros membros. Você pode mostrá-la pelo menu •••.</p>}
+        {!post.showReactionCounts && <p className="reaction-summary__hint">A contagem de reações está oculta para os outros membros. Você pode mostrá-la pelo menu •••.</p>}
       </PopoverContent>
     </Popover>
   )
 }
 
 /**
- * "Reagir": opens the four learning reactions side by side, each with its icon.
- * Once the reader marked one, the button shows it; with several, how many.
- * Choosing one closes the picker, so a reaction is one tap.
+ * Reacting to a publication: one icon opens the four reactions, each named on hover; the ones
+ * already given sit beside it as pills, with their count when the author shows counts.
+ * Clicking a pill takes the reader's reaction back or adds it.
  */
 export function ReactButton({
   post,
@@ -93,10 +93,13 @@ export function ReactButton({
 }) {
   const [reacting, startReacting] = useTransition()
   const [open, setOpen] = useState(false)
+  const [addTip, setAddTip] = useState(false)
+  // Closing the menu returns focus to the add button; that focus should not pop its label.
+  const returningFocus = useRef(false)
   const mine = post.reactions.filter((r) => r.userId === viewerId).map((r) => r.type)
-  const first = REACTIONS.find((r) => r.value === mine[0])
-  const Icon = first ? ICONS[first.value] : Smile
-  const label = !first ? 'Reagir' : mine.length === 1 ? first.label : `${mine.length} reações suas`
+  const given = REACTIONS.map((r) => ({ ...r, count: post.reactions.filter((x) => x.type === r.value).length })).filter(
+    (r) => r.count > 0,
+  )
 
   function react(type: ReactionType) {
     startReacting(async () => {
@@ -109,44 +112,80 @@ export function ReactButton({
   }
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="ghost"
-          className="post-action"
-          data-active={first ? true : undefined}
-          loading={reacting}
-          title={first ? label : undefined}
-        >
-          <Icon data-reaction={first?.value} size={18} aria-hidden />
-          <span className="post-action__label">{label}</span>
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent align="start" side="top" className="react-button__picker" aria-label="Reagir à publicação">
-        <ToggleGroup
-          type="multiple"
-          value={mine}
-          disabled={reacting}
-          className="react-button__options"
-          aria-label="Reagir à publicação"
-          onValueChange={(next) => {
-            const changed = REACTIONS.find((r) => next.includes(r.value) !== mine.includes(r.value))
-            if (!changed) return
-            setOpen(false)
-            react(changed.value)
-          }}
-        >
-          {REACTIONS.map((r) => {
-            const Option = ICONS[r.value]
-            return (
-              <ToggleGroupItem key={r.value} value={r.value} className="react-button__option">
-                <Option data-reaction={r.value} size={20} aria-hidden />
-                <span>{r.label}</span>
-              </ToggleGroupItem>
-            )
-          })}
-        </ToggleGroup>
-      </PopoverContent>
-    </Popover>
+    <TooltipProvider delayDuration={150} disableHoverableContent>
+      <div className="react-button" role="group" aria-label="Reações">
+        {given.map((r) => {
+          const Icon = ICONS[r.value]
+          return (
+            <Tooltip key={r.value} label={r.label}>
+              <button
+                type="button"
+                className="react-button__given"
+                aria-pressed={mine.includes(r.value)}
+                aria-label={post.showReactionCounts ? `${r.label}: ${r.count}` : r.label}
+                disabled={reacting}
+                onClick={() => react(r.value)}
+              >
+                <Icon data-reaction={r.value} size={18} aria-hidden />
+                {post.showReactionCounts && <span>{r.count}</span>}
+              </button>
+            </Tooltip>
+          )
+        })}
+        <Popover open={open} onOpenChange={setOpen}>
+          <Tooltip
+            label="Reagir"
+            open={addTip && !open}
+            onOpenChange={(next) => {
+              if (next && returningFocus.current) {
+                returningFocus.current = false
+                return
+              }
+              setAddTip(next)
+            }}
+          >
+            <PopoverTrigger className="react-button__add" aria-label="Reagir" disabled={reacting}>
+              <SmilePlus size={19} aria-hidden />
+            </PopoverTrigger>
+          </Tooltip>
+          <PopoverContent
+            align="start"
+            side="top"
+            className="react-button__menu"
+            aria-label="Escolha uma reação"
+            tabIndex={-1}
+            // Focus the menu itself, so opening it does not pop the first option's label.
+            onOpenAutoFocus={(event) => {
+              event.preventDefault()
+              ;(event.currentTarget as HTMLElement).focus()
+            }}
+            onCloseAutoFocus={() => {
+              returningFocus.current = true
+            }}
+          >
+            {REACTIONS.map((r, i) => {
+              const Option = ICONS[r.value]
+              return (
+                <Tooltip key={r.value} label={r.label}>
+                  <button
+                    type="button"
+                    className="react-button__option"
+                    style={{ '--i': i } as CSSProperties}
+                    aria-pressed={mine.includes(r.value)}
+                    aria-label={r.label}
+                    onClick={() => {
+                      setOpen(false)
+                      react(r.value)
+                    }}
+                  >
+                    <Option data-reaction={r.value} size={22} aria-hidden />
+                  </button>
+                </Tooltip>
+              )
+            })}
+          </PopoverContent>
+        </Popover>
+      </div>
+    </TooltipProvider>
   )
 }

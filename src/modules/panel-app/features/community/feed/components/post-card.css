@@ -169,11 +169,13 @@
  */
 .post-card__actions {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
   gap: var(--space-1);
   margin-inline: calc(-1 * var(--space-5));
   padding: var(--space-1) var(--space-2);
   border-top: 1px solid var(--border);
+  > .react-button { grid-column: 1; padding-inline: var(--space-2); }
   > [data-action='comment'] { grid-column: 2; }
   > [data-action='save'] { grid-column: 3; }
 }

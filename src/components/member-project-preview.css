@@ -15,11 +15,11 @@
   background: var(--surface-2);
   color: var(--text);
   text-decoration: none;
-  transition: border-color 120ms;
+  transition: border-color var(--dur-medium) var(--ease-out);
   > svg { flex: none; }
   > svg:last-child { color: var(--text-muted); }
   .member-project-preview__icon { color: var(--info-text); }
-  &:hover { border-color: var(--text-muted); }
+  &:hover { border-color: var(--border-strong); }
   &:focus-visible {
     outline: 2px solid var(--focus);
     outline-offset: 3px;
@@ -50,6 +50,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    color: var(--brand-text); /* A GitHub reference reads as a link. */
     font: var(--text-mono);
   }
 }
