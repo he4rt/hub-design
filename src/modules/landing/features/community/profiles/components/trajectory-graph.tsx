@@ -3,7 +3,6 @@ import { Link, useSearchParams } from 'react-router'
 import { ChevronDown, ExternalLink, FolderGit2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { evidenceIcons } from '@/lib/evidence'
@@ -95,49 +94,43 @@ function Rail({ entry, width, cut }: { entry: TrajectoryEntry; width: number; cu
   )
 }
 
+/**
+ * The open record: its text, then one line with its project, where it came from (the link, when it has one)
+ * and, for the owner, "Editar" and who sees it. The title, kind, reference and date are already in the row.
+ */
 function EntryDetail({ entry, editorId }: { entry: TrajectoryEntry; editorId: string | null }) {
-  const EvidenceIcon = entry.evidenceKind ? evidenceIcons[entry.evidenceKind] : null
+  // Records the member wrote are edited in the settings, where they were registered.
+  const editable = editorId && entry.record && entry.origin !== 'Concluído na Basement'
   return (
     <div className="trajectory-graph__detail">
-      {EvidenceIcon && entry.reference && (
-        <Card variant="inset" className="trajectory-graph__reference">
-          <p title={entry.reference}>
-            <EvidenceIcon size={16} aria-hidden />
-            <code>{entry.reference}</code>
-          </p>
-          {entry.url && (
-            <a href={entry.url} target="_blank" rel="noreferrer">
-              Abrir no GitHub
-              <ExternalLink size={12} aria-hidden />
-            </a>
-          )}
-        </Card>
-      )}
       {entry.detail && <p className="trajectory-graph__detail-text">{entry.detail}</p>}
-      {entry.project && (
-        <p className="trajectory-graph__project">
-          <FolderGit2 size={14} aria-hidden />
-          <Link to={entry.project.path}>{entry.project.label}</Link>
-        </p>
-      )}
-      {/* The kind is already under the title: the footer says where the record came from, its link and who sees it. */}
       <div className="trajectory-graph__footer">
-        <p className="trajectory-graph__origin">{entry.origin}</p>
-        <div className="trajectory-graph__footer-actions">
-          {entry.url && !(EvidenceIcon && entry.reference) && (
-            <a href={entry.url} target="_blank" rel="noreferrer" className="trajectory-graph__link">
-              {entry.evidenceKind ? 'Abrir no GitHub' : 'Abrir o link'}
-              <ExternalLink size={12} aria-hidden />
-            </a>
-          )}
-          {/* Records the member wrote are edited in the settings, where they were registered. */}
-          {editorId && entry.record && !['Concluído na Basement'].includes(entry.origin) && (
-            <Link to="/app/settings/profile#trajectory" className="trajectory-graph__link">
-              Editar
+        <p className="trajectory-graph__origin">
+          {entry.project && (
+            <Link to={entry.project.path} className="trajectory-graph__project" title={entry.project.label}>
+              <FolderGit2 size={14} aria-hidden />
+              <span>{entry.project.label}</span>
             </Link>
           )}
-          {editorId && entry.record && <RecordVisibility ownerId={editorId} record={entry.record} />}
-        </div>
+          {entry.url ? (
+            <a href={entry.url} target="_blank" rel="noreferrer" className="trajectory-graph__link">
+              {entry.origin || 'Abrir o link'}
+              <ExternalLink size={12} aria-hidden />
+            </a>
+          ) : (
+            entry.origin && <span>{entry.origin}</span>
+          )}
+        </p>
+        {editorId && entry.record && (
+          <div className="trajectory-graph__footer-actions">
+            {editable && (
+              <Link to="/app/settings/profile#trajectory" className="trajectory-graph__link">
+                Editar
+              </Link>
+            )}
+            <RecordVisibility ownerId={editorId} record={entry.record} />
+          </div>
+        )}
       </div>
     </div>
   )
@@ -192,7 +185,7 @@ export function TrajectoryGraph({ graph, editorId }: { graph: Graph; editorId: s
                     </span>
                   </span>
                   {entry.badge && (
-                    <Badge mono={entry.badge.mono} className="trajectory-graph__badge" title={entry.badge.text}>
+                    <Badge mono={entry.badge.mono} className="trajectory-graph__badge" title={entry.reference ?? entry.badge.text}>
                       {EvidenceIcon && <EvidenceIcon size={12} aria-hidden />}
                       {entry.badge.text}
                     </Badge>

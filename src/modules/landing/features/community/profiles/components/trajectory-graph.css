@@ -243,7 +243,7 @@
 .trajectory-graph__detail {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: var(--space-2);
   padding: 0 var(--space-3) var(--space-3);
   overflow-wrap: anywhere;
 }
@@ -254,64 +254,57 @@
   text-wrap: pretty;
 }
 
-/* The squad project the record belongs to: a quiet line with its icon. */
-.trajectory-graph__project {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  color: var(--text-muted);
-  font: var(--text-caption);
-
-  svg {
-    flex-shrink: 0;
-  }
-
-  a {
-    min-width: 0;
-    overflow: hidden;
-    color: var(--text);
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-}
-
-/* What came from GitHub: an inset block, the reference whole in mono, and "Abrir no GitHub". */
-.trajectory-graph__reference {
-  align-items: flex-start;
-
-  p {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
-    max-width: 100%;
-    color: var(--text-muted);
-  }
-
-  code {
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    color: var(--text);
-    font: var(--text-mono);
-  }
-}
-
-/* The record's footer: where it came from on the left; its link and, for the owner, who sees it on the right. */
+/* The record's footer, one quiet line: its project and where it came from on the left; for the owner, "Editar" and who sees it on the right. */
 .trajectory-graph__footer {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-1) var(--space-3);
-  padding-top: var(--space-2);
-  border-top: 1px solid var(--border);
 }
 
+/* On one line: the project name gives way first, so "Editar" and who sees it stay beside it. */
 .trajectory-graph__origin {
+  display: flex;
+  flex: 1 1 0;
+  align-items: center;
+  gap: var(--space-3);
   min-width: 0;
   color: var(--text-muted);
   font: var(--text-caption);
+  white-space: nowrap;
+
+  &:empty {
+    display: none;
+  }
+
+  > :not(.trajectory-graph__project) {
+    flex-shrink: 0;
+  }
+
+  .trajectory-graph__link {
+    font-weight: 500;
+  }
+}
+
+.trajectory-graph__project {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 0;
+  max-width: 100%;
+  color: var(--text-muted);
+
+  svg {
+    flex-shrink: 0;
+  }
+
+  span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 }
 
 .trajectory-graph__footer-actions {
@@ -377,6 +370,13 @@
 
   .trajectory-graph__badge {
     max-width: 100%;
+  }
+
+  /* Too narrow for one line: "Editar" and who sees it go below, on the right. */
+  .trajectory-graph__origin {
+    flex-basis: 100%;
+    flex-wrap: wrap;
+    row-gap: var(--space-1);
   }
 
   .trajectory-graph__chevron {

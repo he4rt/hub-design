@@ -61,6 +61,7 @@ export type TrajectoryEntry = {
   tone: BranchTone
   lines: { lane: number; part: LanePart; tone: BranchTone }[]
   detail: string | null
+  /** Where the record came from, when the project line does not already say it. */
   origin: string
   url: string | null
   /** Full reference of an evidence, such as `ana-souza-dev/frete-calc@3f9c2a1`. */
@@ -186,7 +187,7 @@ export function trajectoryGraph(
         date: k.declaredAt,
         title: k.competency,
         badge: { text: levelLabels[k.level], mono: false },
-        detail: `Nível declarado: ${levelLabels[k.level]}. Ainda sem evidência ligada.`,
+        detail: null,
         origin: 'Declarado pelo membro',
       })),
     ...learnings.map((l) => ({
@@ -221,7 +222,7 @@ export function trajectoryGraph(
       date: e.startedAt,
       title: e.role,
       badge: { text: e.organization, mono: false },
-      detail: [`${e.organization}, ${formatPeriod(e.startedAt, e.endedAt)}.`, e.description].filter(Boolean).join(' '),
+      detail: [`${formatPeriod(e.startedAt, e.endedAt)}.`, e.description].filter(Boolean).join(' '),
       origin: 'Registrado pelo membro',
     })),
     // A squad is a branch too, from joining until the project ends.
@@ -238,8 +239,8 @@ export function trajectoryGraph(
         title: `Entrou no squad ${squad?.name ?? ''}`,
         // Only the captain is named: the profile does not split the team by stack.
         badge: { text: squad?.captainId === userId ? `Capitão de ${project.name}` : project.name, mono: false },
-        detail: `${project.name}, ${formatPeriod(membership.joinedAt, end)}. ${membership.responsibilities}`,
-        origin: project.repository ? `Projeto em ${project.repository.fullName}, na organização He4rt` : 'Projeto da organização He4rt',
+        detail: `${formatPeriod(membership.joinedAt, end)}. ${membership.responsibilities}`,
+        origin: '',
         project: projectLink(project),
       }
       const ending: Draft[] = end
@@ -252,7 +253,7 @@ export function trajectoryGraph(
               date: end,
               title: membership.leftAt ? `Saiu do squad ${squad?.name ?? ''}` : `Projeto ${project.name} encerrado`,
               detail: null,
-              origin: `Squad ${squad?.name ?? ''}`,
+              origin: '',
               project: projectLink(project),
             },
           ]
@@ -269,7 +270,7 @@ export function trajectoryGraph(
             title: d.title,
             badge: evidence ? { text: evidence.ref, mono: true } : { text: 'entrega aceita', mono: false },
             detail: [d.credits.find((c) => c.userId === userId)?.part, d.context].filter(Boolean).join(' '),
-            origin: `Entrega aceita pelo capitão do squad ${squad?.name ?? ''}`,
+            origin: 'Entrega aceita pelo capitão',
             url: evidence?.url ?? null,
             project: projectLink(project),
           }
