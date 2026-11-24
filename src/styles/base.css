@@ -14,7 +14,7 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Titles are Space Grotesk; each page sets its size with the type styles. */
+/* Titles share Geist with the text; each page sets its size with the type styles. */
 h1,
 h2,
 h3 {
@@ -26,6 +26,11 @@ h3 {
 }
 
 h1 {
+  letter-spacing: -0.04em;
+}
+
+h2,
+h3 {
   letter-spacing: -0.02em;
 }
 
@@ -51,4 +56,18 @@ kbd {
 /* Stroke icons of the design system: 1.75 on a 24 viewBox. */
 .lucide {
   stroke-width: 1.75;
+}
+
+/* Every change of state is smooth; those who ask the system for less motion get none. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after,
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

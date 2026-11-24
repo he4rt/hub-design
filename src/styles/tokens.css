@@ -32,10 +32,12 @@
   --brand: light-dark(#6a2fe0, #7f45f5); /* The one primary action per screen, toggles on, active tab. */
   --brand-hover: light-dark(#5623bd, #6a2fe0);
   --on-brand: #ffffff;
-  /* For now the purple stays on the primary action, the active nav item and the logo; details are neutral. */
-  --brand-text: var(--text); /* Links and text actions. */
-  --brand-bright: var(--text-muted); /* Notification dot, trail dots, occupancy bar. */
-  --brand-soft: var(--surface-2); /* Competency chips, avatars and the selected item in a list. */
+  /* Purple also marks the text highlights (links, GitHub references) and the trajectory. */
+  --brand-text: light-dark(#6a2fe0, #b18cff); /* Links and text actions. */
+  --brand-bright: var(--brand); /* Notification dot, trail dots, occupancy bar. */
+  --brand-tint: light-dark(#efe7fd, #241640); /* Competency and area chips: the only purple chips. */
+  --brand-tint-text: light-dark(#5623bd, #c4a8ff);
+  --brand-soft: var(--surface-2); /* Avatars and the selected item in a list; neutral. */
   --brand-soft-text: var(--text);
   --brand-soft-border: var(--border-strong);
   /* Ink: dark blocks in both themes (banners, the dark button). The side navigation overrides it below. */
@@ -57,7 +59,11 @@
   --neutral-text: var(--text-muted);
   --danger-text: light-dark(#b91c1c, #fca5a5); /* Actions that decline or return. Never a solid background. */
   --focus: var(--text);
-  --shadow-tab: 0 1px 2px rgba(13, 13, 13, 0.08); /* The only shadow: the active segmented tab. */
+  --shadow-tab: 0 1px 2px rgba(13, 13, 13, 0.08); /* The active segmented tab. */
+  /* Overlays only (menus, popovers, dialogs): they float over the page. Cards keep borders. */
+  --shadow-float: 0 8px 24px rgba(11, 14, 18, 0.14), 0 2px 6px rgba(11, 14, 18, 0.08);
+  /* Continuation: the last items of a list that loads more fade into the page above "Carregar mais". */
+  --fade-continuation: linear-gradient(to bottom, #000 calc(100% - 120px), transparent);
 
   /* App extensions, built from the palette above. */
   --overlay: light-dark(rgba(13, 13, 13, 0.5), rgba(0, 0, 0, 0.6)); /* Behind dialogs. */
@@ -94,23 +100,24 @@
   --space-8: 32px; /* Horizontal padding of the content and the topbar. */
   --space-10: 40px; /* Bottom padding of the page. */
 
-  --radius-sm: 6px; /* Tags, mono references, kbd. */
-  --radius-md: 10px; /* Buttons, inputs, nav items, notes. */
-  --radius-lg: 14px; /* Cards and panels. */
+  --radius-sm: 8px; /* Mono references, kbd, small blocks. */
+  --radius-md: 14px; /* Buttons, inputs, nav items, notes. */
+  --radius-lg: 20px; /* Cards and panels. */
   --radius-pill: 999px; /* Chips, avatars, counts, toggles. */
 
   --sidebar-w: 272px;
   --topbar-h: 64px;
-  --control-h: 40px; /* Button, input and nav item. */
-  --control-h-sm: 36px; /* Small button in a card header. */
+  --control-h: 44px; /* Button, input and nav item. */
+  --control-h-sm: 40px; /* Small button in a card header. */
   --content-max: 1240px;
 
-  --font-display: 'Space Grotesk', 'Inter', system-ui, sans-serif;
-  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  /* Geist everywhere: hierarchy comes from weight, size and tight tracking, never a second family. */
+  --font-display: 'Geist', system-ui, -apple-system, sans-serif;
+  --font-sans: 'Geist', system-ui, -apple-system, sans-serif;
+  --font-mono: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
 
-  /* Type styles: use with `font:`; the display styles also take letter-spacing -0.02em. */
-  --text-display: 700 28px/34px var(--font-display); /* Page title, once per screen. */
+  /* Type styles: use with `font:`; the display styles also take letter-spacing -0.02em (-0.04em the page title). */
+  --text-display: 600 32px/38px var(--font-display); /* Page title, once per screen. */
   --text-stat: 700 26px/30px var(--font-display); /* A number that is content, never a scoreboard. */
   --text-title: 600 22px/28px var(--font-display); /* A featured item (delivery, project). */
   --text-heading: 600 18px/24px var(--font-display); /* Project card and topbar title. */
@@ -130,8 +137,16 @@
   --size-subheading: 17px;
   --size-heading: 18px;
   --size-title: 22px;
-  --size-display: 28px;
+  --size-display: 32px;
   --size-input-touch: 16px; /* Inputs under 768px, so iOS does not zoom. */
+
+  /* Motion: every change of state eases in; prefers-reduced-motion turns it off (base.css). */
+  --dur-fast: 120ms; /* Hover, color, border. */
+  --dur-medium: 200ms; /* Open, close, switch a view. */
+  --dur-slow: 320ms; /* Theme and page transitions. */
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1); /* Things that appear. */
+  --ease-in: cubic-bezier(0.4, 0, 1, 1); /* Things that leave. */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1); /* A small bounce, such as a reaction. */
 
   /* App extensions. Focus: a 2px ring with a 2px gap, on every control. */
   --focus-ring: 0 0 0 2px var(--surface), 0 0 0 4px var(--focus);
@@ -141,4 +156,12 @@
   --lane-3: light-dark(#d9480f, #ff8a4c); /* Orange line. */
   --lane-4: light-dark(#c2255c, #f472a6); /* Pink line. */
   --lane-5: light-dark(#a17800, #f2c230); /* Yellow line. */
+}
+
+/* The page title steps down on a phone. */
+@media (max-width: 767px) {
+  :root {
+    --text-display: 600 26px/32px var(--font-display);
+    --size-display: 26px;
+  }
 }

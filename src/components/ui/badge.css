@@ -49,8 +49,8 @@
 
   /* Purple in a chip means a competency, never a state. */
   &[data-variant='comp'] {
-    background: var(--brand-soft);
-    color: var(--brand-soft-text);
+    background: var(--brand-tint);
+    color: var(--brand-tint-text);
   }
 
   &[data-variant='count'] {

@@ -57,7 +57,7 @@
 
   &[data-variant='ghost'] {
     background: transparent;
-    color: var(--brand-text);
+    color: var(--text); /* A control, not a text highlight: purple is for links. */
     &:hover:not(:disabled) {
       background: var(--brand-soft);
     }

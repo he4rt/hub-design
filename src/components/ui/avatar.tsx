@@ -3,7 +3,7 @@ import { cn } from '@/lib/cn'
 import { Avatar as AvatarPrimitive } from 'radix-ui'
 import './avatar.css'
 
-/** GitHub photo, or the initials in Space Grotesk; always a circle. On the ink sidebar use `tone="ink"`. */
+/** GitHub photo, or the initials in Geist; always a circle. On the ink sidebar use `tone="ink"`. */
 export function Avatar({
   src,
   name,

@@ -2,7 +2,7 @@ import { Link } from 'react-router'
 import './brand-mark.css'
 
 /**
- * The He4rt Hub wordmark: the square with the 4 and the name in Space Grotesk. `ink` sits on the
+ * The He4rt Hub wordmark: the square with the 4 and the name in Geist. `ink` sits on the
  * sidebar; `light` on a topbar over the page.
  */
 export function BrandMark({

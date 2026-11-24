@@ -188,12 +188,17 @@ uma tela, e o `.md` e o `.preview.html` de cada componente em `docs/design-syste
 - Cores, espaçamentos, raios, fontes e sombras vêm só de `src/styles/tokens.css` (`var(--…)`), com os
   nomes do design system (`--bg`, `--surface`, `--brand`, `--text-muted`…). Nada de cor, fonte ou raio
   soltos fora dele. Texto usa os estilos (`font: var(--text-body)`, `var(--text-caption)`…).
-- Bordas, não sombras: a única sombra é `--shadow-tab`. Página em `--bg`, cards em `--surface`, bloco
-  rebaixado em `--surface-2`.
-- `--brand` só na ação principal da tela e no item ativo da navegação. Estado de domínio usa
-  `<StateChip>` (`src/components/state-chip.tsx`), que segue o `estados.md`; roxo em chip é só
-  competência (`<Badge variant="comp">`).
-- `--font-mono` só para referência ao GitHub (repositório, PR, commit, time).
+- Bordas, não sombras: cards e inputs usam borda. As únicas sombras são `--shadow-tab` (tab ativa) e
+  `--shadow-float` (menus, popovers e dialogs). Uma lista com "Carregar mais" esmaece os últimos itens
+  com `--fade-continuation`. Página em `--bg`, cards em `--surface`, bloco rebaixado em `--surface-2`.
+- `--brand` só no logo, na ação principal da tela e no item ativo da navegação. Links e referências ao
+  GitHub usam `--brand-text` (roxo). Estado de domínio usa `<StateChip>` (`src/components/state-chip.tsx`),
+  que segue o `estados.md`; chip roxo (`--brand-tint`) é só competência e área (`<Badge variant="comp">`).
+- Fonte Geist em tudo; `--font-mono` (Geist Mono) só para referência ao GitHub (repositório, PR, commit,
+  time). Sem serifa.
+- Toda mudança de estado é suave (hover, abrir e fechar, trocar de vista, trocar de tema), com os tokens
+  `--dur-*` e `--ease-*` e View Transitions na navegação e no tema. `prefers-reduced-motion` desliga tudo
+  (`base.css`).
 - Siga a lista "O que o Hub não faz" do `README.md`: sem placar de números, sem metadado encadeado com
   `·`, sem rótulo em caixa alta com tracking, sem seta em botão, sem ícone em caixinha colorida, sem
   borda esquerda colorida, sem gradiente.
