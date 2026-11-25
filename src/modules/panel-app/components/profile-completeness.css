@@ -16,7 +16,6 @@
   }
 }
 
-.profile-completeness__actions,
 .profile-completeness__missing {
   display: flex;
   flex-direction: column;
@@ -25,19 +24,6 @@
   padding: 0;
   list-style: none;
   font: var(--text-caption);
-}
-
-.profile-completeness__actions li {
-  color: var(--text-muted);
-
-  strong {
-    color: var(--text);
-    font-weight: 600;
-  }
-
-  &[data-allowed] {
-    color: var(--success-text);
-  }
 }
 
 .profile-completeness__missing li {
@@ -53,4 +39,9 @@
 .profile-completeness__unlocks {
   color: var(--text-muted);
   font: var(--text-caption);
+}
+
+/* The fields the tasks link to stop a little below the top edge, with their label in view. */
+:where(#photo, #bio, #city, #situation, #portfolio, #areas, #starting-point, #languages, #linked-accounts) {
+  scroll-margin-top: var(--space-6);
 }

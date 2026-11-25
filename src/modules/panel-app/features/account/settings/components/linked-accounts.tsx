@@ -29,7 +29,7 @@ export function LinkedAccounts({ account }: { account: User }) {
   const suggestion = account.githubSuggestion
 
   return (
-    <Card>
+    <Card id="linked-accounts">
       <h2 className="linked-accounts__title">Contas vinculadas</h2>
       <ul className="linked-accounts">
         {LINKED_PROVIDERS.map(({ value, label }) => {

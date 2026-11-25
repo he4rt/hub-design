@@ -99,35 +99,11 @@ export function MemberProfileForm({ account }: { account: User }) {
 
   return (
     <form action={submit} className="member-profile">
-      <Card>
-        <h2 className="member-profile__title">Perfil dev</h2>
-        <fieldset className="member-profile__group">
-          <legend>Objetivo</legend>
-          <ObjectiveField value={draft.objective} onChange={(objective) => update({ objective })} />
-        </fieldset>
-        <fieldset className="member-profile__group">
-          <legend>Áreas</legend>
-          <AreasField value={draft.areas} onChange={(areas) => update({ areas })} invalid={invalid('areas')} />
-        </fieldset>
-        <fieldset className="member-profile__group">
-          <legend>Ponto de partida</legend>
-          <p className="member-profile__hint">Não aparece no perfil público. Quando você se candidata a um squad, o capitão vê para analisar a candidatura.</p>
-          <StartingPointField value={draft.startingPoint} onChange={(startingPoint) => update({ startingPoint })} />
-        </fieldset>
-        <fieldset className="member-profile__group">
-          <legend>Linguagens</legend>
-          <LanguagesField value={draft.languages} onChange={(languages) => update({ languages })} />
-        </fieldset>
-        <fieldset className="member-profile__group">
-          <legend>Idiomas</legend>
-          <SpokenLanguagesField value={draft.spokenLanguages} onChange={(spokenLanguages) => update({ spokenLanguages })} />
-        </fieldset>
-      </Card>
-
+      {/* The public identity first, in the same order as the profile; the dev profile after. */}
       <Card>
         <h2 className="member-profile__title">Sobre você</h2>
 
-        <div className="member-profile__photo">
+        <div id="photo" className="member-profile__photo">
           <Avatar src={draft.photoUrl} name={account.name} size="xl" />
           <div className="member-profile__photo-actions">
             <Button type="button" variant="secondary" size="sm" onClick={() => fileInput.current?.click()}>
@@ -206,7 +182,7 @@ export function MemberProfileForm({ account }: { account: User }) {
           </div>
         </div>
 
-        <fieldset className="member-profile__group">
+        <fieldset id="situation" className="member-profile__group">
           <legend>Situação</legend>
           <ToggleGroup
             type="single"
@@ -243,6 +219,31 @@ export function MemberProfileForm({ account }: { account: User }) {
             onChange={(e) => update({ portfolioUrl: e.target.value })}
           />
         </div>
+      </Card>
+
+      <Card>
+        <h2 className="member-profile__title">Perfil dev</h2>
+        <fieldset className="member-profile__group">
+          <legend>Objetivo</legend>
+          <ObjectiveField value={draft.objective} onChange={(objective) => update({ objective })} />
+        </fieldset>
+        <fieldset id="areas" className="member-profile__group">
+          <legend>Áreas</legend>
+          <AreasField value={draft.areas} onChange={(areas) => update({ areas })} invalid={invalid('areas')} />
+        </fieldset>
+        <fieldset id="starting-point" className="member-profile__group">
+          <legend>Ponto de partida</legend>
+          <p className="member-profile__hint">Não aparece no perfil público. Quando você se candidata a um squad, o capitão vê para analisar a candidatura.</p>
+          <StartingPointField value={draft.startingPoint} onChange={(startingPoint) => update({ startingPoint })} />
+        </fieldset>
+        <fieldset id="languages" className="member-profile__group">
+          <legend>Linguagens</legend>
+          <LanguagesField value={draft.languages} onChange={(languages) => update({ languages })} />
+        </fieldset>
+        <fieldset className="member-profile__group">
+          <legend>Idiomas</legend>
+          <SpokenLanguagesField value={draft.spokenLanguages} onChange={(spokenLanguages) => update({ spokenLanguages })} />
+        </fieldset>
       </Card>
 
       <div className="member-profile__submit">

@@ -8,11 +8,15 @@
 }
 
 .trajectory-settings { gap: var(--space-6); }
-.trajectory-settings__form { align-items: stretch; }
-.trajectory-settings__form > .ui-button { align-self: flex-start; }
+.trajectory-settings__form { gap: var(--space-5); }
+.trajectory-settings__field { gap: var(--space-2); }
 .trajectory-settings__hint { font: var(--text-caption); color: var(--text-muted); }
+/* The hint and the result of the last change sit together, close to the first card. */
+.trajectory-settings__intro { display: flex; flex-direction: column; gap: var(--space-1); margin-bottom: calc(-1 * var(--space-3)); }
+
+.trajectory-settings__card { gap: var(--space-2); }
+
 .trajectory-settings__heading,
-.trajectory-settings__row,
 .trajectory-settings__actions {
   display: flex;
   align-items: center;
@@ -20,11 +24,60 @@
   gap: var(--space-2);
 }
 .trajectory-settings__heading { justify-content: space-between; }
+.trajectory-settings__actions { justify-content: flex-end; }
+
 .trajectory-settings__list { list-style: none; margin: 0; padding: 0; }
-.trajectory-settings__row { border-bottom: 1px solid var(--border); padding-block: var(--space-3); }
-.trajectory-settings__record { display: flex; flex-direction: column; flex: 1 1 100%; min-width: 0; }
-.trajectory-settings__record-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: var(--text-body); }
-.trajectory-settings__editor { border-top: 1px solid var(--border); padding-top: var(--space-4); }
+
+/* One record per line: what it is and when on the left; who sees it and its menu on the right. */
+.trajectory-settings__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: var(--space-3);
+  padding-block: var(--space-3);
+
+  & + & { border-top: 1px solid var(--border); }
+}
+
+.trajectory-settings__record { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.trajectory-settings__record-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font: var(--text-body);
+  font-weight: 500;
+}
+
+.trajectory-settings__details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--space-3);
+  min-width: 0;
+  color: var(--text-muted);
+  font: var(--text-caption);
+  font-variant-numeric: tabular-nums;
+
+  > span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  > [data-mono] { font-family: var(--font-mono); }
+}
+
+.trajectory-settings__visibility {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--text-muted);
+  font: var(--text-caption);
+  white-space: nowrap;
+}
+
+.trajectory-settings__menu { padding-inline: var(--space-2); }
+
 .trajectory-settings__history {
   display: grid;
   gap: var(--space-4);
@@ -37,6 +90,9 @@
 .trajectory-settings__history dt { font: var(--text-caption); color: var(--text-muted); }
 .trajectory-settings__history dd { margin: 0; font: var(--text-body); }
 
-@media (min-width: 768px) {
-  .trajectory-settings__record { flex-basis: 12rem; }
+/* On a phone, who sees the record moves under its details, so the title keeps the width. */
+@media (max-width: 480px) {
+  .trajectory-settings__row { grid-template-columns: minmax(0, 1fr) auto; }
+  .trajectory-settings__visibility { grid-column: 1; grid-row: 2; margin-top: calc(-1 * var(--space-2)); }
+  .trajectory-settings__menu { grid-column: 2; grid-row: 1 / span 2; }
 }

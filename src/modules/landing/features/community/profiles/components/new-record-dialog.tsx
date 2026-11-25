@@ -41,7 +41,7 @@ export function NewRecordDialog() {
         <ul className="new-record-dialog__list">
           {OPTIONS.map((option) => (
             <li key={option.collection}>
-              <Link viewTransition to={`/app/settings/profile?novo=${option.collection}`} className="new-record-dialog__item">
+              <Link viewTransition to={`/app/settings/profile?aba=trajetoria&novo=${option.collection}`} className="new-record-dialog__item">
                 <strong>{option.label}</strong>
                 <span>{option.hint}</span>
               </Link>
