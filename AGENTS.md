@@ -11,12 +11,24 @@ SPA em Vite + React 19 (React Compiler) + TypeScript + React Router, servida em 
 | `/app`     | `src/modules/panel-app`    | `app-modules/panel-app/resources/js`  |
 | `/admin`   | `src/modules/panel-admin`  | `app-modules/panel-admin/resources/js`|
 
+**Este repositório é o protótipo base do system design do He4rt Hub**: é aqui que telas, regras e fluxos
+são fechados. O produto é o [heartdevs.com](https://github.com/he4rt/heartdevs.com), com backend em
+Laravel e front em React via Inertia, como na branch `5.x` (a `4.x`, em Filament e Livewire, foi
+encerrada). Quando este guia fala do “Laravel”, é a `5.x` do heartdevs.com.
+
+**As decisões do projeto ficam em `docs/decisions/`**, uma por arquivo, no formato dos ADRs do
+heartdevs.com. Leia o índice (`docs/decisions/README.md`) antes de mudar uma regra, e registre ali toda
+decisão nova de direção, produto ou arquitetura. Uma decisão aceita vale sobre o que este guia, o
+`PRODUCT.md` ou as specs ainda disserem; quando ela os contradiz, aponte isso.
+
 **O backend é exploratório.** As ações dos `actions.ts` rodam numa API em Bun + SQLite (`server/`), que
 grava no banco relacional e devolve o estado que a tela lê com `useDb`. Toda ação aparece no painel de
-debug. O modelo e as regras continuam sendo os do protótipo, para portar ao Laravel.
+debug. O `server/` não vai para produção: o modelo e as regras são os do protótipo, para portar ao
+Laravel, que usa a própria autenticação, filas e banco.
 
-O objetivo é que cada tela daqui seja portada para o Laravel sem redesenho: mesma estrutura de pastas,
-mesmos recursos e o mesmo comportamento. Na dúvida, faça como o Laravel faria.
+O objetivo é que cada tela daqui seja portada para a `5.x` sem redesenho, como página Inertia de
+`app-modules/panel-app` ou `panel-admin`: mesma estrutura de pastas, mesmos recursos e o mesmo
+comportamento. Na dúvida, faça como o Laravel faria.
 
 ## Comandos
 
@@ -115,6 +127,9 @@ Laravel (`src/Features/<Group>/<Feature>/`):
 | `landing`     | `community` | `profiles` (o perfil público único, `/members/:username`) |
 | `landing`     | `squads`  | `squads` (com `projects`), as páginas públicas de squad e projeto |
 
+A tabela segue os grupos da `5.x` do heartdevs.com. `setup/teams`, `setup/roles`, `system/activity`,
+`mails`, `settings`, `docs`, `account/profile` e `two-factor-setup` existem lá e ainda não no protótipo.
+
 No `panel-app`, a home (`/app`) é o Feed (`community/feed`), com o perfil e os blocos do momento do
 membro nas laterais; não há feature `home`.
 
@@ -167,6 +182,9 @@ seguem `docs/squads.md` e `docs/validation.md`; conquistas e jornada são calcul
   nova sem id ganha um `rowId` só do cliente (`crypto.randomUUID()`), removido antes de enviar à ação.
 
 ## Componentes (`src/components/ui`)
+
+O design system vai para Tailwind e shadcn, a base da `5.x` (`docs/decisions/0002`). Até essa migração,
+os componentes seguem as regras abaixo, com Radix e CSS puro.
 
 - Antes de criar um componente, reuse o que já existe em `src/components` e `src/components/ui`.
 - Todo componente do design system usa um primitivo do Radix (`radix-ui`) quando ele existe
