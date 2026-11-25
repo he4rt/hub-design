@@ -12,7 +12,7 @@ export function LandingLayout() {
       <header className="landing-layout__header">
         <BrandMark to="/" />
         <nav>
-          <Button asChild variant="ghost">
+          <Button asChild variant="ghost" className="landing-layout__squads">
             <Link to="/squads">Squads</Link>
           </Button>
           {signedIn ? (
@@ -36,7 +36,10 @@ export function LandingLayout() {
       </div>
       <footer className="landing-layout__footer">
         <span>He4rt Developers. Da comunidade para a comunidade.</span>
-        <Link to="/admin/login">Administração</Link>
+        <span className="landing-layout__footer-links">
+          <Link to="/squads">Squads</Link>
+          <Link to="/admin/login">Administração</Link>
+        </span>
       </footer>
     </div>
   )

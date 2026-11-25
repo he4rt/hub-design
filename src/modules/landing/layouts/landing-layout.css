@@ -39,14 +39,24 @@
   }
 }
 
+.landing-layout__footer-links {
+  display: flex;
+  gap: var(--space-4);
+}
+
 @media (max-width: 767px) {
+  /* On a phone the top keeps the logo, Entrar and Criar conta on one line; Squads moves to the footer. */
   .landing-layout__header {
-    flex-wrap: wrap;
     padding: var(--space-3) var(--space-4);
 
     nav {
       gap: var(--space-1);
+      white-space: nowrap;
     }
+  }
+
+  .landing-layout__squads.ui-button {
+    display: none;
   }
 
   .landing-layout__footer {
