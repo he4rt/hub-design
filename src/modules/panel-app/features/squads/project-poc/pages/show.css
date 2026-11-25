@@ -1,0 +1,155 @@
+.project-poc__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  min-width: 0;
+}
+
+.project-poc__num {
+  font-variant-numeric: tabular-nums;
+}
+
+.project-poc__mono {
+  font-family: var(--font-mono);
+}
+
+.project-poc__models.ui-radio-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+}
+
+.project-poc__seats {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Who sits in the seat, its role and the remove button. On a phone the role takes its own full row. */
+.project-poc__seat {
+  display: grid;
+  grid-template-areas: 'who role remove';
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+
+  &[data-free] {
+    border-style: dashed;
+    border-color: var(--border-strong);
+  }
+
+  > .project-poc__who {
+    grid-area: who;
+  }
+
+  > .ui-toggle-group {
+    grid-area: role;
+    flex-wrap: nowrap;
+  }
+
+  > .ui-button,
+  > .project-poc__fixed {
+    grid-area: remove;
+  }
+
+  @media (width < 720px) {
+    grid-template-areas:
+      'who remove'
+      'role role';
+    grid-template-columns: minmax(0, 1fr) auto;
+
+    > .ui-toggle-group {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+
+      .ui-toggle-group__item {
+        padding: 0 4px;
+        font-size: 13px;
+      }
+    }
+  }
+}
+
+.project-poc__who {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.project-poc__who-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.project-poc__empty {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-pill);
+}
+
+.project-poc__fixed {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.project-poc__criteria {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--border);
+
+  h3 {
+    margin: 0;
+    font: var(--text-subheading);
+  }
+
+  p {
+    margin: 0;
+  }
+}
+
+.project-poc__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+
+  legend {
+    margin-bottom: var(--space-2);
+    padding: 0;
+    font: var(--text-body-strong);
+  }
+}
+
+.project-poc__list-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+
+  .ui-input {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+.project-poc__submit {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}

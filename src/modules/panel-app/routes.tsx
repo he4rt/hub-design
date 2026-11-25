@@ -14,6 +14,9 @@ import UsageData from './features/auth/pages/usage-data'
 import DiscussionCreate from './features/community/discussions/pages/create'
 import DiscussionsIndex from './features/community/discussions/pages/index'
 import DiscussionShow from './features/community/discussions/pages/show'
+import AdmissionPoc from './features/squads/admission-poc/pages/show'
+import CrestPoc from './features/squads/crest-poc/pages/show'
+import ProjectPoc from './features/squads/project-poc/pages/show'
 import MyApplications from './features/squads/applications/pages/index'
 import EntryTest from './features/squads/entry-test/pages/show'
 import ApplicationCreate from './features/squads/squads/applications/pages/create'
@@ -87,6 +90,9 @@ export const panelAppRoutes: RouteObject = {
         { path: 'settings/profile', Component: Profile },
         { path: 'squads/entry-test', Component: EntryTest },
         { path: 'squads/applications', Component: MyApplications },
+        { path: 'squads/admission-poc', Component: AdmissionPoc },
+        { path: 'squads/crest-poc', Component: CrestPoc },
+        { path: 'squads/project-poc', Component: ProjectPoc },
         { path: 'validation', Component: Validations },
         { path: 'validation/requests/create', Component: ValidationRequestCreate },
         { path: 'validation/validator-application', Component: ValidatorApplication },

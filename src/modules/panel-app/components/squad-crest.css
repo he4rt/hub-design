@@ -1,0 +1,41 @@
+.squad-crest {
+  position: relative;
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 32px;
+  aspect-ratio: 48 / 56;
+
+  &[data-size='md'] {
+    width: 48px;
+  }
+
+  &[data-size='lg'] {
+    width: 88px;
+  }
+}
+
+.squad-crest__shape {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+
+  path {
+    fill: color-mix(in srgb, var(--crest) 14%, var(--surface));
+    stroke: var(--crest);
+    stroke-width: 2;
+    stroke-linejoin: round;
+    vector-effect: non-scaling-stroke;
+    transition: d var(--dur-medium) var(--ease-out), fill var(--dur-medium) var(--ease-out);
+  }
+}
+
+.squad-crest__symbol {
+  position: relative;
+  width: 44%;
+  height: auto;
+  color: var(--crest);
+  stroke-width: 2.25;
+}

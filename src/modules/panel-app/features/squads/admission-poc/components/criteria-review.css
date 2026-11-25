@@ -1,0 +1,63 @@
+.criteria-review {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.criteria-review__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.criteria-review__item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  transition: border-color var(--dur-fast) var(--ease-out);
+
+  &:not([data-verdict]) {
+    border-style: dashed;
+    border-color: var(--border-strong);
+  }
+}
+
+.criteria-review__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-3);
+  min-width: 0;
+}
+
+.criteria-review__criterion {
+  flex: 1 1 220px;
+  min-width: 0;
+  font: var(--text-body-strong);
+}
+
+.criteria-review__detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+
+  [data-github] {
+    font-family: var(--font-mono);
+  }
+}
+
+.criteria-review__note {
+  margin: 0;
+  color: var(--text-muted);
+  font: var(--text-body);
+}

@@ -1,0 +1,105 @@
+/* Preview on the left, pickers on the right; one column on a phone. */
+.crest-editor {
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr);
+  gap: var(--space-6);
+  align-items: start;
+
+  @media (width < 720px) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.crest-editor__preview {
+  position: sticky;
+  top: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-5) var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  text-align: center;
+
+  @media (width < 720px) {
+    position: static;
+  }
+}
+
+.crest-editor__name {
+  max-width: 100%;
+  overflow: hidden;
+  margin-top: var(--space-2);
+  font: var(--text-body-strong);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.crest-editor__caption {
+  color: var(--text-muted);
+  font: var(--text-caption);
+}
+
+.crest-editor__pickers {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  min-width: 0;
+}
+
+.crest-editor__group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+
+  legend {
+    margin-bottom: var(--space-2);
+    padding: 0;
+    font: var(--text-body-strong);
+  }
+}
+
+.crest-editor__options.ui-toggle-group {
+  display: flex;
+}
+
+/* Square tiles for shapes and symbols: 44px, a comfortable touch target. */
+.ui-toggle-group[data-variant='chips'] .crest-editor__tile {
+  display: inline-grid;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border-radius: var(--radius-md);
+  place-items: center;
+  transition: border-color var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out);
+}
+
+/* The chosen option reads at a glance: a 2px ring in the text color, not only a gray fill. */
+.ui-toggle-group[data-variant='chips'] :is(.crest-editor__tile, .crest-editor__color)[data-state='on'] {
+  border-color: var(--text);
+  box-shadow: inset 0 0 0 1px var(--text);
+}
+
+.ui-toggle-group[data-variant='chips'] .crest-editor__color {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: 36px;
+}
+
+.crest-editor__swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: var(--radius-pill);
+}
+
+.crest-editor__hint {
+  margin: 0;
+  color: var(--text-muted);
+  font: var(--text-caption);
+}
