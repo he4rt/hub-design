@@ -22,12 +22,13 @@ import { ValidationsCard } from '../components/validations-card'
 import { shownAchievements } from '../lib/achievements'
 import { memberForum } from '../lib/activity'
 import { missingProfileItems } from '../lib/completeness'
+import { backToTheSameSquad, longHistory, onlyMainLine, projectsInOneSquad, publishValidations, squadsAtTheSameTime, squadsInSequence } from '../lib/trajectory-debug'
 import { emptyProfile, trajectoryGraph } from '@/lib/trajectory/graph'
 import { viewerOptions, type Viewer } from '@/lib/trajectory/visibility'
 import './show.css'
 
-/** Squad work, deliveries and learning live in Trajetória; Fórum adds what only the forum knows. */
-const TABS = { 'visao-geral': 'Visão geral', trajetoria: 'Trajetória', forum: 'Fórum' } as const
+/** Squad work, deliveries and learning live in Trajetória; validations and publications get their own tabs; Fórum adds what only the forum knows. */
+const TABS = { 'visao-geral': 'Visão geral', trajetoria: 'Trajetória', validacoes: 'Validações', publicacoes: 'Publicações', forum: 'Fórum' } as const
 type Tab = keyof typeof TABS
 
 /**
@@ -63,10 +64,24 @@ export default function PublicProfile() {
   useDebugActions('Perfil público', [
     { label: 'Abrir Visão geral', run: () => setParams({}) },
     { label: 'Abrir Trajetória', run: () => setParams({ aba: 'trajetoria' }) },
+    { label: 'Abrir Validações', run: () => setParams({ aba: 'validacoes' }) },
+    { label: 'Abrir Publicações', run: () => setParams({ aba: 'publicacoes' }) },
     { label: 'Abrir Fórum (só para quem entrou)', run: () => setParams({ aba: 'forum' }) },
     { label: 'Abrir link antigo de Salvos', description: 'Leva o dono para /app/saved.', run: () => setParams({ aba: 'salvos' }) },
     { label: 'Ver perfil completo', run: () => navigate('/members/ana-souza') },
     { label: 'Ver perfil sem trajetória', run: () => navigate('/members/leticia-prado') },
+    ...(user
+      ? [
+          { label: 'Trajetória: só a linha principal', description: 'Esconde squads e validações deste perfil.', run: () => onlyMainLine(user.id) },
+          { label: 'Trajetória: três squads seguidos', run: () => squadsInSequence(user.id, 3) },
+          { label: 'Trajetória: sete squads seguidos', description: 'Mais squads que cores: as cores se repetem.', run: () => squadsInSequence(user.id, 7) },
+          { label: 'Trajetória: três squads ao mesmo tempo', run: () => squadsAtTheSameTime(user.id, 3) },
+          { label: 'Trajetória: vários projetos no mesmo squad', run: () => projectsInOneSquad(user.id) },
+          { label: 'Trajetória: saiu e voltou ao mesmo squad', run: () => backToTheSameSquad(user.id) },
+          { label: 'Trajetória: publicar validações', run: () => publishValidations(user.id) },
+          { label: 'Trajetória: 40 registros em três anos', description: 'Com títulos longos.', run: () => longHistory(user.id) },
+        ]
+      : []),
     { label: 'Ver perfil de validador', run: () => navigate('/members/diego-ramos') },
     { label: 'Ver perfil privado', run: () => navigate('/members/bruno-lima') },
     { label: 'Ver perfil inexistente', run: () => navigate('/members/ninguem') },
@@ -111,9 +126,6 @@ export default function PublicProfile() {
 
   const graph = trajectoryGraph(profile, { squads, projects, memberships, deliveries, validations, viewer })
   const entries = graph.entries
-  // The forum is for the community: visitors do not get the tab.
-  const tabs = (Object.keys(TABS) as Tab[]).filter((value) => value !== 'forum' || viewer !== 'visitor')
-  const activeTab = tabs.includes(tab) ? tab : 'visao-geral'
   const forum = memberForum(profile, discussions, viewer !== 'visitor')
   const github = user.linkedAccounts.find((account) => account.provider === 'github')
   const linkedin = user.linkedAccounts.find((account) => account.provider === 'linkedin')
@@ -143,6 +155,11 @@ export default function PublicProfile() {
   const achievements = shownAchievements(memberAchievements(state, user.id, now), asOwner)
   // Others see the stage the member published; the owner, the one they reached.
   const journey = memberJourney(state, user.id)
+  // The forum is for the community: visitors do not get the tab. Without a published validation, no empty tab.
+  const tabs = (Object.keys(TABS) as Tab[]).filter(
+    (value) => (value !== 'forum' || viewer !== 'visitor') && (value !== 'validacoes' || publishedValidations.length > 0),
+  )
+  const activeTab = tabs.includes(tab) ? tab : 'visao-geral'
 
   const trajectory =
     entries.length > 0 ? (
@@ -171,7 +188,6 @@ export default function PublicProfile() {
         validator={validator}
         isOwner={asOwner}
         // One purple action per screen: on Trajetória it is "Novo registro".
-        primaryEdit={activeTab !== 'trajetoria'}
         memberSince={user.createdAt}
         state={user.city?.uf ?? null}
         coverImageUrl={profile.coverImageUrl}
@@ -202,17 +218,21 @@ export default function PublicProfile() {
           ))}
         </TabsList>
 
-        {/* The tab's content on the left; who the member is, their journey and achievements beside it. */}
-        <div className="public-profile-page__grid">
+        {/* Visão geral: the tab's content on the left; who the member is, their journey and achievements beside it. Other tabs take the full width. */}
+        <div className="public-profile-page__grid" data-side={activeTab === 'visao-geral' || undefined}>
           <div className="public-profile-page__main">
             <TabsContent value="visao-geral" className="public-profile-page__tab">
               <ReadmeCard
                 readme={user.bio || null}
                 empty={asOwner ? 'Conte quem você é no texto "Sobre", em Editar perfil.' : `${firstName} ainda não escreveu o texto "Sobre".`}
               />
-              {publishedValidations.length > 0 && (
+            </TabsContent>
+            {publishedValidations.length > 0 && (
+              <TabsContent value="validacoes" className="public-profile-page__tab">
                 <ValidationsCard validations={publishedValidations} projects={projects} contestations={contestations} />
-              )}
+              </TabsContent>
+            )}
+            <TabsContent value="publicacoes" className="public-profile-page__tab">
               <DiaryCard
                 posts={shownPosts}
                 collections={collections.filter((c) => c.userId === user.id)}
@@ -236,6 +256,7 @@ export default function PublicProfile() {
             )}
           </div>
 
+          {activeTab === 'visao-geral' && (
           <aside className="public-profile-page__side" aria-label="Resumo">
             <ProfileFacts
               areas={user.areas.map((area) => labelOf(AREAS, area))}
@@ -246,6 +267,7 @@ export default function PublicProfile() {
             <ProfileJourney stage={asOwner ? journey.stage : journey.publicStage} own={asOwner} />
             <AchievementsBox items={achievements} ownerId={asOwner ? user.id : null} firstName={firstName} />
           </aside>
+          )}
         </div>
       </Tabs>
     </div>

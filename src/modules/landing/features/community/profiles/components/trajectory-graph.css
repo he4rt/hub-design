@@ -1,7 +1,4 @@
 .trajectory-graph {
-  /* The first squad branch: a lighter purple beside the member's line. */
-  --trajectory-branch: color-mix(in srgb, var(--brand-text) 55%, var(--surface));
-
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
@@ -39,6 +36,42 @@
   align-items: center;
   gap: var(--space-2);
   margin-left: auto;
+}
+
+/* Branch and year: quiet menus that show the chosen value, muted until one is chosen. */
+.trajectory-graph__filter.ui-button {
+  max-width: 220px;
+  gap: var(--space-1);
+  color: var(--text-muted);
+
+  &:hover:not(:disabled),
+  &[data-active],
+  &[aria-expanded='true'] {
+    color: var(--text);
+  }
+}
+
+.trajectory-graph__filter-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.trajectory-graph__none {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4) 0;
+  color: var(--text-muted);
+  font: var(--text-body);
+}
+
+/* The Tipo menu exists only on a phone, where it replaces the chips. */
+.trajectory-graph__type-menu.ui-button {
+  display: none;
 }
 
 .trajectory-graph__chip-marker {
@@ -94,10 +127,13 @@
   }
 }
 
+/* A branch in the legend: a dot in its line's color. */
 .trajectory-graph__swatch {
+  display: inline-block;
   flex-shrink: 0;
-  width: 16px;
-  height: 3px;
+  width: 10px;
+  height: 10px;
+  margin: 0 4px;
   border-radius: var(--radius-pill);
   background: var(--lane);
 }
@@ -120,10 +156,29 @@
 }
 
 /* Date, rail, and record. The rail cell stretches with an open record, so every lane keeps going. */
-.trajectory-graph__row {
+.trajectory-graph__row,
+.trajectory-graph__year {
   display: grid;
-  grid-template-columns: 64px auto minmax(0, 1fr);
+  grid-template-columns: 32px auto minmax(0, 1fr);
   column-gap: var(--space-3);
+}
+
+/* The year over its records: the month column and the lanes keep running beside it. */
+.trajectory-graph__year {
+  min-height: 36px;
+
+  .trajectory-graph__rail {
+    min-height: 36px;
+  }
+}
+
+.trajectory-graph__year-label {
+  grid-column: 1 / 2;
+  color: var(--text);
+  font: var(--text-body-strong);
+  font-variant-numeric: tabular-nums;
+  line-height: 36px;
+  white-space: nowrap;
 }
 
 .trajectory-graph__date {
@@ -332,23 +387,19 @@
   gap: var(--space-1) var(--space-3);
 }
 
-/* On one line: the project name gives way first, so "Editar" and who sees it stay beside it. */
+/* The project and where the record came from share a line while they fit; a long origin, such as the validator's name and job, wraps below. */
 .trajectory-graph__origin {
   display: flex;
   flex: 1 1 0;
+  flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--space-1) var(--space-3);
   min-width: 0;
   color: var(--text-muted);
   font: var(--text-caption);
-  white-space: nowrap;
 
   &:empty {
     display: none;
-  }
-
-  > :not(.trajectory-graph__project) {
-    flex-shrink: 0;
   }
 
   .trajectory-graph__link {
@@ -405,8 +456,32 @@
 }
 
 @media (max-width: 767px) {
-  .trajectory-graph__row {
-    grid-template-columns: 52px auto minmax(0, 1fr);
+  /* On a phone the chips give way to the Tipo menu: one line of menus, the legend's icon on the right. */
+  .trajectory-graph__toolbar > .ui-toggle-group {
+    display: none;
+  }
+
+  .trajectory-graph__type-menu.ui-button {
+    display: inline-flex;
+  }
+
+  .trajectory-graph__toolbar-end {
+    flex: 1 1 100%;
+    gap: 0;
+    margin-left: calc(-1 * var(--space-2));
+
+    > :last-child {
+      margin-left: auto;
+    }
+  }
+
+  .trajectory-graph__legend-text {
+    display: none;
+  }
+
+  .trajectory-graph__row,
+  .trajectory-graph__year {
+    grid-template-columns: 32px auto minmax(0, 1fr);
   }
 
   /* On a phone the title wraps and the badge drops below it. */

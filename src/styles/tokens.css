@@ -156,6 +156,8 @@
   --lane-3: light-dark(#d9480f, #ff8a4c); /* Orange line. */
   --lane-4: light-dark(#c2255c, #f472a6); /* Pink line. */
   --lane-5: light-dark(#a17800, #f2c230); /* Yellow line. */
+  --lane-6: light-dark(#0b7285, #3bc9db); /* Teal line. */
+  --lane-7: light-dark(#8a5a2b, #d4a373); /* Brown line. */
 }
 
 /* The page title steps down on a phone. */

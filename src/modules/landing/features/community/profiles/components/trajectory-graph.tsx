@@ -1,10 +1,11 @@
-import { useId, type CSSProperties, type ReactNode } from 'react'
+import { Fragment, useId, type CSSProperties, type ReactNode } from 'react'
 import { Link, useSearchParams } from 'react-router'
-import { ChevronDown, CircleHelp, ExternalLink, FolderGit2 } from 'lucide-react'
+import { Check, ChevronDown, CircleHelp, ExternalLink, FolderGit2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { evidenceIcons } from '@/lib/evidence'
 import { recordTypeLabels, recordTypes, type BranchTone, type RecordType, type TrajectoryEntry, type TrajectoryGraph as Graph } from '@/lib/trajectory/graph'
@@ -15,22 +16,41 @@ import './trajectory-graph.css'
 const PAGE = 8
 const ROW = 48
 const MID = ROW / 2
-const laneX = (lane: number) => 10 + lane * 16
+/** Lanes sit close together, so many squads at once still leave the text its room. */
+const laneX = (lane: number) => 8 + lane * 10
+/** Between two years: a title row the lanes run through, so the line never breaks. */
+function YearRow({ year, next, width }: { year: string; next: TrajectoryEntry; width: number }) {
+  return (
+    <li className="trajectory-graph__year" aria-hidden>
+      <span className="trajectory-graph__year-label">{year}</span>
+      <span className="trajectory-graph__rail" style={{ width }}>
+        {next.lines
+          .filter((line) => line.part !== 'bottom')
+          .map((line) => (
+            <i key={line.lane} className="trajectory-graph__line" data-part="full" style={{ ...laneStyle(line.color, line.tone), left: laneX(line.lane) - 1.5 }} />
+          ))}
+      </span>
+      <span />
+    </li>
+  )
+}
+
 /**
- * The member's line in purple and the first squad branch in a lighter purple; later squads in the
- * metro colors except green, which is the validation's: the strongest proof, drawn with a ring.
+ * The member's line in purple; each squad branch in its own metro color, except green, which is the
+ * validation's: the strongest proof, drawn with a ring.
  */
-const SQUAD_LANES = ['var(--trajectory-branch)', 'var(--lane-1)', 'var(--lane-3)', 'var(--lane-4)', 'var(--lane-5)']
-const laneColor = (lane: number, tone: BranchTone) =>
-  tone === 'validation' ? 'var(--success-text)' : lane === 0 ? 'var(--brand)' : SQUAD_LANES[(lane - 1) % SQUAD_LANES.length]
-const laneStyle = (lane: number, tone: BranchTone) => ({ '--lane': laneColor(lane, tone) }) as CSSProperties
+const SQUAD_LANES = ['var(--lane-1)', 'var(--lane-3)', 'var(--lane-4)', 'var(--lane-5)', 'var(--lane-6)', 'var(--lane-7)']
+/** Colors follow the branch, not its lane: a squad that reuses an ended squad's lane keeps its own color. */
+const laneColor = (color: number, tone: BranchTone) =>
+  tone === 'validation' ? 'var(--success-text)' : color === 0 ? 'var(--brand)' : SQUAD_LANES[(color - 1) % SQUAD_LANES.length]
+const laneStyle = (color: number, tone: BranchTone) => ({ '--lane': laneColor(color, tone) }) as CSSProperties
 
 /** The marker's shape tells the kind of record: dashed, hollow, filled, filled with a ring. */
-function Marker({ type, x, y, lane, tone }: { type: RecordType | null; x: number; y: number; lane: number; tone: BranchTone }) {
+function Marker({ type, x, y, color, tone }: { type: RecordType | null; x: number; y: number; color: number; tone: BranchTone }) {
   return (
     <>
-      {type === 'validated' && <circle className="trajectory-graph__ring" cx={x} cy={y} r={7.5} style={laneStyle(lane, 'validation')} />}
-      <circle className="trajectory-graph__marker" data-type={type ?? 'branch'} cx={x} cy={y} r={4.5} style={laneStyle(lane, tone)} />
+      {type === 'validated' && <circle className="trajectory-graph__ring" cx={x} cy={y} r={7.5} style={laneStyle(color, 'validation')} />}
+      <circle className="trajectory-graph__marker" data-type={type ?? 'branch'} cx={x} cy={y} r={4.5} style={laneStyle(color, tone)} />
     </>
   )
 }
@@ -44,6 +64,33 @@ const MEANINGS: Record<RecordType, string> = {
   validated: 'avaliada por um validador',
 }
 
+type Option = { value: string; label: string; lane?: { color: number; tone: BranchTone } }
+
+/** A quiet menu that narrows the line to one value, such as a branch or a year; "Todos" clears it. */
+function FilterMenu({ name, options, value, onChange, className }: { name: string; options: Option[]; value: string | null; onChange: (value: string | null) => void; className?: string }) {
+  const current = options.find((option) => option.value === value)
+  return (
+    <DropdownMenu modal={false}>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="sm" className={className ? `trajectory-graph__filter ${className}` : 'trajectory-graph__filter'} data-active={current ? '' : undefined} title={current?.label}>
+          {current?.lane && <i className="trajectory-graph__swatch" style={laneStyle(current.lane.color, current.lane.tone)} aria-hidden />}
+          <span className="trajectory-graph__filter-label">{current ? current.label : name}</span>
+          <ChevronDown size={14} aria-hidden />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" aria-label={name}>
+        {[{ value: '', label: 'Todos' } as Option, ...options].map((option) => (
+          <DropdownMenuItem key={option.value} onSelect={() => onChange(option.value || null)}>
+            <Check size={16} aria-hidden style={{ visibility: option.value === (value ?? '') ? 'visible' : 'hidden' }} />
+            {option.lane && <i className="trajectory-graph__swatch" style={laneStyle(option.lane.color, option.lane.tone)} aria-hidden />}
+            {option.label}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
+
 /**
  * For the owner, a line on how the trajectory fills with "Novo registro" beside it. Then one quiet
  * bar: the kinds as filters, each with its marker; what each marker and branch means opens on
@@ -55,8 +102,10 @@ function Toolbar({
   value,
   onChange,
   action,
+  filters,
 }: {
   types: RecordType[]
+  filters: ReactNode
   lanes: Graph['lanes']
   value: RecordType | 'all'
   onChange: (value: RecordType | 'all') => void
@@ -77,18 +126,19 @@ function Toolbar({
         {present.map((t) => (
           <ToggleGroupItem key={t.value} value={t.value} title={`${t.label}: ${MEANINGS[t.value]}`}>
             <svg width={14} height={14} aria-hidden className="trajectory-graph__chip-marker">
-              <Marker type={t.value} x={7} y={7} lane={0} tone={t.value === 'validated' ? 'validation' : 'main'} />
+              <Marker type={t.value} x={7} y={7} color={0} tone={t.value === 'validated' ? 'validation' : 'main'} />
             </svg>
             {t.filter}
           </ToggleGroupItem>
         ))}
       </ToggleGroup>
       <div className="trajectory-graph__toolbar-end">
+        {filters}
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant="ghost" size="sm" className="trajectory-graph__legend-trigger">
+            <Button variant="ghost" size="sm" className="trajectory-graph__legend-trigger" aria-label="Legenda">
               <CircleHelp size={16} aria-hidden />
-              Legenda
+              <span className="trajectory-graph__legend-text">Legenda</span>
             </Button>
           </PopoverTrigger>
           <PopoverContent align="end" aria-label="Legenda da trajetória" className="trajectory-graph__legend">
@@ -96,7 +146,7 @@ function Toolbar({
               {present.map((t) => (
                 <li key={t.value}>
                   <svg width={18} height={18} aria-hidden>
-                    <Marker type={t.value} x={9} y={9} lane={0} tone={t.value === 'validated' ? 'validation' : 'main'} />
+                    <Marker type={t.value} x={9} y={9} color={0} tone={t.value === 'validated' ? 'validation' : 'main'} />
                   </svg>
                   <span>
                     <strong>{t.label}</strong>: {MEANINGS[t.value]}
@@ -106,10 +156,10 @@ function Toolbar({
             </ul>
             {lanes.length > 0 && (
               <ul aria-label="Ramos">
-                {lanes.map(({ lane, label, tone }) => (
-                  <li key={`${lane}-${label}`} title={label}>
-                    <i className="trajectory-graph__swatch" style={laneStyle(lane, tone)} aria-hidden />
-                    <span className="trajectory-graph__legend-label">Ramo: {label}</span>
+                {lanes.map(({ id, color, label, tone }) => (
+                  <li key={id} title={label}>
+                    <i className="trajectory-graph__swatch" style={laneStyle(color, tone)} aria-hidden />
+                    <span className="trajectory-graph__legend-label">{label}</span>
                   </li>
                 ))}
               </ul>
@@ -132,17 +182,17 @@ function Rail({ entry, width }: { entry: TrajectoryEntry; width: number }) {
           key={line.lane}
           className="trajectory-graph__line"
           data-part={line.part}
-          style={{ ...laneStyle(line.lane, line.tone), left: laneX(line.lane) - 1.5 }}
+          style={{ ...laneStyle(line.color, line.tone), left: laneX(line.lane) - 1.5 }}
         />
       ))}
       <svg width={width} height={ROW} className="trajectory-graph__svg">
         {entry.fork && (
-          <path className="trajectory-graph__curve" style={laneStyle(entry.lane, entry.tone)} d={`M${x} ${MID} C${x} ${MID + 12} ${main} ${MID + 8} ${main} ${ROW}`} />
+          <path className="trajectory-graph__curve" style={laneStyle(entry.color, entry.tone)} d={`M${x} ${MID} C${x} ${MID + 12} ${main} ${MID + 8} ${main} ${ROW}`} />
         )}
         {entry.merge && (
-          <path className="trajectory-graph__curve" style={laneStyle(entry.lane, entry.tone)} d={`M${x} ${MID} C${x} ${MID - 12} ${main} ${MID - 8} ${main} 0`} />
+          <path className="trajectory-graph__curve" style={laneStyle(entry.color, entry.tone)} d={`M${x} ${MID} C${x} ${MID - 12} ${main} ${MID - 8} ${main} 0`} />
         )}
-        <Marker type={entry.type} x={x} y={MID} lane={entry.lane} tone={entry.tone} />
+        <Marker type={entry.type} x={x} y={MID} color={entry.color} tone={entry.tone} />
       </svg>
     </span>
   )
@@ -178,7 +228,7 @@ function EntryDetail({ entry, editorId }: { entry: TrajectoryEntry; editorId: st
         {editorId && entry.record && (
           <div className="trajectory-graph__footer-actions">
             {editable && (
-              <Link to="/app/settings/profile#trajectory" className="trajectory-graph__link">
+              <Link to="/app/settings/profile?aba=trajetoria" className="trajectory-graph__link">
                 Editar
               </Link>
             )}
@@ -202,13 +252,24 @@ export function TrajectoryGraph({ graph, editorId, action }: { graph: Graph; edi
   const limit = Math.max(PAGE, Number(params.get('limit')) || PAGE)
   const types = [...new Set(graph.entries.flatMap((entry) => (entry.type ? [entry.type] : [])))]
   const filter = types.find((t) => t === params.get('tipo')) ?? 'all'
-  const setFilter = (next: RecordType | 'all') =>
+  const branches = graph.lanes.filter((lane) => graph.entries.some((entry) => entry.branch === lane.id))
+  const branch = branches.find((b) => b.id === params.get('ramo'))?.id ?? null
+  const years = [...new Set(graph.entries.map((entry) => entry.date.slice(0, 4)))]
+  const year = years.find((y) => y === params.get('ano')) ?? null
+  const setParam = (key: 'tipo' | 'ramo' | 'ano', next: string | null) =>
     setParams((current) => {
       const result = new URLSearchParams(current)
-      if (next === 'all') result.delete('tipo')
-      else result.set('tipo', next)
-      // Another kind starts from its newest records again.
+      if (next === null) result.delete(key)
+      else result.set(key, next)
+      // Another filter starts from its newest records again.
       result.delete('limit')
+      return result
+    }, { replace: true, preventScrollReset: true })
+  const setFilter = (next: RecordType | 'all') => setParam('tipo', next === 'all' ? null : next)
+  const clearFilters = () =>
+    setParams((current) => {
+      const result = new URLSearchParams(current)
+      for (const key of ['tipo', 'ramo', 'ano', 'limit']) result.delete(key)
       return result
     }, { replace: true, preventScrollReset: true })
   const loadMore = () =>
@@ -217,22 +278,67 @@ export function TrajectoryGraph({ graph, editorId, action }: { graph: Graph; edi
       return current
     }, { replace: true, preventScrollReset: true })
   // A filter shows only the records of that kind; squad joins and leaves go with the evidence.
-  const entries = filter === 'all' ? graph.entries : graph.entries.filter((entry) => entry.type === filter || (entry.type === null && filter === 'demonstrated'))
+  const entries = graph.entries
+    .filter((entry) => filter === 'all' || entry.type === filter || (entry.type === null && filter === 'demonstrated'))
+    .filter((entry) => branch === null || entry.branch === branch)
+    .filter((entry) => year === null || entry.date.startsWith(year))
   const visible = entries.slice(0, limit)
   const hasMore = entries.length > visible.length
   const width = laneX(graph.laneCount) + 10
 
   return (
     <div className="trajectory-graph">
-      <Toolbar types={types} lanes={graph.lanes} value={filter} onChange={setFilter} action={action} />
+      <Toolbar
+        types={types}
+        lanes={graph.lanes}
+        value={filter}
+        onChange={setFilter}
+        action={action}
+        filters={
+          <>
+            {/* On a phone the kinds are a menu like Ramo and Ano: chips would need sideways scrolling. */}
+            <FilterMenu
+                className="trajectory-graph__type-menu"
+                name="Tipo"
+                options={recordTypes.filter((t) => types.includes(t.value)).map((t) => ({ value: t.value, label: t.filter }))}
+                value={filter === 'all' ? null : filter}
+                onChange={(next) => setParam('tipo', next)}
+              />
+            {branches.length > 0 && (
+              <FilterMenu
+                name="Ramo"
+                options={branches.map((b) => ({ value: b.id, label: b.label, lane: { color: b.color, tone: b.tone } }))}
+                value={branch}
+                onChange={(next) => setParam('ramo', next)}
+              />
+            )}
+            {years.length > 1 && (
+              <FilterMenu name="Ano" options={years.map((y) => ({ value: y, label: y }))} value={year} onChange={(next) => setParam('ano', next)} />
+            )}
+          </>
+        }
+      />
+      {entries.length === 0 && (
+        <div className="trajectory-graph__none">
+          <p>Nenhum registro com esses filtros.</p>
+          <Button variant="secondary" size="sm" onClick={clearFilters}>
+            Limpar filtros
+          </Button>
+        </div>
+      )}
       {/* With more below, the last rows fade into the button that brings them. */}
       <ol className="trajectory-graph__list" id={listId} data-more={hasMore || undefined}>
-        {visible.map((entry) => {
+        {visible.map((entry, i) => {
           const EvidenceIcon = entry.evidenceKind ? evidenceIcons[entry.evidenceKind] : null
+          // The year is a title over its records; each record keeps its month, to follow the progress.
+          const year = entry.date.slice(0, 4)
+          const newYear = i === 0 || visible[i - 1].date.slice(0, 4) !== year
           return (
-            <li key={entry.id} className="trajectory-graph__row" data-type={entry.type ?? undefined}>
-              <time dateTime={entry.date} className="trajectory-graph__date">
-                {entry.dateLabel}
+            <Fragment key={entry.id}>
+            {newYear && <YearRow year={year} next={entry} width={width} />}
+            <li className="trajectory-graph__row" data-type={entry.type ?? undefined}>
+              <time dateTime={entry.date} className="trajectory-graph__date" title={entry.dateLabel}>
+                {entry.dateLabel.split(' ')[0]}
               </time>
               <Rail entry={entry} width={width} />
               <Collapsible className="trajectory-graph__body">
@@ -265,6 +371,7 @@ export function TrajectoryGraph({ graph, editorId, action }: { graph: Graph; edi
                 </CollapsibleContent>
               </Collapsible>
             </li>
+            </Fragment>
           )
         })}
       </ol>

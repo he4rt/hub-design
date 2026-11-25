@@ -100,7 +100,8 @@
   justify-content: center;
   color: var(--text-muted);
 
-  &:hover {
+  &:hover,
+  &[data-active] {
     color: var(--text);
   }
 }

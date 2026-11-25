@@ -51,15 +51,19 @@ export type TrajectoryEntry = {
   title: string
   badge: { text: string; mono: boolean } | null
   evidenceKind: TechnicalEvidence['kind'] | null
-  /** 0 is the member's main line; each squad and each validated competency gets its own lane. */
+  /** 0 is the member's main line; a squad reuses the lane of one that already ended, and validations share one lane. */
   lane: number
+  /** Palette index of the branch: 0 for the main line and validations, then one per squad, so squads sharing a lane keep their own color. */
+  color: number
+  /** The branch the entry sits on (a squad project or the validations); null on the main line. */
+  branch: string | null
   /** A branch starts here and leaves the main line. */
   fork: boolean
   /** A branch ends here and joins the main line again. */
   merge: boolean
   /** Which kind of branch the record sits on; validations draw in the validator's color. */
   tone: BranchTone
-  lines: { lane: number; part: LanePart; tone: BranchTone }[]
+  lines: { lane: number; color: number; part: LanePart; tone: BranchTone }[]
   detail: string | null
   /** Where the record came from, when the project line does not already say it. */
   origin: string
@@ -76,7 +80,7 @@ export type TrajectoryGraph = {
   entries: TrajectoryEntry[]
   laneCount: number
   /** One legend item per branch, oldest first. */
-  lanes: { lane: number; label: string; tone: BranchTone }[]
+  lanes: { id: string; lane: number; color: number; label: string; tone: BranchTone }[]
 }
 
 const levelLabels = { basic: 'básico', intermediate: 'intermediário', advanced: 'avançado' }
@@ -86,21 +90,17 @@ const evidenceLabels: Record<TechnicalEvidence['kind'], string> = {
   repository: 'Repositório',
 }
 
-/** The first three branches get a lane each, so back-to-back ones stay apart; later ones reuse a free lane. */
-const PREFERRED_LANES = 3
-
 type Branch = { id: string; label: string; start: string; end: string | null; tone: BranchTone }
 
+/** A branch takes the lane of one that already ended, the one free the longest, so ended squads leave no empty column. */
 function assignLanes(branches: Branch[]): Map<string, number> {
   const lanes = new Map<string, number>()
   const freeSince: (string | null)[] = []
   for (const branch of branches.toSorted((a, b) => a.start.localeCompare(b.start))) {
     let lane = -1
-    if (freeSince.length >= PREFERRED_LANES) {
-      freeSince.forEach((ended, index) => {
-        if (ended !== null && ended < branch.start && (lane === -1 || ended < (freeSince[lane] ?? ''))) lane = index
-      })
-    }
+    freeSince.forEach((ended, index) => {
+      if (ended !== null && ended < branch.start && (lane === -1 || ended < (freeSince[lane] ?? ''))) lane = index
+    })
     if (lane === -1) lane = freeSince.push(null) - 1
     freeSince[lane] = branch.end
     lanes.set(branch.id, lane + 1)
@@ -108,12 +108,12 @@ function assignLanes(branches: Branch[]): Map<string, number> {
   return lanes
 }
 
-type Draft = Omit<TrajectoryEntry, 'dateLabel' | 'lines' | 'evidenceKind' | 'url' | 'reference' | 'project' | 'fork' | 'merge' | 'badge' | 'tone' | 'record'> &
-  Partial<Pick<TrajectoryEntry, 'evidenceKind' | 'url' | 'reference' | 'project' | 'fork' | 'merge' | 'badge' | 'tone' | 'record'>>
+type Draft = Omit<TrajectoryEntry, 'dateLabel' | 'lines' | 'color' | 'evidenceKind' | 'url' | 'reference' | 'project' | 'fork' | 'merge' | 'badge' | 'tone' | 'record' | 'branch'> &
+  Partial<Pick<TrajectoryEntry, 'evidenceKind' | 'url' | 'reference' | 'project' | 'fork' | 'merge' | 'badge' | 'tone' | 'record' | 'branch'>>
 
 /**
  * The member's published records as a `git log --graph`, newest first: the member is the main
- * line, each squad and each validated competency is a branch. Only records the member
+ * line, each stay in a squad is a branch and the validations share one. Only records the member
  * made public, squads they chose to show, and validations they published enter.
  */
 export function trajectoryGraph(
@@ -148,35 +148,45 @@ export function trajectoryGraph(
     .filter((membership) => membership.userId === userId && membership.shownOnProfile)
     .flatMap((membership) => {
       const project = projects.find((candidate) => candidate.id === membership.projectId)
-      return project ? [{ project, membership }] : []
+      return project ? [{ project, membership, end: membership.leftAt ?? project.endedAt }] : []
     })
+    .toSorted((a, b) => a.membership.joinedAt.localeCompare(b.membership.joinedAt))
+  // One squad at a time, several projects inside it: each stay in a squad is one branch, from the first
+  // project joined until the last one ends. Leaving and coming back later opens a new branch.
+  type Stay = { id: string; squad: Squad | undefined; start: string; end: string | null; items: typeof participations }
+  const stays: Stay[] = []
+  for (const item of participations) {
+    const open = stays.findLast((stay) => stay.squad?.id === item.project.squadId)
+    if (open && (open.end === null || open.end >= item.membership.joinedAt)) {
+      open.items.push(item)
+      open.end = open.end === null || item.end === null ? null : open.end > item.end ? open.end : item.end
+    } else {
+      stays.push({ id: `squad-${item.project.squadId}-${stays.length}`, squad: squadOf(item.project), start: item.membership.joinedAt, end: item.end, items: [item] })
+    }
+  }
+  const stayOf = (projectId: string | null, date: string) =>
+    stays.find((stay) => stay.items.some((item) => item.project.id === projectId) && stay.start <= date && (stay.end === null || date <= stay.end)) ??
+    stays.find((stay) => stay.items.some((item) => item.project.id === projectId))
 
   const articles = shown(profile.articles)
-  // Published validations, only the latest record of a corrected one. Each competency opens its own branch.
+  // Published validations, only the latest record of a corrected one. They share one branch, opened by the first.
   const shownValidations = validations
     .filter((v) => v.memberId === userId && v.status === 'recorded' && v.published)
     .filter((v, _, all) => !all.some((other) => other.supersedesId === v.id))
     .toSorted((a, b) => (a.recordedAt ?? '').localeCompare(b.recordedAt ?? ''))
-  const competencies = [...new Set(shownValidations.map((v) => v.competency))]
-  const validationBranchId = (competency: string) => `validation-${competency}`
+  const validationBranchId = 'validations'
   const branches: Branch[] = [
-    ...competencies.map((competency) => ({
-      id: validationBranchId(competency),
-      label: `Validação: ${competency}`,
-      start: shownValidations.find((v) => v.competency === competency)?.recordedAt ?? '',
+    ...shownValidations.slice(0, 1).map((v) => ({
+      id: validationBranchId,
+      label: 'Validações',
+      start: v.recordedAt ?? '',
       end: null,
       tone: 'validation' as const,
     })),
-    ...participations.map(({ project, membership }) => ({
-      id: project.id,
-      label: `${project.name}, squad ${squadOf(project)?.name ?? ''}`,
-      start: membership.joinedAt,
-      end: membership.leftAt ?? project.endedAt,
-      tone: 'squad' as const,
-    })),
+    ...stays.map((stay) => ({ id: stay.id, label: `Squad ${stay.squad?.name ?? ''}`, start: stay.start, end: stay.end, tone: 'squad' as const })),
   ]
   const laneOf = assignLanes(branches)
-  const projectLane = (projectId: string | null) => (projectId && laneOf.get(projectId)) || 0
+  const colorOf = new Map(branches.filter((b) => b.tone === 'squad').toSorted((a, b) => a.start.localeCompare(b.start)).map((b, i) => [b.id, i + 1]))
 
   const drafts: Draft[] = [
     ...shown(profile.knowledge).map((k) => ({
@@ -225,68 +235,76 @@ export function trajectoryGraph(
       detail: [`${formatPeriod(e.startedAt, e.endedAt)}.`, e.description].filter(Boolean).join(' '),
       origin: 'Registrado pelo membro',
     })),
-    // A squad is a branch too, from joining until the project ends.
-    ...participations.flatMap(({ project, membership }) => {
-      const lane = laneOf.get(project.id) ?? 0
-      const squad = squadOf(project)
-      const end = membership.leftAt ?? project.endedAt
-      const start: Draft = {
-        id: `${project.id}-start`,
-        type: null,
-        lane,
-        fork: true,
-        date: membership.joinedAt,
-        title: `Entrou no squad ${squad?.name ?? ''}`,
-        // Only the captain is named: the profile does not split the team by stack.
-        badge: { text: squad?.captainId === userId ? `Capitão de ${project.name}` : project.name, mono: false },
-        detail: `${formatPeriod(membership.joinedAt, end)}. ${membership.responsibilities}`,
-        origin: '',
-        project: projectLink(project),
-      }
-      const ending: Draft[] = end
-        ? [
-            {
-              id: `${project.id}-end`,
-              type: null,
+    // A stay in a squad is a branch: it forks when the member joins the first project and merges when the last one ends.
+    ...stays.flatMap((stay) => {
+      const lane = laneOf.get(stay.id) ?? 0
+      const name = stay.squad?.name ?? ''
+      return stay.items.flatMap(({ project, membership, end }, index) => {
+        const first = index === 0
+        const last = end !== null && end === stay.end && !stay.items.some((other, i) => i > index && other.end === stay.end)
+        const start: Draft = {
+          id: first ? `${stay.id}-start` : `${membership.id}-start`,
+          type: null,
+          lane,
+          branch: stay.id,
+          fork: first,
+          date: membership.joinedAt,
+          title: first ? `Entrou no squad ${name}` : `Entrou no projeto ${project.name}`,
+          // Only the captain is named: the profile does not split the team by stack.
+          badge: { text: stay.squad?.captainId === userId ? `Capitão de ${project.name}` : project.name, mono: false },
+          detail: `${formatPeriod(membership.joinedAt, end)}. ${membership.responsibilities}`,
+          origin: '',
+          project: projectLink(project),
+        }
+        const ending: Draft[] = end
+          ? [
+              {
+                id: last ? `${stay.id}-end` : `${membership.id}-end`,
+                type: null,
+                lane,
+                branch: stay.id,
+                merge: last,
+                date: end,
+                title: last && membership.leftAt ? `Saiu do squad ${name}` : membership.leftAt ? `Saiu do projeto ${project.name}` : `Projeto ${project.name} encerrado`,
+                detail: null,
+                origin: '',
+                project: projectLink(project),
+              },
+            ]
+          : []
+        const accepted: Draft[] = deliveries
+          .filter((d) => d.projectId === project.id && d.status === 'accepted' && d.credits.some((c) => c.userId === userId))
+          .map((d) => {
+            const evidence = d.evidence.find((e) => e.authorId === userId)
+            return {
+              id: d.id,
+              type: 'demonstrated' as const,
               lane,
-              merge: true,
-              date: end,
-              title: membership.leftAt ? `Saiu do squad ${squad?.name ?? ''}` : `Projeto ${project.name} encerrado`,
-              detail: null,
-              origin: '',
+              branch: stay.id,
+              date: d.decidedAt ?? d.createdAt,
+              title: d.title,
+              badge: evidence ? { text: evidence.ref, mono: true } : { text: 'entrega aceita', mono: false },
+              detail: [d.credits.find((c) => c.userId === userId)?.part, d.context].filter(Boolean).join(' '),
+              origin: 'Entrega aceita pelo capitão',
+              url: evidence?.url ?? null,
               project: projectLink(project),
-            },
-          ]
-        : []
-      const accepted: Draft[] = deliveries
-        .filter((d) => d.projectId === project.id && d.status === 'accepted' && d.credits.some((c) => c.userId === userId))
-        .map((d) => {
-          const evidence = d.evidence.find((e) => e.authorId === userId)
-          return {
-            id: d.id,
-            type: 'demonstrated' as const,
-            lane,
-            date: d.decidedAt ?? d.createdAt,
-            title: d.title,
-            badge: evidence ? { text: evidence.ref, mono: true } : { text: 'entrega aceita', mono: false },
-            detail: [d.credits.find((c) => c.userId === userId)?.part, d.context].filter(Boolean).join(' '),
-            origin: 'Entrega aceita pelo capitão',
-            url: evidence?.url ?? null,
-            project: projectLink(project),
-          }
-        })
-      return [start, ...ending, ...accepted]
+            }
+          })
+        return [start, ...ending, ...accepted]
+      })
     }),
     // Only evidence from a He4rt project counts as demonstrated; commits outside the Hub stay off the profile for now.
     ...shown(profile.evidences).flatMap((v) => {
         const project = projects.find((candidate) => candidate.id === v.projectId)
         if (!project) return []
+        const stay = stayOf(v.projectId, v.date)
         return {
           id: v.id,
           record: { collection: 'evidences' as const, id: v.id, visibility: v.visibility },
           type: 'demonstrated' as const,
           // An evidence of a shown squad sits on that squad's branch.
-          lane: projectLane(v.projectId),
+          lane: (stay && laneOf.get(stay.id)) || 0,
+          branch: stay?.id ?? null,
           date: v.date,
           title: v.title,
           badge: { text: evidenceRef(v), mono: true },
@@ -298,16 +316,16 @@ export function trajectoryGraph(
           project: projectLink(project),
         }
       }),
-    // A validation sits on its competency's branch; the first one of a competency forks it off the main line.
-    ...shownValidations.map((v) => {
+    // Every validation sits on the validations branch; the first one forks it off the main line.
+    ...shownValidations.map((v, index) => {
       const project = projects.find((candidate) => candidate.id === v.projectId)
       const validator = [v.validator.name, v.validator.jobTitle, v.validator.company].filter(Boolean).join(', ')
-      const branchId = validationBranchId(v.competency)
-      const first = shownValidations.find((other) => other.competency === v.competency)?.id === v.id
+      const first = index === 0
       return {
-        id: first ? `${branchId}-start` : v.id,
+        id: first ? `${validationBranchId}-start` : v.id,
         type: 'validated' as const,
-        lane: laneOf.get(branchId) ?? 0,
+        lane: laneOf.get(validationBranchId) ?? 0,
+        branch: validationBranchId,
         tone: 'validation' as const,
         fork: first,
         date: v.recordedAt ?? v.publishedAt ?? '',
@@ -324,6 +342,7 @@ export function trajectoryGraph(
   const indexOf = (id: string) => sorted.findIndex((entry) => entry.id === id)
   const spans = branches.map((branch) => ({
     lane: laneOf.get(branch.id) ?? 0,
+    color: colorOf.get(branch.id) ?? 0,
     tone: branch.tone,
     start: indexOf(`${branch.id}-start`),
     // An ongoing branch runs to the top of the graph.
@@ -332,14 +351,13 @@ export function trajectoryGraph(
   const last = sorted.length - 1
 
   const entries = sorted.map((draft, i): TrajectoryEntry => {
-    // The main line runs from the newest row to the oldest, like `git log --graph`.
-    // A branch that forks off the oldest row or merges into the newest needs the main line to reach its curve.
-    const top = i === 0 && !draft.merge
+    // The main line runs from the top, through the year title, down to the oldest row, like `git log --graph`.
+    // A branch that forks off the oldest row needs the main line to reach its curve.
     const bottom = i === last && !draft.fork
-    const lines: TrajectoryEntry['lines'] = top && bottom ? [] : [{ lane: 0, part: top ? 'bottom' : bottom ? 'top' : 'full', tone: 'main' }]
+    const lines: TrajectoryEntry['lines'] = [{ lane: 0, color: 0, part: bottom ? 'top' : 'full', tone: 'main' }]
     for (const span of spans) {
       if (i > span.start || i < span.end) continue
-      lines.push({ lane: span.lane, tone: span.tone, part: i === span.start ? 'top' : i === span.end ? 'bottom' : 'full' })
+      lines.push({ lane: span.lane, color: span.color, tone: span.tone, part: i === span.start ? 'top' : i === span.end ? 'bottom' : 'full' })
     }
     return {
       dateLabel: formatMonth(draft.date),
@@ -352,7 +370,9 @@ export function trajectoryGraph(
       reference: null,
       project: null,
       record: null,
+      branch: null,
       ...draft,
+      color: (draft.branch && colorOf.get(draft.branch)) || 0,
       lines,
     }
   })
@@ -362,6 +382,6 @@ export function trajectoryGraph(
     laneCount: Math.max(0, ...laneOf.values()),
     lanes: branches
       .toSorted((a, b) => a.start.localeCompare(b.start))
-      .map((branch) => ({ lane: laneOf.get(branch.id) ?? 0, label: branch.label, tone: branch.tone })),
+      .map((branch) => ({ id: branch.id, lane: laneOf.get(branch.id) ?? 0, color: colorOf.get(branch.id) ?? 0, label: branch.label, tone: branch.tone })),
   }
 }

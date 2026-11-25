@@ -17,11 +17,8 @@ export function ValidationsCard({
   contestations: Contestation[]
 }) {
   return (
-    <section className="public-profile-page__section validations-card" aria-labelledby="validations-card-title">
-      <h2 id="validations-card-title">Validações</h2>
-      <p className="validations-card__muted">
-        Registradas por validadores de fora do squad. Cada uma aparece inteira, com pontos fortes e de melhoria.
-      </p>
+    // The tab names the section, so the list starts right under it.
+    <section className="public-profile-page__section validations-card" aria-label="Validações">
       {validations.map((v) => (
         <div key={v.id} className="validations-card__item">
           {contestations.some((c) => c.validationId === v.id && c.status === 'open') && (

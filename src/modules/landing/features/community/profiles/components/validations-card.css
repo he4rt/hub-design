@@ -1,9 +1,3 @@
-.validations-card__muted {
-  max-width: 720px;
-  color: var(--text-muted);
-  font: var(--text-caption);
-}
-
 .validations-card__item {
   display: flex;
   flex-direction: column;
@@ -15,4 +9,10 @@
   > :last-child {
     align-self: stretch;
   }
+}
+
+/* The first validation sits right under the tabs, with no line above it. */
+.validations-card__item:first-child {
+  padding-top: 0;
+  border-top: 0;
 }

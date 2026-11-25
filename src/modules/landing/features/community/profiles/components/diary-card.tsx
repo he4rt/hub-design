@@ -10,8 +10,12 @@ import { labelOf } from '@/lib/member-profile'
 import { useDb, type FeedCollection, type FeedPost } from '@/mocks/db'
 import './diary-card.css'
 
-/** Publications shown at first, and how many more each "Carregar mais" adds. */
+/**
+ * Publications shown at first, and how many more each "Carregar mais" adds, the same as the trajectory's rows.
+ */
 const PAGE = 8
+/** Its own URL key, so loading more here does not grow the Trajetória tab's list. */
+const LIMIT = 'publicacoes'
 
 /**
  * The member's diary, newest first, filtered by trilha. Members and visitors read the
@@ -40,12 +44,12 @@ export function DiaryCard({
     .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name))
   const selected = trilhas.find((c) => c.id === params.get('trilha'))?.id ?? 'all'
   const shown = selected === 'all' ? posts : posts.filter((p) => p.collectionIds.includes(selected))
-  const limit = Math.max(PAGE, Number(params.get('limit')) || PAGE)
+  const limit = Math.max(PAGE, Number(params.get(LIMIT)) || PAGE)
   const hasMore = shown.length > limit
 
   return (
-    <section className="public-profile-page__section diary-card" aria-labelledby="diary-card-title">
-      <h2 id="diary-card-title">Publicações</h2>
+    // The tab names the section, so the trilhas and the posts start right under it.
+    <section className="public-profile-page__section diary-card" aria-label="Publicações">
       {trilhas.length > 0 && (
         <ToggleGroup
           type="single"
@@ -60,7 +64,7 @@ export function DiaryCard({
                 if (next === 'all') result.delete('trilha')
                 else result.set('trilha', next)
                 // Another trilha starts from its newest publications again.
-                result.delete('limit')
+                result.delete(LIMIT)
                 return result
               },
               { replace: true, preventScrollReset: true },
@@ -124,7 +128,7 @@ export function DiaryCard({
           onClick={() =>
             setParams(
               (current) => {
-                current.set('limit', String(limit + PAGE))
+                current.set(LIMIT, String(limit + PAGE))
                 return current
               },
               { replace: true, preventScrollReset: true },

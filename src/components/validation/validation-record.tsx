@@ -65,10 +65,10 @@ export function ValidationRecord({ validation, projectName, showHistory = true }
         </section>
       </div>
 
-      <p className="validation-record__muted">
-        Conflito de interesse:{' '}
-        {validation.conflictOfInterest.declared ? validation.conflictOfInterest.description : 'nenhum declarado.'}
-      </p>
+      {/* Only a conflict the validator declared and that did not stop the validation is worth a line. */}
+      {validation.conflictOfInterest.declared && (
+        <p className="validation-record__muted">Conflito de interesse: {validation.conflictOfInterest.description}</p>
+      )}
       {history.length > 0 && (
         <Collapsible>
           <CollapsibleTrigger asChild>
