@@ -1,0 +1,312 @@
+.project-showcase-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  min-width: 0;
+}
+
+.project-showcase-page__back {
+  align-self: flex-start;
+  color: var(--brand-text);
+  font: var(--text-body-strong);
+  text-decoration: none;
+
+  &:hover { text-decoration: underline; }
+
+  &:focus-visible {
+    outline: none;
+    border-radius: var(--radius-sm);
+    box-shadow: var(--focus-ring);
+  }
+}
+
+/* The piece first: its cover beside the name and what the maker says about it. */
+.project-showcase-page__hero {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  align-items: center;
+  gap: var(--space-8);
+}
+
+.project-showcase-page__cover {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--space-4);
+  height: 280px;
+  padding: var(--space-6);
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--lang), var(--surface-2) 86%);
+}
+
+.project-showcase-page__monogram {
+  color: var(--lang);
+  font: 600 88px/1 var(--font-display);
+  letter-spacing: -0.04em;
+  text-transform: capitalize;
+}
+
+.project-showcase-page__excerpt {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--text-muted);
+  font: var(--text-mono);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.project-showcase-page__intro {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+  min-width: 0;
+
+  h1 {
+    font: var(--text-display);
+    letter-spacing: -0.02em;
+    overflow-wrap: anywhere;
+  }
+}
+
+/* The language as on GitHub: a dot in its color and the name. */
+.project-showcase-page__language {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--text-muted);
+  font: var(--text-caption);
+
+  &::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: var(--radius-pill);
+    background: var(--lang);
+  }
+}
+
+.project-showcase-page__pitch {
+  max-width: 560px;
+  color: var(--text);
+  font: 400 var(--size-heading) / 1.5 var(--font-sans);
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+.project-showcase-page__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}
+
+/* Reading: the documents take the room, the facts and the question sit beside them. */
+.project-showcase-page__body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  align-items: start;
+  gap: var(--space-8);
+  padding-top: var(--space-8);
+  border-top: 1px solid var(--border);
+}
+
+.project-showcase-page__reading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.project-showcase-page__read,
+.project-showcase-page__muted {
+  color: var(--text-muted);
+  font: var(--text-caption);
+}
+
+.project-showcase-page__side {
+  position: sticky;
+  top: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  min-width: 0;
+}
+
+.project-showcase-page__facts {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-3) var(--space-4);
+  margin: 0;
+
+  dt {
+    color: var(--text-muted);
+    font: var(--text-caption);
+  }
+
+  dd {
+    min-width: 0;
+    margin: 0;
+    font: var(--text-body);
+    font-size: var(--size-caption);
+    text-align: right;
+  }
+}
+
+.project-showcase-page__repo {
+  display: block;
+  overflow: hidden;
+  color: var(--brand-text);
+  font: var(--text-mono);
+  font-size: var(--size-label);
+  text-decoration: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  &:hover { text-decoration: underline; }
+}
+
+.project-showcase-page__count {
+  font-variant-numeric: tabular-nums;
+}
+
+/* The maker's question: a note, quieter than the piece. */
+.project-showcase-page__ask {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--border);
+
+  h2 {
+    color: var(--text-muted);
+    font: var(--text-label);
+  }
+
+  p {
+    color: var(--text-muted);
+    font: var(--text-caption);
+    overflow-wrap: anywhere;
+  }
+}
+
+.project-showcase-page__ask-title.project-showcase-page__ask-title {
+  color: var(--text);
+  font: var(--text-body-strong);
+}
+
+.project-showcase-page__feedback-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+/* Feedback reads like comments under the piece. */
+.project-showcase-page__feedback {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  max-width: 760px;
+  padding-top: var(--space-8);
+  border-top: 1px solid var(--border);
+  scroll-margin-top: var(--space-6);
+
+  > header h2 {
+    font: var(--text-title);
+  }
+}
+
+.project-showcase-page__comments {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.project-showcase-page__comment {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4) 0;
+  border-bottom: 1px solid var(--border);
+
+  &:first-child { padding-top: 0; }
+
+  /* Headings inside a feedback stay below the section title. */
+  .markdown-text :is(h1, h2, h3) {
+    font: var(--text-body-strong);
+  }
+
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+  }
+
+  time {
+    flex: none;
+    color: var(--text-muted);
+    font: var(--text-caption);
+  }
+
+  footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+  }
+}
+
+.project-showcase-page__solved {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--success-text);
+  font: var(--text-caption);
+}
+
+@media (max-width: 1099px) {
+  .project-showcase-page__body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .project-showcase-page__side {
+    position: static;
+    order: -1;
+  }
+}
+
+@media (max-width: 767px) {
+  .project-showcase-page {
+    gap: var(--space-6);
+  }
+
+  .project-showcase-page__hero {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-5);
+  }
+
+  .project-showcase-page__cover {
+    aspect-ratio: auto;
+    height: 160px;
+  }
+
+  .project-showcase-page__monogram {
+    font-size: 56px;
+  }
+
+  .project-showcase-page__pitch {
+    font-size: var(--size-body);
+  }
+
+  .project-showcase-page__body,
+  .project-showcase-page__feedback {
+    padding-top: var(--space-6);
+  }
+}

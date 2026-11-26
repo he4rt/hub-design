@@ -1,0 +1,211 @@
+/* Achievements as quiet circles with a short glyph: no shine, no rarity, no color coding. */
+.txa {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.txa__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-height: var(--controle-compacto);
+
+  h4 {
+    margin: 0;
+  }
+
+  /* The tertiary button's negative margin would push it out of the side column and scroll it sideways. */
+  .tx-btn {
+    margin-right: 0;
+  }
+}
+
+.txa__stage {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 20px;
+
+  b {
+    color: var(--asfalto);
+    font-weight: 600;
+  }
+}
+
+/* Four a row in the side column; the count is fixed, so nothing jumps. */
+.txa__grid {
+  display: grid;
+  grid-template-columns: repeat(4, 48px);
+  justify-content: space-between;
+  gap: var(--space-4) var(--space-3);
+  margin: var(--space-1) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tx .txa-medal {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: 1px solid var(--fio);
+  border-radius: 50%;
+  background: var(--superficie);
+  color: var(--asfalto);
+  cursor: pointer;
+  transition:
+    border-color var(--dur-rapida, 120ms),
+    color var(--dur-rapida, 120ms);
+
+  &:hover,
+  &[data-state='open'] {
+    border-color: var(--fio-forte);
+    color: var(--asfalto);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foco);
+    outline-offset: 2px;
+  }
+
+  /* Only the owner sees these: dashed and quieter, never mistaken for a shown one. */
+  &[data-hidden] {
+    border-style: dashed;
+    border-color: var(--fio-forte);
+    background: transparent;
+    color: var(--meta);
+  }
+}
+
+.txa-medal__glyph {
+  max-width: 40px;
+  overflow: hidden;
+  font: 500 13px/1 var(--font-mono);
+  white-space: nowrap;
+}
+
+.txa-medal__eye {
+  position: absolute;
+  right: -3px;
+  bottom: -3px;
+  box-sizing: content-box;
+  width: 10px;
+  height: 10px;
+  padding: 3px;
+  border-radius: 50%;
+  background: var(--cal);
+  color: var(--meta);
+}
+
+.txa-pop {
+  z-index: 15;
+  display: grid;
+  gap: var(--space-2);
+  width: min(280px, calc(100vw - 32px));
+  padding: var(--space-4);
+  border: 1px solid var(--fio);
+  border-radius: var(--radius-md);
+  background: var(--superficie);
+  color: var(--asfalto);
+  box-shadow: var(--sombra-flutuante);
+  font-size: 14px;
+  line-height: 22px;
+  transform-origin: var(--radix-popover-content-transform-origin);
+  animation: tx-menu-in var(--dur-media) var(--ease-mola);
+
+  .tx-btn {
+    justify-self: start;
+    margin-top: var(--space-1);
+  }
+}
+
+.txa-pop__name {
+  font-weight: 600;
+}
+
+.txa-pop__text {
+  color: var(--muted);
+}
+
+.txa-pop__note {
+  display: flex;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--banda);
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 20px;
+
+  svg {
+    flex: none;
+    width: 16px;
+    height: 16px;
+    margin-top: 2px;
+  }
+}
+
+.txa-group {
+  display: grid;
+  gap: var(--space-2);
+
+  h3 {
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+}
+
+.txa-row {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--fio);
+
+  &:last-child {
+    border-bottom: 0;
+  }
+
+  time {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+}
+
+.txa-row__text {
+  display: grid;
+  min-width: 0;
+  font-size: 14px;
+  line-height: 20px;
+
+  b {
+    overflow: hidden;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  span {
+    color: var(--muted);
+  }
+}
+
+.txa-row__private {
+  font-size: 13px;
+}
+
+@media (max-width: 1100px) {
+  .txa__grid {
+    grid-template-columns: repeat(auto-fill, 48px);
+    justify-content: start;
+  }
+}

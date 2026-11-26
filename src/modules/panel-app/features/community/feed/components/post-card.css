@@ -79,7 +79,40 @@
   white-space: nowrap;
 }
 
-/* The two parts of a publication, each with a field label above its text. */
+/* Kind of publication and its trajectory context, quiet, above what it says. */
+.post-card__context {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  margin-bottom: calc(-1 * var(--space-2));
+  color: var(--text-muted);
+  font: var(--text-caption);
+
+  svg {
+    flex: none;
+  }
+
+  > span {
+    white-space: nowrap;
+  }
+}
+
+.post-card__context-learning {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* The learning is the publication: the strongest text of the card. */
+.post-card__learned {
+  color: var(--text);
+  font: var(--text-subheading);
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+}
+
 .post-card__body {
   display: flex;
   flex-direction: column;
@@ -93,14 +126,8 @@
   }
 
   dt {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
     color: var(--text-muted);
     font: var(--text-label);
-    > svg {
-      color: var(--info-text);
-    }
   }
 
   dd {
@@ -112,9 +139,17 @@
   }
 }
 
+/* The result: how much it moved the author toward their objective. */
 .post-card__progress {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
   color: var(--text-muted);
   font: var(--text-caption);
+
+  svg {
+    flex: none;
+  }
 }
 
 /*

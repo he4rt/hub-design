@@ -1,0 +1,338 @@
+.project-workbench-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  min-width: 0;
+}
+
+.project-workbench-page__back {
+  align-self: flex-start;
+  color: var(--brand-text);
+  font: var(--text-body-strong);
+  text-decoration: none;
+
+  &:hover { text-decoration: underline; }
+
+  &:focus-visible {
+    outline: none;
+    border-radius: var(--radius-sm);
+    box-shadow: var(--focus-ring);
+  }
+}
+
+/* The request is the title: its state first, then what is asked and who asks. */
+.project-workbench-page__header {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+
+  h1 {
+    max-width: 860px;
+    font: var(--text-display);
+    letter-spacing: -0.02em;
+    overflow-wrap: anywhere;
+    text-wrap: balance;
+  }
+}
+
+.project-workbench-page__state {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+
+  time {
+    color: var(--text-muted);
+    font: var(--text-caption);
+  }
+}
+
+/* Where the request stands, as three steps on one line. */
+.project-workbench-page__steps {
+  display: flex;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: grid;
+    flex: 1;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-content: start;
+    align-items: center;
+    gap: var(--space-1) var(--space-2);
+    min-width: 0;
+    padding-top: var(--space-3);
+    border-top: 2px solid var(--border);
+    color: var(--text-muted);
+    transition: border-color var(--dur-medium) var(--ease-out), color var(--dur-medium) var(--ease-out);
+
+    &[data-done] {
+      border-top-color: var(--success-text);
+      color: var(--text);
+    }
+  }
+
+  time {
+    grid-column: 2;
+    color: var(--text-muted);
+    font: var(--text-caption);
+  }
+}
+
+.project-workbench-page__step-mark {
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-pill);
+  color: var(--surface);
+  transition: background var(--dur-medium) var(--ease-out), border-color var(--dur-medium) var(--ease-out);
+
+  [data-done] > & {
+    border-color: var(--success-text);
+    background: var(--success-text);
+  }
+}
+
+.project-workbench-page__step-label {
+  overflow: hidden;
+  font: var(--text-body-strong);
+  font-size: var(--size-caption);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The bench: the thread in the middle, the project as reference on the side. */
+.project-workbench-page__body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  align-items: start;
+  gap: var(--space-8);
+}
+
+.project-workbench-page__main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  min-width: 0;
+
+  h2 {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font: var(--text-subheading);
+  }
+}
+
+.project-workbench-page__ask {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+
+  p {
+    font: var(--text-body);
+    font-size: 15px;
+    line-height: 1.6;
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+  }
+}
+
+.project-workbench-page__count {
+  color: var(--text-muted);
+  font: var(--text-body);
+  font-variant-numeric: tabular-nums;
+}
+
+.project-workbench-page__thread {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.project-workbench-page__muted {
+  color: var(--text-muted);
+  font: var(--text-caption);
+}
+
+/* Each feedback hangs off a line, like the steps of a review. */
+.project-workbench-page__replies {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.project-workbench-page__reply {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: 0 0 var(--space-5) var(--space-5);
+  border-left: 2px solid var(--border);
+  transition: border-color var(--dur-medium) var(--ease-out);
+
+  &:last-child { padding-bottom: 0; }
+
+  &[data-solved] { border-left-color: var(--success-text); }
+
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+  }
+
+  time {
+    flex: none;
+    color: var(--text-muted);
+    font: var(--text-caption);
+  }
+
+  > p {
+    font: var(--text-body);
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+  }
+
+  footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+  }
+}
+
+.project-workbench-page__compose {
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--border);
+}
+
+/* Reference column: quiet, sticky, the documents folded. */
+.project-workbench-page__reference {
+  position: sticky;
+  top: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  min-width: 0;
+  padding-left: var(--space-6);
+  border-left: 1px solid var(--border);
+
+  section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  h2 {
+    color: var(--text-muted);
+    font: var(--text-label);
+  }
+}
+
+.project-workbench-page__repo {
+  overflow: hidden;
+  color: var(--brand-text);
+  font: var(--text-mono);
+  text-decoration: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  &:hover { text-decoration: underline; }
+}
+
+.project-workbench-page__language {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--text-muted);
+  font: var(--text-caption);
+
+  &::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: var(--radius-pill);
+    background: var(--lang);
+  }
+}
+
+.project-workbench-page__pitch {
+  font: var(--text-body);
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+.project-workbench-page__documents {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+
+  > [data-state] { align-self: stretch; }
+  > .ui-button svg:last-child { transition: transform var(--dur-medium) var(--ease-out); }
+  > .ui-button[data-state='open'] svg:last-child { transform: rotate(180deg); }
+}
+
+.project-workbench-page__others {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  a {
+    overflow: hidden;
+    color: var(--text);
+    font: var(--text-body-strong);
+    text-decoration: none;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    &:hover { color: var(--brand-text); }
+  }
+
+  span {
+    color: var(--text-muted);
+    font: var(--text-caption);
+  }
+}
+
+@media (max-width: 1099px) {
+  .project-workbench-page__body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .project-workbench-page__reference {
+    position: static;
+    order: -1;
+    padding: var(--space-5) 0 0;
+    border-top: 1px solid var(--border);
+    border-left: 0;
+  }
+}
+
+@media (max-width: 767px) {
+  .project-workbench-page__steps time {
+    display: none;
+  }
+}
+
+/* In the narrow reference column the tabs need the whole width. */
+.project-workbench-page__documents .project-documents__toolbar > span,
+.project-workbench-page__documents .ui-tabs__trigger svg {
+  display: none;
+}

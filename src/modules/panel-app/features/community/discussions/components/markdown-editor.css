@@ -1,0 +1,177 @@
+/* The library's palette, read from the Hub's tokens so it follows the light and dark themes. */
+.markdown-editor,
+.markdown-editor__root {
+  --baseBase: var(--surface-2);
+  --baseBgSubtle: var(--surface-2);
+  --baseBg: var(--surface-2);
+  --baseBgHover: var(--surface-2);
+  --baseBgActive: var(--border);
+  --baseLine: var(--border);
+  --baseBorder: var(--border);
+  --baseBorderHover: var(--border-strong);
+  --baseSolid: var(--text-muted);
+  --baseSolidHover: var(--text);
+  --baseText: var(--text-muted);
+  --baseTextContrast: var(--text);
+  --basePageBg: var(--surface);
+  --accentBase: var(--surface-2);
+  --accentBgSubtle: var(--surface-2);
+  --accentBg: var(--surface-2);
+  --accentBgHover: var(--border);
+  --accentBgActive: var(--border);
+  --accentLine: var(--border-strong);
+  --accentBorder: var(--border-strong);
+  --accentBorderHover: var(--text-muted);
+  --accentSolid: var(--brand);
+  --accentSolidHover: var(--brand-hover);
+  --accentText: var(--brand-text);
+  --accentTextContrast: var(--text);
+  --font-body: var(--font-sans);
+  --font-mono: 'Geist Mono', ui-monospace, monospace;
+}
+
+.markdown-editor {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  transition: border-color var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out);
+
+  &:focus-within {
+    border-color: var(--text-muted);
+  }
+}
+
+.markdown-editor__root {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  color: var(--text);
+  font-family: var(--font-sans);
+}
+
+/* The toolbar stays on top of the text while it scrolls with the page. */
+.markdown-editor__toolbar.markdown-editor__toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  padding: var(--space-2);
+  border-bottom: 1px solid var(--border);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  background: var(--surface);
+  overflow: visible;
+
+  button,
+  [role='combobox'] {
+    border-radius: var(--radius-sm);
+    color: var(--text-muted);
+    transition: background var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+
+    &:hover {
+      color: var(--text);
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: var(--focus-ring);
+    }
+  }
+
+  [data-state='on'] {
+    background: var(--surface-2);
+    color: var(--text);
+  }
+}
+
+.markdown-editor__content {
+  min-height: 420px;
+  padding: var(--space-6);
+  font: var(--text-body);
+  font-size: 15px;
+  line-height: 1.65;
+  outline: none;
+
+  /* The model's italic lines are what to replace: they read as hints. */
+  em {
+    color: var(--text-muted);
+  }
+
+  h2 {
+    font: var(--text-heading);
+  }
+
+  h3 {
+    font: var(--text-subheading);
+  }
+
+  code {
+    padding: 1px var(--space-1);
+    border-radius: var(--radius-sm);
+    background: var(--surface-2);
+  }
+
+  blockquote {
+    padding-left: var(--space-4);
+    border-left: 2px solid var(--border-strong);
+    color: var(--text-muted);
+  }
+}
+
+/* The raw Markdown view: the same box, in mono. */
+.markdown-editor .cm-editor {
+  min-height: 420px;
+  font: var(--text-mono);
+}
+
+/* A code block inside the text only takes the lines it has, on the sunken surface in both themes. */
+.markdown-editor__content .cm-editor {
+  min-height: 0;
+  border-radius: var(--radius-md);
+}
+
+.markdown-editor .cm-editor,
+.markdown-editor .cm-gutters,
+.markdown-editor .cm-activeLine,
+.markdown-editor .cm-activeLineGutter {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.markdown-editor .cm-gutters {
+  border-right: 1px solid var(--border);
+  color: var(--text-faint);
+}
+
+.markdown-editor .cm-cursor {
+  border-left-color: var(--text);
+}
+
+.markdown-editor [class*='_placeholder_'] {
+  padding: var(--space-6);
+  color: var(--text-faint);
+  font: var(--text-body);
+  font-size: 15px;
+}
+
+@media (max-width: 767px) {
+  .markdown-editor__content {
+    min-height: 320px;
+    padding: var(--space-4);
+    font-size: var(--size-input-touch);
+  }
+
+  .markdown-editor [class*='_placeholder_'] {
+    padding: var(--space-4);
+  }
+
+  /* The code block's language picker sits above the code instead of over it. */
+  .markdown-editor [class*='_codeMirrorToolbar_'] {
+    position: static;
+    justify-content: flex-end;
+  }
+}

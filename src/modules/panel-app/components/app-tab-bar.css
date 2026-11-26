@@ -5,16 +5,28 @@
 
 @media (max-width: 767px) {
   .app-tab-bar {
+    /* Floats over the page, apart from the screen's edges, as frosted glass: the page shows through it. */
     position: fixed;
-    right: 0;
-    bottom: 0;
-    left: 0;
+    right: var(--space-3);
+    bottom: calc(var(--space-3) + env(safe-area-inset-bottom));
+    left: var(--space-3);
     z-index: 20;
     display: grid;
     grid-template-columns: repeat(5, minmax(0, 1fr));
-    padding: var(--space-1) var(--space-2) calc(var(--space-1) + env(safe-area-inset-bottom));
-    border-top: 1px solid var(--border);
+    padding: var(--space-1);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
     background: var(--surface);
+    box-shadow: var(--shadow-float);
+  }
+
+  @supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+    .app-tab-bar {
+      border-color: color-mix(in srgb, var(--border), transparent 30%);
+      background: color-mix(in srgb, var(--surface), transparent 30%);
+      -webkit-backdrop-filter: blur(16px) saturate(160%);
+      backdrop-filter: blur(16px) saturate(160%);
+    }
   }
 }
 
@@ -42,8 +54,10 @@
     white-space: nowrap;
   }
 
+  transition: color var(--dur-fast) var(--ease-out);
+
   &.active {
-    color: var(--brand);
+    color: var(--brand-text);
   }
 
   &:focus-visible {

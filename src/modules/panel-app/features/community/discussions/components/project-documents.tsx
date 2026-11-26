@@ -1,11 +1,10 @@
 import { useState, useTransition } from 'react'
-import Markdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
 import { BookOpen, ChartNoAxesCombined, Copy, ExternalLink, FileText } from 'lucide-react'
 import { FormMessage } from '@/components/form-message'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import type { MemberProject } from '@/mocks/db'
+import { MarkdownText } from './markdown-text'
 import './project-documents.css'
 
 const FILES = [
@@ -63,26 +62,7 @@ export function ProjectDocuments({ project, own }: { project: MemberProject; own
         {available.map((f) => (
           <TabsContent key={f.key} value={f.key} className="project-documents__panel">
             <p className="project-documents__source"><FileText size={15} aria-hidden /> Do GitHub: {f.filename}</p>
-            <div className="project-documents__markdown">
-              <Markdown
-                remarkPlugins={[remarkGfm]}
-                skipHtml
-                disallowedElements={['img']}
-                components={{
-                  a: ({ href, children }) => (
-                    <a
-                      href={href?.startsWith('https://') || href?.startsWith('http://') ? href : undefined}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      {children}
-                    </a>
-                  ),
-                }}
-              >
-                {project.read.files[f.key]}
-              </Markdown>
-            </div>
+            <MarkdownText>{project.read.files[f.key] ?? ''}</MarkdownText>
           </TabsContent>
         ))}
       </Tabs>

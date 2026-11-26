@@ -1,5 +1,5 @@
 import { useRef, useState, useTransition } from 'react'
-import { BadgeCheck, BookOpen, MessageSquare, Wrench } from 'lucide-react'
+import { BadgeCheck, BookOpen, Code2, MessageSquare, Target } from 'lucide-react'
 import { Link } from 'react-router'
 import { MemberProjectPreview } from '@/components/member-project-preview'
 import { Avatar } from '@/components/ui/avatar'
@@ -65,6 +65,12 @@ export function PostCard({
   const allComments = useDb((state) => state.feedComments)
   const viewer = useDb((state) => state.users.find((u) => u.id === viewerId))
   const project = useDb((state) => state.memberProjects.find((p) => p.id === post.projectId))
+  // The trajectory learning the author tied it to: the context line names it.
+  const learning = useDb((state) =>
+    post.learningId
+      ? state.profiles.find((p) => p.userId === post.userId)?.learnings.find((l) => l.id === post.learningId)
+      : undefined,
+  )
   const [commenting, setCommenting] = useState(false)
   const comments = allComments.filter((c) => c.postId === post.id && c.deletedAt === null)
   // The viewer's own comments the moderation removed stay in the conversation for them, with the reason.
@@ -218,6 +224,17 @@ export function PostCard({
         )}
       </header>
 
+      {/* What kind of publication it is and, when the author chose one, the trajectory learning it belongs to. */}
+      <p className="post-card__context">
+        {project ? <Code2 size={14} aria-hidden /> : <BookOpen size={14} aria-hidden />}
+        <span>{project ? 'Projeto pessoal' : 'Aprendizado'}</span>
+        {learning && (
+          <span className="post-card__context-learning" title={learning.title}>
+            em {learning.title}
+          </span>
+        )}
+      </p>
+
       {project ? (
         <div className="post-card__project">
           <p className="post-card__pitch">{project.pitch}</p>
@@ -225,18 +242,16 @@ export function PostCard({
         </div>
       ) : (
         <>
+          {/* The learning leads: the one line in the card with weight. How it was applied supports it. */}
+          <p className="post-card__learned">{post.learned}</p>
           <dl className="post-card__body">
             <div>
-              <dt><BookOpen size={15} aria-hidden /> O que aprendi</dt>
-              <dd>{post.learned}</dd>
-            </div>
-            <div>
-              <dt><Wrench size={15} aria-hidden /> Como apliquei</dt>
+              <dt>Como apliquei</dt>
               <dd>{post.applied}</dd>
             </div>
           </dl>
-
           <p className="post-card__progress">
+            <Target size={14} aria-hidden />
             {labelOf(OBJECTIVE_PROGRESS, post.objectiveProgress)} do objetivo
           </p>
         </>

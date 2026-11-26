@@ -18,6 +18,6 @@
 
 .ui-scroll-area__thumb {
   flex: 1;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--border);
 }

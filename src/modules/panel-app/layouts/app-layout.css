@@ -121,11 +121,11 @@
   }
 
   .app-layout__content {
-    /* Room for the bottom bar, so the last item never hides under it. */
-    padding: var(--space-6) var(--space-4) calc(var(--space-10) + 64px + env(safe-area-inset-bottom));
+    /* Room for the floating bottom bar (62px plus its 12px gap), so the last item never hides under it. */
+    padding: var(--space-6) var(--space-4) calc(var(--space-10) + 74px + env(safe-area-inset-bottom));
 
     &[data-full-width] {
-      padding: 0 0 calc(64px + env(safe-area-inset-bottom));
+      padding: 0 0 calc(var(--space-6) + 74px + env(safe-area-inset-bottom));
     }
   }
 }

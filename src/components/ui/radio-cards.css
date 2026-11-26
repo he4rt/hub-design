@@ -17,6 +17,9 @@
   font: inherit;
   text-align: left;
   cursor: pointer;
+  transition:
+    background var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out);
 
   &:hover {
     border-color: var(--text-muted);
@@ -41,7 +44,7 @@
   height: 18px;
   margin-top: 2px;
   border: 1px solid var(--border);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--surface);
 
   [data-state='checked'] > & {
@@ -52,8 +55,15 @@
 .ui-radio-card__dot {
   width: 8px;
   height: 8px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--brand);
+  animation: ui-radio-card-dot var(--dur-medium) var(--ease-spring);
+}
+
+@keyframes ui-radio-card-dot {
+  from {
+    transform: scale(0);
+  }
 }
 
 .ui-radio-card__text {

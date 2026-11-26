@@ -1,0 +1,143 @@
+/*
+ * Rule of the lab: every action moves smoothly. Nothing switches in one frame: views, tabs,
+ * filters, months, lists that grow, screens, the theme, and every overlay that opens or closes.
+ * With prefers-reduced-motion, everything changes at once, with no motion.
+ */
+
+/* ---------- Screen and state changes (view transitions) ---------- */
+
+/* The sidebar stays still; only the content changes. */
+.tx .txf-side {
+  view-transition-name: lab-side;
+}
+
+.txf-main {
+  view-transition-name: lab-main;
+}
+
+::view-transition-old(lab-main) {
+  animation: lab-out 120ms var(--ease-entrada, ease-in) both;
+}
+
+::view-transition-new(lab-main) {
+  animation: lab-in 240ms var(--ease-saida, ease-out) both;
+}
+
+::view-transition-group(lab-main),
+::view-transition-group(lab-side) {
+  animation-duration: 240ms;
+}
+
+@keyframes lab-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes lab-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+
+/* The theme fades the whole page at once, with no movement. */
+html:active-view-transition-type(theme) {
+  &::view-transition-old(*) {
+    animation: lab-out 280ms ease-out both;
+  }
+
+  &::view-transition-new(*) {
+    animation: lab-fade-in 280ms ease-out both;
+  }
+}
+
+@keyframes lab-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* ---------- Controls: color, border and background never snap ---------- */
+
+.tx.txf :is(
+    .txp-filter__item,
+    .txe-views button,
+    .txe-day,
+    .txe-menu__item,
+    .txt-new__item,
+    .tx-tabs__trigger,
+    .txe-link,
+    .txf-crumbs a,
+    .txe-event__host a,
+    .txe-cal__nav button,
+    .txe-select,
+    .txe-more__trigger,
+    .txp-activity__title a,
+    .txt-record,
+    .tx-side__item
+  ) {
+  transition:
+    color var(--dur-media) var(--ease-saida),
+    background-color var(--dur-media) var(--ease-saida),
+    border-color var(--dur-media) var(--ease-saida),
+    box-shadow var(--dur-media) var(--ease-saida);
+}
+
+/* ---------- Overlays leave the way they came ---------- */
+
+.tx-scrim[data-state='closed'] {
+  animation: lab-out var(--dur-rapida) ease-in both;
+}
+
+.tx-dialog[data-state='closed'] {
+  animation: tx-dialog-out var(--dur-rapida) var(--ease-entrada) both;
+}
+
+@keyframes tx-dialog-out {
+  to {
+    opacity: 0;
+    transform: translate(-50%, -48%) scale(0.97);
+  }
+}
+
+.txe-menu,
+.txa-pop {
+  transform-origin: var(--radix-dropdown-menu-content-transform-origin, var(--radix-popover-content-transform-origin));
+}
+
+.txe-menu[data-state='open'] {
+  animation: tx-menu-in var(--dur-media) var(--ease-mola);
+}
+
+.tx-react__menu[data-state='closed'],
+.txa-pop[data-state='closed'],
+.txe-menu[data-state='closed'] {
+  animation: lab-menu-out var(--dur-rapida) var(--ease-entrada) both;
+}
+
+@keyframes lab-menu-out {
+  to {
+    opacity: 0;
+    transform: translateY(4px) scale(0.96);
+  }
+}
+
+/* ---------- Less motion ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+
+  .tx-scrim[data-state='closed'],
+  .tx-dialog[data-state='closed'],
+  .tx-react__menu[data-state='closed'],
+  .txa-pop[data-state='closed'],
+  .txe-menu[data-state='closed'],
+  .txe-menu[data-state='open'] {
+    animation: lab-out 1ms both;
+  }
+}

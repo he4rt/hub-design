@@ -51,51 +51,6 @@
     color: var(--info-text);
   }
 }
-.project-documents__markdown {
-  overflow-wrap: anywhere;
-  font: var(--text-body);
-  > * + * {
-    margin-top: var(--space-4);
-  }
-  h1 {
-    font: var(--text-title);
-  }
-  h2,
-  h3 {
-    font: var(--text-subheading);
-  }
-  ul,
-  ol {
-    padding-left: var(--space-5);
-  }
-  li + li {
-    margin-top: var(--space-2);
-  }
-  pre {
-    overflow-x: auto;
-    padding: var(--space-4);
-    background: var(--surface-2);
-    border-radius: var(--radius-md);
-  }
-  table {
-    display: block;
-    width: 100%;
-    overflow-x: auto;
-    border-collapse: collapse;
-    font-variant-numeric: tabular-nums;
-  }
-  th,
-  td {
-    min-width: 120px;
-    padding: var(--space-3);
-    border: 1px solid var(--border);
-    text-align: left;
-  }
-  th {
-    font: var(--text-body-strong);
-    background: var(--surface-2);
-  }
-}
 .project-documents__missing {
   display: flex;
   flex-direction: column;

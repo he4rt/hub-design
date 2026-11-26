@@ -27,6 +27,7 @@
   font-size: var(--size-body);
   cursor: pointer;
   outline: none;
+  transition: background var(--dur-fast) var(--ease-out);
 
   &[data-highlighted] {
     background: var(--brand-soft);

@@ -30,7 +30,9 @@
 .ui-combobox__option {
   color: var(--text);
   cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out);
 
+  &:hover,
   &[aria-selected='true'] {
     background: var(--brand-soft);
   }

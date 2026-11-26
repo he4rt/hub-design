@@ -1,0 +1,727 @@
+/* "Meu perfil" as one whole screen in "Técnico × Traçado". Scoped to `.txp`, inside `.tx`. */
+/* The identity, LinkedIn style: one block with the cover on top and the photo over its lower edge. */
+.txp-id {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'cover cover'
+    'photo actions'
+    'text text';
+  gap: 0 var(--space-6);
+  max-width: 1200px;
+  padding-bottom: var(--space-6);
+  overflow: hidden;
+  border: 1px solid var(--fio);
+  border-radius: var(--radius-lg);
+  background: var(--superficie);
+}
+
+/* 4:1 like LinkedIn's; without a picture, the ink band with the module grid. */
+.txp-id__cover {
+  grid-area: cover;
+  position: relative;
+  height: clamp(96px, 16vw, 200px);
+  background-color: var(--tx-mast-bg);
+  background-image: var(--tx-mast-grid);
+  background-size: 16px 16px;
+
+  &[data-image] {
+    background-position: center;
+    background-size: cover;
+  }
+}
+
+.txp-id__tools {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  display: flex;
+  gap: var(--space-2);
+}
+
+.txp-id__error {
+  position: absolute;
+  bottom: var(--space-3);
+  right: var(--space-3);
+  max-width: calc(100% - var(--space-6));
+  border-radius: var(--radius-pill);
+  background: var(--superficie);
+  color: var(--perigo);
+  font-size: 13px;
+
+  &:not(:empty) {
+    padding: 2px var(--space-3);
+  }
+}
+
+.tx .txp-id__icon {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--fio);
+  border-radius: 50%;
+  background: var(--superficie);
+  color: var(--asfalto);
+  cursor: pointer;
+  transition: border-color var(--dur-rapida);
+
+  svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  &:hover {
+    border-color: var(--fio-forte);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foco);
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    cursor: progress;
+    opacity: 0.6;
+  }
+}
+
+.txp-id__photo {
+  grid-area: photo;
+  position: relative;
+  justify-self: start;
+  margin: -88px 0 0 var(--space-6);
+
+  .txf-person[data-size='xl'] {
+    width: 152px;
+    height: 152px;
+    font-size: 44px;
+    box-shadow: 0 0 0 4px var(--superficie);
+  }
+}
+
+.tx .txp-id__photo-edit {
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+}
+
+.txp-id__actions {
+  grid-area: actions;
+  align-self: start;
+  padding: var(--space-4) var(--space-6) 0 0;
+}
+
+.txp-id__text {
+  grid-area: text;
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+  padding: var(--space-4) var(--space-6) 0;
+
+  h1 {
+    overflow: hidden;
+    font-size: 32px;
+    line-height: 38px;
+    font-weight: 600;
+    letter-spacing: -0.04em;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.txp-id__handle {
+  color: var(--meta);
+  font-size: 13px;
+}
+
+.txp-id__bio {
+  max-width: 62ch;
+  margin-top: var(--space-2);
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 24px;
+}
+
+.txp-id__validator,
+.txp-id__facts li,
+.txp-id__facts a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  svg {
+    flex: none;
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.txp-id__validator {
+  margin-top: var(--space-2);
+  color: var(--muted);
+
+  b {
+    color: var(--asfalto);
+    font-weight: 600;
+  }
+
+  svg {
+    color: var(--roxo-texto);
+  }
+}
+
+.txp-id__facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-5);
+  margin: var(--space-3) 0 0;
+  padding: 0;
+  color: var(--meta);
+  list-style: none;
+
+  svg {
+    color: var(--meta);
+  }
+}
+
+.tx .txp-id__facts a {
+  color: var(--muted);
+  text-decoration: none;
+
+  &:hover {
+    color: var(--roxo-texto);
+  }
+}
+
+.txp-id__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.txp-private {
+  max-width: 1200px;
+  margin-top: var(--space-6);
+}
+
+.txp-tabs {
+  margin-top: var(--space-8);
+}
+
+.txp-tabs__list {
+  max-width: 1200px;
+}
+
+.txp-sections {
+  display: grid;
+  gap: var(--space-10);
+}
+
+.txp-section {
+  display: grid;
+  gap: var(--space-4);
+
+  h2 {
+    font-size: 18px;
+    line-height: 26px;
+    font-weight: 600;
+  }
+}
+
+/* The member's own voice, in Geist like the publications. */
+.txp-readme {
+  display: grid;
+  gap: var(--space-3);
+  max-width: 64ch;
+  font-size: 16px;
+  line-height: 26px;
+}
+
+.txp-validation {
+  grid-template-columns: minmax(0, 1fr) 180px;
+  border-color: var(--fio);
+  border-radius: var(--radius-lg);
+}
+
+/* The trajectory graph: the only place the Traçado's lines branch. */
+.txp-graph {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.txp-graph__legend {
+  display: grid;
+  gap: var(--space-3);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--fio);
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 20px;
+
+  ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-6);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-width: 0;
+  }
+
+  svg {
+    flex: none;
+  }
+
+  b {
+    color: var(--asfalto);
+    font-weight: 600;
+  }
+}
+
+.txp-graph__swatch {
+  flex: none;
+  width: 16px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--lane);
+}
+
+.txp-graph__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.txp-graph__row {
+  display: grid;
+  grid-template-columns: 72px var(--rail) minmax(0, 1fr);
+  gap: 0 var(--space-4);
+}
+
+.txp-graph__date {
+  color: var(--meta);
+  font-size: 13px;
+  line-height: 22px;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.txp-graph__rail {
+  position: relative;
+  align-self: stretch;
+  min-height: 36px;
+}
+
+.txp-graph__line {
+  position: absolute;
+  width: 2px;
+  background: var(--lane);
+
+  &[data-part='full'] {
+    top: 0;
+    bottom: 0;
+  }
+
+  &[data-part='top'] {
+    top: 0;
+    height: 11px;
+  }
+
+  &[data-part='bottom'] {
+    top: 11px;
+    bottom: 0;
+  }
+}
+
+.txp-graph__svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  overflow: visible;
+}
+
+.txp-graph__curve {
+  fill: none;
+  stroke: var(--lane);
+  stroke-width: 2;
+}
+
+.txp-graph__marker {
+  fill: var(--cal);
+  stroke: var(--lane);
+  stroke-width: 2;
+
+  &[data-type='declared'] {
+    stroke-width: 1.5;
+    stroke-dasharray: 2.2 1.8;
+  }
+
+  &[data-type='experience'],
+  &[data-type='branch'] {
+    stroke-width: 3;
+  }
+
+  &[data-type='demonstrated'],
+  &[data-type='validated'] {
+    fill: var(--lane);
+  }
+}
+
+.txp-graph__ring {
+  fill: var(--sucesso-bg);
+  stroke: var(--lane);
+  stroke-width: 1;
+}
+
+.txp-graph__body {
+  min-width: 0;
+  padding-bottom: var(--space-6);
+}
+
+.txp-tl__kind {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: 2px;
+  color: var(--meta);
+  font-size: 13px;
+  line-height: 20px;
+
+  .tx-mono {
+    min-width: 0;
+    overflow: hidden;
+    color: var(--roxo-texto);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.txp-facts {
+  display: grid;
+  gap: var(--space-4);
+  margin: 0;
+
+  dt {
+    color: var(--meta);
+    font-size: 12.5px;
+    line-height: 18px;
+    font-weight: 500;
+  }
+
+  dd {
+    margin: var(--space-1) 0 0;
+    color: var(--asfalto);
+    font-size: 14px;
+    line-height: 22px;
+  }
+}
+
+.txp-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+@media (max-width: 767px) {
+  .txp-id {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'cover'
+      'photo'
+      'text'
+      'actions';
+  }
+
+  .txp-id__photo {
+    margin: -56px 0 0 var(--space-4);
+
+    .txf-person[data-size='xl'] {
+      width: 104px;
+      height: 104px;
+      font-size: 32px;
+    }
+  }
+
+  .txp-id__text {
+    padding: var(--space-3) var(--space-4) 0;
+  }
+
+  .txp-id__actions {
+    padding: var(--space-4) var(--space-4) 0;
+  }
+
+  .txp-id__text h1 {
+    font-size: 26px;
+    line-height: 32px;
+    white-space: normal;
+  }
+
+  /* The date opens each record, beside the rail; the fact follows under it. */
+  .txp-graph__row {
+    grid-template-columns: var(--rail) minmax(0, 1fr);
+  }
+
+  .txp-graph__rail {
+    grid-column: 1;
+    grid-row: 1 / 3;
+  }
+
+  .txp-graph__date {
+    grid-column: 2;
+    grid-row: 1;
+    text-align: left;
+  }
+
+  .txp-graph__body {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .txp-validation {
+    grid-template-columns: minmax(0, 1fr);
+
+    .tx-validation__side {
+      padding: var(--space-4) 0 0;
+      border-top: 1px solid var(--fio);
+      border-left: 0;
+    }
+  }
+}
+
+/* The summary column stays in view; when taller than the screen it scrolls inside, never the page behind. */
+.tx .txp-lateral {
+  position: sticky;
+  top: var(--space-8);
+  max-height: calc(100dvh - var(--space-8) * 2);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+
+/* The main column takes the extra width; the lateral column keeps its size. */
+.txf-main[data-wide] .txp-body {
+  grid-template-columns: minmax(0, 1fr) 300px;
+}
+
+@media (max-width: 1100px) {
+  .txf-main[data-wide] .txp-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .tx .txp-lateral {
+    position: static;
+    max-height: none;
+    overflow: visible;
+  }
+}
+
+.txp-more {
+  margin-top: 0;
+
+  &::before {
+    bottom: calc(100% + var(--space-4));
+  }
+}
+
+.txp-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.tx .txp-filter__item {
+  height: 36px;
+  padding: 0 var(--space-4);
+  border: 1px solid var(--fio);
+  border-radius: var(--radius-pill);
+  background: var(--superficie);
+  color: var(--muted);
+  font: inherit;
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--fio-forte);
+    color: var(--asfalto);
+  }
+
+  &[aria-pressed='true'] {
+    border-color: var(--asfalto);
+    background: var(--lilas);
+    color: var(--on-lilas);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foco);
+    outline-offset: 2px;
+  }
+}
+
+.txp-activity {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.txp-activity__row {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  gap: var(--space-4);
+  padding: var(--space-4) 0;
+  border-bottom: 1px solid var(--fio);
+
+  &:first-child {
+    padding-top: 0;
+  }
+
+  time {
+    color: var(--meta);
+    font-size: 13px;
+    line-height: 22px;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .tx-meta {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.txp-activity__title {
+  min-width: 0;
+  overflow: hidden;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  a,
+  span {
+    color: var(--asfalto);
+    text-decoration: none;
+  }
+
+  a:hover {
+    color: var(--roxo-texto);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  svg {
+    width: 12px;
+    height: 12px;
+    margin-left: 4px;
+    vertical-align: -1px;
+  }
+}
+
+@media (max-width: 767px) {
+  .txp-activity__row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px;
+
+    time {
+      text-align: left;
+    }
+  }
+}
+
+.txp-feed-only {
+  margin-top: var(--space-4);
+  text-align: center;
+}
+
+.txp-forum__kind {
+  display: flex;
+  margin-top: var(--space-1);
+}
+
+/* The trajectory screen: one row per record, its marker, its title and who sees it. */
+.txt-records {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.txt-record {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+  min-height: 64px;
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--fio);
+}
+
+.txt-record__text {
+  min-width: 0;
+}
+
+.txt-record__title {
+  overflow: hidden;
+  color: var(--asfalto);
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.txt-record__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.tx .txt-new {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  /* The list reset zeroes a list's padding; the dialog body keeps its own side margins. */
+  padding: 0 var(--space-8) var(--space-6);
+  list-style: none;
+}
+
+@media (max-width: 560px) {
+  .tx .txt-new {
+    padding: 0 var(--space-5) var(--space-5);
+  }
+}
+
+.txt-new__item {
+  display: grid;
+  gap: 2px;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--fio);
+  border-radius: var(--radius-md);
+  color: var(--asfalto);
+  text-decoration: none;
+
+  &:hover {
+    border-color: var(--fio-forte);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--foco);
+    outline-offset: 2px;
+  }
+}
+
+@media (max-width: 560px) {
+  .txt-record {
+    grid-template-columns: 18px minmax(0, 1fr);
+  }
+
+  .txt-record__actions,
+  .txt-record__hub {
+    grid-column: 2;
+  }
+}

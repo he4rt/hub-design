@@ -157,6 +157,6 @@
 /* Above the app's bottom bar on a phone. */
 @media (max-width: 767px) {
   .debug-toggle {
-    bottom: calc(var(--space-4) + 64px + env(safe-area-inset-bottom));
+    bottom: calc(var(--space-4) + 74px + env(safe-area-inset-bottom));
   }
 }

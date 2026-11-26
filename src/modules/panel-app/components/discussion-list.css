@@ -7,60 +7,115 @@
   list-style: none;
 }
 
+/* One row, one link: the whole row answers the pointer, a line keeps rows apart. */
 .discussion-list__item {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-4);
-  padding: var(--space-3) 0;
-  border-top: 1px solid var(--border);
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3) var(--space-6);
+  padding: var(--space-4) var(--space-3);
+  border-radius: var(--radius-md);
+  transition: background var(--dur-fast) var(--ease-out);
 
-  &:first-child {
-    border-top: none;
-    padding-top: 0;
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: var(--space-3);
+    left: var(--space-3);
+    height: 1px;
+    background: var(--border);
+    transition: opacity var(--dur-fast) var(--ease-out);
   }
 
-  &:last-child {
-    padding-bottom: 0;
+  &:first-child::before {
+    opacity: 0;
+  }
+
+  &:hover,
+  &:has(.discussion-list__title:focus-visible) {
+    background: var(--surface-2);
+  }
+
+  /* The hovered row loses its line, and so does the one under it. */
+  &:hover::before,
+  &:has(.discussion-list__title:focus-visible)::before,
+  &:hover + &::before,
+  &:has(.discussion-list__title:focus-visible) + &::before {
+    opacity: 0;
   }
 }
 
 .discussion-list__main {
   display: flex;
-  flex: 1;
   flex-direction: column;
-  gap: var(--space-1);
+  gap: 6px;
   min-width: 0;
 }
 
 .discussion-list__title {
+  display: -webkit-box;
   overflow: hidden;
   color: var(--text);
-  font: var(--text-body-strong);
+  font: var(--text-subheading);
   text-decoration: none;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 
-  &:hover {
-    color: var(--brand-text);
-    text-decoration: underline;
-    text-underline-offset: 3px;
+  /* Stretches over the row, so the row is the click target. */
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius-md);
   }
 
   &:focus-visible {
     outline: none;
-    border-radius: var(--radius-sm);
-    box-shadow: var(--focus-ring);
+
+    &::after {
+      box-shadow: var(--focus-ring);
+    }
   }
 }
 
+/* Supporting line: spaced apart, never chained with a dot. */
 .discussion-list__meta {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-1) var(--space-3);
+  gap: var(--space-1) var(--space-4);
   min-width: 0;
   color: var(--text-muted);
   font: var(--text-caption);
+
+  time {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+}
+
+/* The category's color, the same dot as in the filter column. */
+.discussion-list__category {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  margin-right: calc(-1 * var(--space-2));
+  border-radius: var(--radius-pill);
+  background: var(--text-faint);
+
+  &[data-category='question'] {
+    background: var(--category-question);
+  }
+
+  &[data-category='technical'] {
+    background: var(--category-technical);
+  }
+
+  &[data-category='learning'] {
+    background: var(--category-learning);
+  }
 }
 
 .discussion-list__context {
@@ -70,58 +125,85 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 
+  /* Above the row's link, so the squad or project opens on its own. */
   a {
-    color: var(--text);
-    text-underline-offset: 3px;
+    position: relative;
+    z-index: 1;
+    color: var(--brand-text);
+    font-weight: 500;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    &:focus-visible {
+      outline: none;
+      border-radius: var(--radius-sm);
+      box-shadow: var(--focus-ring);
+    }
   }
 }
 
+/* The replies are what a visitor looks for: a count with weight, aligned on the right. */
 .discussion-list__status {
   display: flex;
-  flex-shrink: 0;
   flex-direction: column;
   align-items: flex-end;
   gap: var(--space-1);
-  color: var(--text-muted);
-  font: var(--text-caption);
-  font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 
 .discussion-list__replies {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-1);
+  gap: 6px;
+  color: var(--text);
+  font: var(--text-body-strong);
+  font-variant-numeric: tabular-nums;
+
+  svg {
+    color: var(--text-muted);
+  }
+
+  /* An unanswered question is an invitation to help, not a warning. */
+  [data-state='unanswered'] & {
+    color: var(--brand-text);
+    font: var(--text-caption);
+    font-weight: 600;
+
+    svg {
+      color: currentColor;
+    }
+  }
 }
 
-/* An unanswered question is an invitation to help, not a warning. */
-.discussion-list__replies[data-empty] {
-  color: var(--brand-text);
+.discussion-list__solved {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--success-text);
+  font: var(--text-caption);
+  font-weight: 500;
 }
 
 .discussion-list__empty {
+  padding: var(--space-6) 0;
   color: var(--text-muted);
   font: var(--text-body);
 }
 
-/* Stacks by the list's own width, so it fits a phone and a side column alike. */
+/* On a phone the count sits under the line, on the left. */
 @container (max-width: 520px) {
   .discussion-list__item {
-    flex-direction: column;
-    align-items: stretch;
-    gap: var(--space-2);
-  }
-
-  .discussion-list__title {
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-    white-space: normal;
+    grid-template-columns: minmax(0, 1fr);
+    padding-inline: var(--space-2);
   }
 
   .discussion-list__status {
     flex-direction: row;
     align-items: center;
-    gap: var(--space-3);
+    gap: var(--space-4);
   }
 }

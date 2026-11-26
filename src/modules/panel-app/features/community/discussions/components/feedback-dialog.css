@@ -1,0 +1,91 @@
+/* Wider than a confirmation: models on the left, the preview on the right. */
+.ui-dialog.feedback-dialog {
+  width: min(960px, calc(100vw - 2 * var(--space-4)));
+  height: min(680px, calc(100dvh - 2 * var(--space-4)));
+
+  .ui-dialog__body {
+    display: flex;
+    padding: 0;
+    overflow: hidden;
+  }
+}
+
+.feedback-dialog__step {
+  display: grid;
+  flex: 1;
+  grid-template-columns: minmax(0, 320px) minmax(0, 1fr);
+  min-height: 0;
+  animation: feedback-dialog-fade var(--dur-medium) var(--ease-out);
+}
+
+.feedback-dialog__side {
+  min-height: 0;
+  padding: var(--space-4) var(--space-5);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border-right: 1px solid var(--border);
+}
+
+/* The preview reads like the published feedback, on the sunken surface. */
+.feedback-dialog__preview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-height: 0;
+  padding: var(--space-4) var(--space-6);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: var(--surface-2);
+
+  .markdown-text em {
+    color: var(--text-muted);
+  }
+}
+
+.feedback-dialog__caption {
+  color: var(--text-muted);
+  font: var(--text-label);
+}
+
+.feedback-dialog__fade {
+  animation: feedback-dialog-fade var(--dur-medium) var(--ease-out);
+}
+
+.feedback-dialog__empty {
+  color: var(--text-muted);
+  font: var(--text-body);
+}
+
+@keyframes feedback-dialog-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+/* On a phone: one column, the preview under the choice or the text. */
+@media (max-width: 767px) {
+  .ui-dialog.feedback-dialog {
+    height: calc(100dvh - 2 * var(--space-4));
+
+    .ui-dialog__body {
+      overflow-y: auto;
+    }
+  }
+
+  .feedback-dialog__step {
+    grid-template-columns: minmax(0, 1fr);
+    grid-auto-rows: max-content;
+  }
+
+  .feedback-dialog__side {
+    overflow: visible;
+    padding: var(--space-4);
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .feedback-dialog__preview {
+    overflow: visible;
+    padding: var(--space-4);
+  }
+}

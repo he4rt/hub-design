@@ -1,13 +1,13 @@
 import { useActionState, useState, useSyncExternalStore } from 'react'
-import { Link, useNavigate, useParams } from 'react-router'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 import { CheckCircle2, ChevronDown, FileText, LifeBuoy, MessagesSquare } from 'lucide-react'
 import { MemberProjectPreview } from '@/components/member-project-preview'
 import { FormMessage } from '@/components/form-message'
 import { NotFound } from '@/components/not-found'
 import { Badge } from '@/components/ui/badge'
-import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { useDebugActions } from '@/debug/use-debug-actions'
 import { useNow } from '@/hooks/use-now'
 import { db, useDb } from '@/mocks/db'
@@ -19,6 +19,8 @@ import { categoryLabels, discussionContext } from '@/modules/panel-app/lib/discu
 import { setDiscussionSolution } from '../actions'
 import { ReplyForm } from '../components/reply-form'
 import { ProjectDocuments } from '../components/project-documents'
+import { ProjectShowcasePage } from '../components/project-showcase-page'
+import { ProjectWorkbenchPage } from '../components/project-workbench-page'
 import { SignInPrompt } from '../components/sign-in-prompt'
 import './show.css'
 
@@ -26,6 +28,8 @@ import './show.css'
 export default function DiscussionShow() {
   const { discussionId } = useParams()
   const navigate = useNavigate()
+  const [params, setParams] = useSearchParams()
+  const view = params.get('view') === 'showcase' ? 'showcase' : params.get('view') === 'workbench' ? 'workbench' : 'current'
   const now = useNow()
   const discussion = useDb((state) => state.discussions.find((candidate) => candidate.id === discussionId))
   const squads = useDb((state) => state.squads)
@@ -96,8 +100,37 @@ export default function DiscussionShow() {
   const context = discussionContext(discussion, { squads, projects, posts, users, memberProjects })
   const firstName = authorName?.split(' ')[0] ?? 'o autor'
 
+  // Prototype: a project's page as it is today and as the Showcase and Workbench listings would open it.
+  const poc = memberProject && (
+    <div className="discussion-show__poc">
+      <span id="discussion-poc-label">Proposta em teste</span>
+      <ToggleGroup
+        type="single"
+        aria-labelledby="discussion-poc-label"
+        value={view}
+        onValueChange={(value) => value && setParams(value === 'current' ? {} : { view: value }, { replace: true, preventScrollReset: true, viewTransition: true })}
+      >
+        <ToggleGroupItem value="current">Página atual</ToggleGroupItem>
+        <ToggleGroupItem value="showcase">Showcase</ToggleGroupItem>
+        <ToggleGroupItem value="workbench">Workbench</ToggleGroupItem>
+      </ToggleGroup>
+    </div>
+  )
+
+  if (memberProject && view !== 'current') {
+    return (
+      <div className="discussion-show" data-project>
+        {poc}
+        {view === 'showcase'
+          ? <ProjectShowcasePage discussion={discussion} project={memberProject} />
+          : <ProjectWorkbenchPage discussion={discussion} project={memberProject} />}
+      </div>
+    )
+  }
+
   return (
     <div className="discussion-show" data-project={!!memberProject || undefined}>
+      {poc}
       <Link to="/app/discussions" className="discussion-show__back">
         Voltar ao Fórum
       </Link>
@@ -112,20 +145,20 @@ export default function DiscussionShow() {
         </p>
         <h1>{discussion.title}</h1>
         <MemberLink userId={discussion.authorId} caption={`abriu em ${formatDay(discussion.createdAt)}`} />
+        {/* What it is about, as one quiet line under the author instead of a box. */}
+        {context && !memberProject && (
+          <p className="discussion-show__context">
+            <span>{context.kind}:</span>
+            {context.path ? (
+              <Link to={context.path} title={context.label}>
+                {context.label}
+              </Link>
+            ) : (
+              <span title={context.label}>{context.label}</span>
+            )}
+          </p>
+        )}
       </header>
-
-      {context && !memberProject && (
-        <Card variant="inset" className="discussion-show__context">
-          <span>{context.kind}</span>
-          {context.path ? (
-            <Link to={context.path} title={context.label}>
-              {context.label}
-            </Link>
-          ) : (
-            <span title={context.label}>{context.label}</span>
-          )}
-        </Card>
-      )}
 
       <div className="discussion-show__workspace">
         {memberProject && (
@@ -146,12 +179,16 @@ export default function DiscussionShow() {
           </aside>
         )}
         <div className="discussion-show__conversation">
-          <Card className="discussion-show__post">
+          <section className="discussion-show__post" aria-label="A dúvida">
             {memberProject && <h2><LifeBuoy size={18} aria-hidden /> A dúvida</h2>}
             <p>{discussion.body}</p>
-          </Card>
+          </section>
 
-          {memberProject && sessionUserId && <Card><ReplyForm key={discussion.id} discussionId={discussion.id} /></Card>}
+          {memberProject && sessionUserId && (
+            <div className="discussion-show__reply-box">
+              <ReplyForm key={discussion.id} discussionId={discussion.id} />
+            </div>
+          )}
 
           <section className="discussion-show__replies" aria-labelledby="replies-title">
             <h2 id="replies-title">
@@ -181,6 +218,7 @@ export default function DiscussionShow() {
                         </time>
                       </header>
                       <p>{reply.body}</p>
+                      {/* Says which reply solved it in one line; the line is kept so marking it moves nothing. */}
                       <p className="discussion-show__solved-note" aria-live="polite">
                         {reply.id === discussion.solvedReplyId && <>
                           <CheckCircle2 size={14} aria-hidden />
@@ -192,7 +230,7 @@ export default function DiscussionShow() {
                           type="submit"
                           name="replyId"
                           value={reply.id === discussion.solvedReplyId ? '' : reply.id}
-                          variant="secondary"
+                          variant="ghost"
                           size="sm"
                           loading={solutionPending}
                           className="discussion-show__solution-button"
@@ -213,9 +251,9 @@ export default function DiscussionShow() {
             )}
 
             {!memberProject && (sessionUserId ? (
-              <Card>
+              <div className="discussion-show__reply-box">
                 <ReplyForm key={discussion.id} discussionId={discussion.id} />
-              </Card>
+              </div>
             ) : (
               <SignInPrompt>Entre na sua conta para responder.</SignInPrompt>
             ))}

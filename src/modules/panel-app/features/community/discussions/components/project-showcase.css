@@ -1,0 +1,244 @@
+.project-showcase {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.project-showcase__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-4);
+
+  h1 {
+    font: var(--text-display);
+    letter-spacing: -0.02em;
+  }
+
+  p {
+    max-width: 620px;
+    margin-top: var(--space-1);
+    color: var(--text-muted);
+  }
+}
+
+.project-showcase__filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.project-showcase__search {
+  position: relative;
+  flex: 1 1 260px;
+  min-width: 0;
+
+  svg {
+    position: absolute;
+    top: 50%;
+    left: var(--space-3);
+    color: var(--text-muted);
+    transform: translateY(-50%);
+    pointer-events: none;
+  }
+
+  .ui-input {
+    padding-left: calc(var(--space-3) + 26px);
+  }
+}
+
+.project-showcase__languages {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* A language: its color as a dot, the name in mono, like on GitHub. */
+.project-showcase__language {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: 32px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  color: var(--text-muted);
+  font: var(--text-mono);
+  cursor: pointer;
+  transition: border-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+
+  &::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: var(--radius-pill);
+    background: var(--lang);
+  }
+
+  &:hover,
+  &[aria-pressed='true'] {
+    border-color: var(--border-strong);
+    color: var(--text);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+  }
+}
+
+/* The shelf: cards side by side, each piece with its cover. */
+.project-showcase__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--space-5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.project-showcase__card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  transition: border-color var(--dur-fast) var(--ease-out);
+
+  &:hover,
+  &:has(.project-showcase__link:focus-visible) {
+    border-color: var(--border-strong);
+  }
+}
+
+/* No screenshots exist: the cover is typographic, tinted by the language. */
+.project-showcase__cover {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--space-3);
+  height: 148px;
+  padding: var(--space-4);
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--lang), var(--surface-2) 86%);
+}
+
+.project-showcase__monogram {
+  color: var(--lang);
+  font: 600 40px/1 var(--font-display);
+  letter-spacing: -0.03em;
+  text-transform: capitalize;
+}
+
+.project-showcase__excerpt {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--text-muted);
+  font: var(--text-mono);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.project-showcase__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-inline: var(--space-2);
+
+  h2 {
+    font: var(--text-heading);
+  }
+}
+
+.project-showcase__link {
+  color: var(--text);
+  text-decoration: none;
+
+  /* The whole card opens the project. */
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius-lg);
+  }
+
+  &:focus-visible {
+    outline: none;
+
+    &::after {
+      box-shadow: var(--focus-ring);
+    }
+  }
+}
+
+.project-showcase__pitch {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--text);
+  font: var(--text-body);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.project-showcase__repo {
+  overflow: hidden;
+  color: var(--brand-text);
+  font: var(--text-mono);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.project-showcase__footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-3);
+  margin-top: auto;
+  padding: var(--space-3) var(--space-2) var(--space-1);
+  border-top: 1px solid var(--border);
+}
+
+.project-showcase__maker {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  font: var(--text-body-strong);
+  font-size: var(--size-caption);
+
+  > span:last-child {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.project-showcase__meta {
+  color: var(--text-muted);
+  font: var(--text-caption);
+  font-variant-numeric: tabular-nums;
+}
+
+.project-showcase__empty {
+  padding: var(--space-6) 0;
+  color: var(--text-muted);
+}
+
+@media (max-width: 767px) {
+  .project-showcase__cover {
+    height: 112px;
+  }
+
+  .project-showcase__excerpt {
+    -webkit-line-clamp: 1;
+  }
+}

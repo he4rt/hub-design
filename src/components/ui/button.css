@@ -27,14 +27,22 @@
     cursor: not-allowed;
   }
 
+  /* The spinner sits beside the label with the button's own gap. The padding gives up exactly
+     the room the spinner and gap take, so the button keeps its width and its label. */
   &[data-loading] {
     opacity: 0.8;
     cursor: progress;
+    padding-inline: calc(var(--space-4) - 10px);
   }
 
   &[data-size='sm'] {
     height: var(--control-h-sm);
     padding: 0 var(--space-3);
+
+    &[data-loading] {
+      gap: 6px;
+      padding-inline: calc(var(--space-3) - 8px);
+    }
   }
 
   &[data-variant='primary'] {
@@ -85,22 +93,32 @@
   }
 }
 
-/* Sits in the left padding, so the button keeps its size and label while loading. */
+/* 12px + the 8px gap = the 20px the padding gives up (10px + 6px = 16px in sm). */
 .ui-button__spinner {
-  position: absolute;
-  top: 50%;
-  left: 3px;
-  width: 10px;
-  height: 10px;
-  margin-top: -5px;
+  flex: none;
+  width: 12px;
+  height: 12px;
   border: 2px solid currentColor;
   border-right-color: transparent;
   border-radius: var(--radius-pill);
-  animation: ui-button-spin 700ms linear infinite;
+  animation:
+    ui-button-spinner-in var(--dur-medium) var(--ease-out),
+    ui-button-spin 700ms linear infinite;
+
+  [data-size='sm'] > & {
+    width: 10px;
+    height: 10px;
+  }
 }
 
 @keyframes ui-button-spin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+@keyframes ui-button-spinner-in {
+  from {
+    opacity: 0;
   }
 }

@@ -3,6 +3,7 @@ import { AppTabBar } from '@/modules/panel-app/components/app-tab-bar'
 import { currentItem, type NavGroup } from '@/modules/panel-app/lib/nav'
 import {
   BadgeCheck,
+  Bookmark,
   Flag,
   House,
   Inbox,
@@ -65,9 +66,10 @@ export function AppLayout({ fullWidth = false }: { fullWidth?: boolean }) {
     {
       label: 'Trajetória',
       items: [
-        // Salvos is part of the Feed, so Início stays active there.
-        { key: 'home', to: '/app', end: true, label: 'Início', icon: House, alsoActive: pathname === '/app/saved' },
+        { key: 'home', to: '/app', end: true, label: 'Início', icon: House },
         { key: 'profile', to: `/members/${account?.username}`, end: true, label: 'Meu perfil', icon: UserRound },
+        // The member's private library of saved publications, beside their profile.
+        { key: 'saved', to: '/app/saved', end: true, label: 'Salvos', icon: Bookmark },
         { key: 'forum', to: '/app/discussions', label: 'Fórum', icon: MessagesSquare },
       ],
     },
@@ -98,6 +100,7 @@ export function AppLayout({ fullWidth = false }: { fullWidth?: boolean }) {
       : []),
   ]
 
+  const feedNextStep = pathname === '/app' && new URLSearchParams(search).get('poc') === 'b'
   const current = currentItem(groups.flatMap((group) => group.items), pathname, search)
   if (!account) return <Navigate to={`/app/login?redirect=${encodeURIComponent(pathname + search)}`} replace />
   if (needsOnboarding(account)) return <Navigate to="/app/onboarding" replace />
@@ -137,8 +140,9 @@ export function AppLayout({ fullWidth = false }: { fullWidth?: boolean }) {
             </SidebarGroup>
           ))}
         </SidebarGroups>
-        {/* One card above the account: finishing the profile comes before inviting to validate. */}
-        {account.completeness.percent < 100 ? (
+        {/* One card above the account: finishing the profile comes before inviting to validate.
+            The Feed's POC B already shows it as the member's next step, so the card steps aside there. */}
+        {feedNextStep ? null : account.completeness.percent < 100 ? (
           <Link
             to="/app/settings/profile"
             className="app-layout__invite sidebar-nav__hide-collapsed sidebar-nav__hide-mobile"

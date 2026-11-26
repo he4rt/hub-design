@@ -194,9 +194,11 @@
     visibility: hidden;
   }
 
+  /* An icon button has no padding to give: the spinner sits on top of the hidden icon. */
   .ui-button__spinner {
-    left: 50%;
-    margin-left: -5px;
+    position: absolute;
+    inset: 0;
+    margin: auto;
   }
 }
 

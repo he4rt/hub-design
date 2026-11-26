@@ -10,7 +10,7 @@ import './reply-form.css'
 
 type Result = { ok: true } | { ok: false; error: string } | null
 
-export function ReplyForm({ discussionId }: { discussionId: string }) {
+export function ReplyForm({ discussionId, label = 'Sua resposta', placeholder }: { discussionId: string; label?: string; placeholder?: string }) {
   const [body, setBody] = useState('')
 
   const [result, submit, pending] = useActionState(async (): Promise<Result> => {
@@ -34,10 +34,11 @@ export function ReplyForm({ discussionId }: { discussionId: string }) {
 
   return (
     <form action={submit} className="reply-form">
-      <Label htmlFor="reply-body">Sua resposta</Label>
+      <Label htmlFor="reply-body">{label}</Label>
       <Textarea
         id="reply-body"
         rows={4}
+        placeholder={placeholder}
         value={body}
         disabled={pending}
         aria-invalid={!pending && result?.ok === false ? true : undefined}

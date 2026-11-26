@@ -1,7 +1,5 @@
 import { useTransition } from 'react'
 import { Megaphone, Pin } from 'lucide-react'
-import { Avatar } from '@/components/ui/avatar'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
@@ -44,11 +42,11 @@ export function AnnouncementCard({
   return (
     <Card className="announcement-card" data-pinned={pinned || undefined}>
       <header className="announcement-card__header">
-        <Avatar src={null} name="He4rt Developers" />
-        <div className="announcement-card__name">
-          <strong>He4rt Developers</strong>
-          <Badge title="Comunicado oficial da comunidade">Oficial</Badge>
-        </div>
+        {/* A notice of the community, not a member's publication: signed in one line, without a photo. */}
+        <p className="announcement-card__name">
+          <Megaphone size={16} aria-hidden />
+          <span>Comunicado da <strong>He4rt Developers</strong></span>
+        </p>
         <p className="announcement-card__meta">
           {pinned && <><Pin size={13} aria-hidden /> Fixado, </>}
           <time dateTime={announcement.createdAt} title={formatFullDate(announcement.createdAt)}>
@@ -68,7 +66,7 @@ export function AnnouncementCard({
           </DropdownMenu>
         )}
       </header>
-      <h3 className="announcement-card__title"><Megaphone size={18} aria-hidden /> {announcement.title}</h3>
+      <h3 className="announcement-card__title">{announcement.title}</h3>
       <p className="announcement-card__body">{announcement.body}</p>
     </Card>
   )

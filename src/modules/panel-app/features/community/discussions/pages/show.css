@@ -9,6 +9,16 @@
   &[data-project] { max-width: var(--content-max); }
 }
 
+.discussion-show__poc {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2) var(--space-3);
+  color: var(--text-muted);
+  font: var(--text-caption);
+}
+
 .discussion-show__workspace { display: grid; min-width: 0; }
 .discussion-show[data-project] .discussion-show__workspace {
   grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
@@ -79,35 +89,55 @@
   gap: var(--space-2);
 }
 
-/* What the discussion is about: a squad, a project or a publication. */
+/* What the discussion is about: a squad, a project or a publication, in one line. */
 .discussion-show__context {
-  flex-direction: row;
+  display: flex;
   align-items: baseline;
   gap: var(--space-2);
-  font: var(--text-body);
+  min-width: 0;
+  color: var(--text-muted);
+  font: var(--text-caption);
 
   > :first-child {
     flex-shrink: 0;
-    color: var(--text-muted);
     white-space: nowrap;
   }
 
   > :last-child {
     min-width: 0;
     overflow: hidden;
-    color: var(--text);
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
   a {
     color: var(--brand-text);
-    text-underline-offset: 3px;
+    font-weight: 500;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    &:focus-visible {
+      outline: none;
+      border-radius: var(--radius-sm);
+      box-shadow: var(--focus-ring);
+    }
   }
 }
 
+/* The question on the page itself, larger than the replies, closed by a line. */
 .discussion-show__post {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding-bottom: var(--space-6);
+  border-bottom: 1px solid var(--border);
   font: var(--text-body);
+  font-size: var(--size-subheading);
+  line-height: 1.6;
   overflow-wrap: anywhere;
   white-space: pre-line;
 }
@@ -115,21 +145,25 @@
 .discussion-show__replies {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: var(--space-2);
 
-  h2 {
+  > h2 {
     font: var(--text-subheading);
     font-variant-numeric: tabular-nums;
   }
 }
 
+/* Replies as a conversation: a line between them, no box around each one. */
 .discussion-show__reply-list {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
   margin: 0;
   padding: 0;
   list-style: none;
+
+  li + li {
+    border-top: 1px solid var(--border);
+  }
 }
 
 .discussion-show__solutions {
@@ -138,19 +172,20 @@
   gap: var(--space-3);
 }
 
-.discussion-show__solution-button {
+.discussion-show__solution-button.ui-button {
   align-self: flex-start;
-  min-width: 12rem;
+  color: var(--text-muted);
+
+  &:hover:not(:disabled) {
+    color: var(--text);
+  }
 }
 
 .discussion-show__reply {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
-  padding: var(--space-5);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background: var(--surface);
+  gap: var(--space-2);
+  padding: var(--space-5) 0;
   font: var(--text-body);
   overflow-wrap: anywhere;
 
@@ -162,15 +197,20 @@
     min-width: 0;
   }
 
+  /* The text sits under the name, past the avatar; the ghost button's label lines up with it. */
+  > p {
+    margin-left: calc(32px + var(--space-2));
+  }
+
+  > .ui-button {
+    margin-left: calc(32px + var(--space-2) - var(--space-3));
+  }
+
   time {
     flex-shrink: 0;
     color: var(--text-muted);
     font: var(--text-caption);
     font-variant-numeric: tabular-nums;
-  }
-
-  &[data-solved] {
-    border-color: var(--success-text);
   }
 }
 
@@ -178,12 +218,28 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  min-height: 2lh;
+  min-height: 1lh;
   color: var(--success-text);
   font: var(--text-caption);
+  font-weight: 500;
+
+  &:empty {
+    min-height: 0;
+  }
 
   svg {
     flex-shrink: 0;
+  }
+}
+
+/* The form closes the conversation, on the page, after a line. */
+.discussion-show__reply-box {
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--border);
+
+  .discussion-show__conversation > & {
+    padding-top: 0;
+    border-top: none;
   }
 }
 
@@ -192,8 +248,12 @@
     padding: var(--space-4) var(--space-3) var(--space-8);
   }
 
-  .discussion-show__reply {
-    padding: var(--space-4);
+  .discussion-show__reply > p {
+    margin-left: 0;
+  }
+
+  .discussion-show__reply > .ui-button {
+    margin-left: calc(-1 * var(--space-3));
   }
 }
 

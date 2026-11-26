@@ -1,0 +1,133 @@
+/* A short column beside the publications, sticky while they scroll: lists with lines, no cards. */
+.feed-aside {
+  position: sticky;
+  top: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  min-width: 0;
+}
+
+.feed-aside__group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+
+  h2 {
+    font: var(--text-body-strong);
+  }
+
+  ul {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  li + li {
+    border-top: 1px solid var(--border);
+  }
+}
+
+.feed-aside__item,
+.feed-aside__step {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  margin-inline: calc(-1 * var(--space-3));
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  color: inherit;
+  text-decoration: none;
+  transition: background var(--dur-fast) var(--ease-out);
+
+  &:hover {
+    background: var(--surface-2);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+  }
+}
+
+/* The member's one next action: the only block with a frame, so it reads as theirs. */
+.feed-aside__step {
+  margin-inline: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  background: var(--surface);
+
+  .feed-aside__title {
+    color: var(--brand-text);
+  }
+}
+
+.feed-aside__title {
+  overflow: hidden;
+  color: var(--text);
+  font: var(--text-body-strong);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.feed-aside__meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--text-muted);
+  font: var(--text-caption);
+  font-variant-numeric: tabular-nums;
+
+  svg {
+    flex: none;
+  }
+}
+
+.feed-aside__empty {
+  color: var(--text-muted);
+  font: var(--text-caption);
+}
+
+.feed-aside__all {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  align-self: flex-start;
+  color: var(--brand-text);
+  font: var(--text-caption);
+  font-weight: 500;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+}
+
+/* One column: the blocks sit side by side above the publications, scrolling if they must. */
+@media (max-width: 1099px) {
+  .feed-aside {
+    position: static;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: var(--space-5);
+    padding-bottom: var(--space-5);
+    border-bottom: 1px solid var(--border);
+  }
+}
+
+/* On a phone the publications come first: only the member's next step stays above them. */
+@media (max-width: 767px) {
+  .feed-aside {
+    display: flex;
+    padding-bottom: 0;
+    border-bottom: none;
+  }
+
+  .feed-aside__group:not(:first-child) {
+    display: none;
+  }
+}

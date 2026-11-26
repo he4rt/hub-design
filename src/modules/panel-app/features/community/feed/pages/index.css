@@ -1,10 +1,108 @@
-/* One reading column, like the diary it is. */
+/* The Feed sets its own frame: the switcher between the two layouts, then the layout on trial. */
 .feed {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: var(--space-8) var(--space-8) var(--space-10);
+}
+
+/* Trial switcher: small and centered, apart from the page it changes. */
+.feed__poc {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2) var(--space-3);
+  margin-bottom: var(--space-8);
+  color: var(--text-muted);
+  font: var(--text-caption);
+}
+
+/* POC A, Editorial: one centered reading column. */
+.feed__editorial {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  max-width: 740px;
+  margin: 0 auto;
+}
+
+/* POC B, Contextual: the publications, and beside them, from the filters down, a narrow column to explore. */
+.feed__contextual {
+  display: grid;
+  grid-template-areas:
+    'header .'
+    'filters side'
+    'list side';
+  grid-template-columns: minmax(0, 720px) 280px;
+  grid-template-rows: auto auto 1fr;
+  justify-content: center;
+  column-gap: var(--space-10);
+  row-gap: var(--space-5);
+
+  > .page-header {
+    grid-area: header;
+  }
+
+  > .feed__filters {
+    grid-area: filters;
+  }
+
+  > .feed__stream {
+    grid-area: list;
+  }
+
+  > .feed-aside {
+    grid-area: side;
+    align-self: start;
+  }
+}
+
+/* Narrower: one column, the context between the filters and the publications. */
+@media (max-width: 1099px) {
+  .feed__contextual {
+    grid-template-areas:
+      'header'
+      'filters'
+      'side'
+      'list';
+    grid-template-columns: minmax(0, 740px);
+    grid-template-rows: auto;
+  }
+}
+
+.feed__stream {
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
-  max-width: 680px;
-  margin: 0 auto;
+  min-width: 0;
+}
+
+/* Search, kind and any active filter in one compact row. */
+.feed__filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.feed__search {
+  position: relative;
+  display: block;
+  flex: 1 1 240px;
+  min-width: 0;
+
+  svg {
+    position: absolute;
+    top: 50%;
+    left: var(--space-3);
+    color: var(--text-muted);
+    transform: translateY(-50%);
+    pointer-events: none;
+  }
+
+  .ui-input {
+    padding-left: calc(var(--space-3) + 26px);
+  }
 }
 
 .feed__list {
@@ -40,10 +138,11 @@
   text-align: center;
 }
 
-/* The column's gap already separates the header from the notice line. */
+/* The column's gap already separates the header from the filters. */
 .feed .page-header {
   margin-bottom: 0;
 }
+
 
 .feed__compose-options { display: flex; flex-direction: column; gap: var(--space-3); }
 
@@ -56,6 +155,14 @@
 
 /* On a phone the actions share the title's row, with Salvos as an icon, so the posts start higher. */
 @media (max-width: 767px) {
+  .feed {
+    padding: var(--space-6) var(--space-4) var(--space-8);
+  }
+
+  .feed__poc {
+    margin-bottom: var(--space-6);
+  }
+
   .feed .page-header {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;

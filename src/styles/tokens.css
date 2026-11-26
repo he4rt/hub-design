@@ -65,6 +65,11 @@
   /* Continuation: the last items of a list that loads more fade into the page above "Carregar mais". */
   --fade-continuation: linear-gradient(to bottom, #000 calc(100% - 120px), transparent);
 
+  /* Forum categories: a small dot beside the name, never a fill, so they never read as a state. */
+  --category-question: light-dark(#0284c7, #38bdf8);
+  --category-technical: light-dark(#ea580c, #fb923c);
+  --category-learning: light-dark(#db2777, #f472b6);
+
   /* App extensions, built from the palette above. */
   --overlay: light-dark(rgba(13, 13, 13, 0.5), rgba(0, 0, 0, 0.6)); /* Behind dialogs. */
 

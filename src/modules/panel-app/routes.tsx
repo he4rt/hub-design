@@ -14,6 +14,7 @@ import UsageData from './features/auth/pages/usage-data'
 import DiscussionCreate from './features/community/discussions/pages/create'
 import DiscussionsIndex from './features/community/discussions/pages/index'
 import DiscussionShow from './features/community/discussions/pages/show'
+import DiscussionFeedback from './features/community/discussions/pages/feedback'
 import MyApplications from './features/squads/applications/pages/index'
 import EntryTest from './features/squads/entry-test/pages/show'
 import ApplicationCreate from './features/squads/squads/applications/pages/create'
@@ -30,6 +31,7 @@ import ValidatorApplication from './features/validation/validator-application/pa
 import Validations from './features/validation/validations/pages/index'
 import Validation from './features/validation/validations/pages/show'
 import { AppLayout } from './layouts/app-layout'
+import { ForumLayout } from './layouts/forum-layout'
 import { PublicLayout } from './layouts/public-layout'
 
 /** Mounted at `/app`. */
@@ -67,17 +69,27 @@ export const panelAppRoutes: RouteObject = {
           loader: ({ params, request }) =>
             redirect(`/squads/${params.squad}/projects/${params.project}${new URL(request.url).search}`),
         },
+      ],
+    },
+    {
+      // Readable without login too: a member reads it with the Hub's sidebar, a visitor with the public bar.
+      Component: ForumLayout,
+      children: [
         { path: 'discussions', Component: DiscussionsIndex },
         // Visitors see the form and a sign-in prompt; publishing needs a session.
         { path: 'discussions/new', Component: DiscussionCreate },
         { path: 'discussions/:discussionId', Component: DiscussionShow },
+        { path: 'discussions/:discussionId/feedback', Component: DiscussionFeedback },
       ],
+    },
+    {
+      // The Feed is the home of the Hub. It sets its own width: one reading column or a column with context.
+      element: <AppLayout fullWidth />,
+      children: [{ index: true, Component: FeedIndex }],
     },
     {
       Component: AppLayout,
       children: [
-        // The Feed is the home of the Hub.
-        { index: true, Component: FeedIndex },
         { path: 'feed', loader: ({ request }) => redirect(`/app${new URL(request.url).search}`) },
         // Nova publicação opens over the home.
         { path: 'feed/new', loader: () => redirect('/app?compose=1') },

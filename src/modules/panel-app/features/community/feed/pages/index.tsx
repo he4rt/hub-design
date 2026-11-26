@@ -1,22 +1,33 @@
 import { useState, useTransition } from 'react'
-import { Bookmark } from 'lucide-react'
+import { Search } from 'lucide-react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router'
 import { FormMessage } from '@/components/form-message'
 import { PageHeader } from '@/components/page-header'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { useDebugActions } from '@/debug/use-debug-actions'
 import { db, newId, useDb, type FeedPost, type ObjectiveProgress, type ReactionType } from '@/mocks/db'
 import { errorMessage } from '@/mocks/mock-action'
 import { useAccount } from '@/modules/panel-app/hooks/use-account'
 import { createComment, createPost, FEED_PAGE_SIZE, loadMorePosts } from '../actions'
 import { AnnouncementCard } from '../components/announcement-card'
+import { FeedAside } from '../components/feed-aside'
 import { PostForm } from '../components/post-form'
 import { RemovedNotice } from '../components/removed-notice'
 import { PostCard, type Notice } from '../components/post-card'
 import { ProjectForm } from '../components/project-form'
 import './index.css'
+
+/** The two layouts on trial: A, one centered reading column; B, the column with a context column beside it. */
+type Poc = 'a' | 'b'
+const KINDS = { learning: 'Aprendizados', project: 'Projetos' } as const
+type Kind = keyof typeof KINDS
+
+/** Lowercase without accents, so "funcao" finds "função". */
+const fold = (text: string) => text.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase()
 
 const PROGRESS_CYCLE: ObjectiveProgress[] = ['none', 'little', 'a-lot', 'very-much']
 
@@ -59,6 +70,7 @@ export default function FeedIndex() {
   const posts = useDb((state) => state.feedPosts)
   const users = useDb((state) => state.users)
   const announcements = useDb((state) => state.feedAnnouncements)
+  const projects = useDb((state) => state.memberProjects)
   // A notice set here belongs to the navigation it happened in; a new navigation shows its own.
   const [localNotice, setLocalNotice] = useState<{ key: string; notice: Notice | null } | null>(null)
   const routeNotice = (location.state as { notice?: Notice } | null)?.notice ?? null
@@ -66,6 +78,26 @@ export default function FeedIndex() {
   const setNotice = (next: Notice | null) => setLocalNotice({ key: location.key, notice: next })
   const [loading, startLoading] = useTransition()
   const [loadError, setLoadError] = useState<string | null>(null)
+
+  const poc: Poc = params.get('poc') === 'b' ? 'b' : 'a'
+  const query = params.get('q') ?? ''
+  const terms = fold(query).split(/\s+/).filter(Boolean)
+  const kind = (Object.keys(KINDS) as Kind[]).find((value) => value === params.get('kind')) ?? null
+  const filtering = terms.length > 0 || !!kind
+
+  /** Changes one parameter in place: no new history entry, no reload, the same data. */
+  function setParam(name: string, value: string | null) {
+    setParams(
+      (current) => {
+        const next = new URLSearchParams(current)
+        if (value) next.set(name, value)
+        else next.delete(name)
+        if (name !== 'poc') next.delete('limit')
+        return next
+      },
+      { replace: true, preventScrollReset: true, viewTransition: name === 'poc' },
+    )
+  }
 
   const composing = params.get('compose')
   const limit = Math.max(FEED_PAGE_SIZE, Number(params.get('limit')) || FEED_PAGE_SIZE)
@@ -255,6 +287,10 @@ export default function FeedIndex() {
       run: () => navigate('/app/saved'),
     },
     { label: 'Nova publicação', run: () => setParams({ compose: '1' }) },
+    { label: 'Ver a POC A (Editorial)', run: () => setParam('poc', null) },
+    { label: 'Ver a POC B (Contextual)', run: () => setParam('poc', 'b') },
+    { label: 'Buscar "fila"', run: () => setParam('q', 'fila') },
+    { label: 'Buscar sem resultado', run: () => setParam('q', 'kubernetes-quantico') },
     {
       label: 'Expirar sessão',
       description: 'A home exige login: volta ao Login e retorna para cá.',
@@ -264,21 +300,32 @@ export default function FeedIndex() {
 
   if (!account) return null
 
+  const feedPosts = posts.filter((p) => p.deletedAt === null && p.sharedOnFeed)
+  const matches = (post: FeedPost) => {
+    const project = projects.find((p) => p.id === post.projectId)
+    const text = fold(`${post.learned} ${post.applied} ${project?.pitch ?? ''} ${project?.read.name ?? ''}`)
+    return (
+      terms.every((term) => text.includes(term)) &&
+      (!kind || (kind === 'project') === !!post.projectId)
+    )
+  }
+
   // Pinned announcements open the Feed, newest pin first; the rest mixes with publications by date.
+  // A search or filter looks for publications, so announcements step aside while one is on.
   const pinned = announcements
-    .filter((a) => a.pinnedAt !== null)
+    .filter((a) => a.pinnedAt !== null && !filtering)
     .toSorted((a, b) => b.pinnedAt!.localeCompare(a.pinnedAt!))
     .map((a) => ({ kind: 'announcement' as const, id: a.id, announcement: a }))
   const timeline = [
     ...announcements
-      .filter((a) => a.pinnedAt === null)
+      .filter((a) => a.pinnedAt === null && !filtering)
       .map((a) => ({ kind: 'announcement' as const, id: a.id, at: a.createdAt, announcement: a })),
-    ...posts
-      .filter((p) => p.deletedAt === null && p.sharedOnFeed)
+    ...feedPosts
+      .filter(matches)
       .map((p) => ({ kind: 'post' as const, id: p.id, at: p.createdAt, post: p })),
     // Only its author sees a publication the moderation removed, with the reason, where it was.
     ...posts
-      .filter((p) => p.removal && p.userId === account?.id)
+      .filter((p) => p.removal && p.userId === account?.id && !filtering)
       .map((p) => ({ kind: 'removed' as const, id: p.id, at: p.createdAt, post: p })),
   ].toSorted((a, b) => b.at.localeCompare(a.at))
   const visible = [...pinned, ...timeline]
@@ -305,35 +352,71 @@ export default function FeedIndex() {
     })
   }
 
-  return (
-    <div className="feed">
-      <PageHeader
-        title="Feed"
-        description="Aprendizados e projetos da comunidade."
-        actions={
-          <div className="feed__actions">
-            <Button asChild variant="ghost">
-              <Link to="/app/saved" aria-label="Salvos" title="Salvos">
-                <Bookmark size={16} aria-hidden />
-                <span className="feed__actions-label">Salvos</span>
-              </Link>
-            </Button>
-            <Button asChild>
-              <Link to="/app?compose=1" preventScrollReset>
-                Nova publicação
-              </Link>
-            </Button>
-          </div>
-        }
-      />
-      <FormMessage tone={notice?.tone ?? 'success'}>{notice?.text}</FormMessage>
+  const header = (
+    <PageHeader
+      title="Feed"
+      description="Aprendizados e projetos da comunidade."
+      actions={
+        <div className="feed__actions">
+          <Button asChild>
+            <Link to="/app?compose=1" preventScrollReset>
+              Nova publicação
+            </Link>
+          </Button>
+        </div>
+      }
+    />
+  )
 
+  // The same search and filters in both layouts: a compact row above the publications.
+  const filters = (
+    <div className="feed__filters">
+      <label className="feed__search">
+        <Search size={18} aria-hidden />
+        <Input
+          type="search"
+          value={query}
+          placeholder="Buscar nas publicações"
+          aria-label="Buscar nas publicações"
+          onChange={(event) => setParam('q', event.target.value || null)}
+        />
+      </label>
+      <ToggleGroup
+        type="single"
+        aria-label="Tipo de publicação"
+        value={kind ?? 'all'}
+        onValueChange={(value) => value && setParam('kind', value === 'all' ? null : value)}
+      >
+        <ToggleGroupItem value="all">Tudo</ToggleGroupItem>
+        {(Object.keys(KINDS) as Kind[]).map((value) => (
+          <ToggleGroupItem key={value} value={value}>
+            {KINDS[value]}
+          </ToggleGroupItem>
+        ))}
+      </ToggleGroup>
+    </div>
+  )
+
+  const list = (
+    <div className="feed__stream">
+      <FormMessage tone={notice?.tone ?? 'success'}>{notice?.text}</FormMessage>
       {page.length === 0 ? (
         <Card className="feed__empty">
-          <p>Ainda não há publicações. Registre o que você aprendeu.</p>
-          <Button asChild variant="secondary">
-            <Link to="/app?compose=1">Nova publicação</Link>
-          </Button>
+          {filtering ? (
+            <>
+              <p>Nenhuma publicação encontrada com essa busca ou filtro.</p>
+              <Button variant="secondary" onClick={() => setParams({ ...(poc === 'b' ? { poc } : {}) }, { replace: true })}>
+                Limpar busca e filtros
+              </Button>
+            </>
+          ) : (
+            <>
+              <p>Ainda não há publicações. Registre o que você aprendeu.</p>
+              <Button asChild variant="secondary">
+                <Link to="/app?compose=1">Nova publicação</Link>
+              </Button>
+            </>
+          )}
         </Card>
       ) : (
         <ol className="feed__list" data-more={hasMore || undefined}>
@@ -366,6 +449,40 @@ export default function FeedIndex() {
       ) : (
         page.length > 0 && <p className="feed__end">Você chegou ao fim.</p>
       )}
+    </div>
+  )
+
+  return (
+    <div className="feed" data-poc={poc}>
+      {/* Trial only: switches the composition in place, with the same data, filters and position in the list. */}
+      <div className="feed__poc">
+        <span id="feed-poc-label">Proposta em teste</span>
+        <ToggleGroup
+          type="single"
+          aria-labelledby="feed-poc-label"
+          value={poc}
+          onValueChange={(value) => value && setParam('poc', value === 'a' ? null : value)}
+        >
+          <ToggleGroupItem value="a">POC A, Editorial</ToggleGroupItem>
+          <ToggleGroupItem value="b">POC B, Contextual</ToggleGroupItem>
+        </ToggleGroup>
+      </div>
+
+      {poc === 'a' ? (
+        <div className="feed__editorial">
+          {header}
+          {filters}
+          {list}
+        </div>
+      ) : (
+        <div className="feed__contextual">
+          {header}
+          {filters}
+          {list}
+          <FeedAside />
+        </div>
+      )}
+
       {composing === '1' && (
         <Dialog open onOpenChange={(open) => !open && navigate('/app', { preventScrollReset: true })}>
           <DialogContent

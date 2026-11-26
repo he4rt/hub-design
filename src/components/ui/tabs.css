@@ -31,6 +31,10 @@
   font: var(--text-body-strong);
   font-variant-numeric: tabular-nums;
   cursor: pointer;
+  transition:
+    color var(--dur-fast) var(--ease-out),
+    background var(--dur-medium) var(--ease-out),
+    box-shadow var(--dur-medium) var(--ease-out);
 
   &:hover {
     color: var(--text);
