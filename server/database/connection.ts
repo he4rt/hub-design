@@ -19,7 +19,7 @@ function open(): Database {
   migrateGithub(database)
   // Read additive domain DDL from the canonical schema; never reset existing data.
   const schema = readFileSync(SCHEMA_PATH, 'utf8')
-  for (const table of ['github_repositories', 'squad_delivery_decisions', 'board_item_pull_request_reviewers', 'profile_revisions']) {
+  for (const table of ['github_repositories', 'squad_delivery_decisions', 'board_item_pull_request_reviewers', 'profile_revisions', 'showcase_projects', 'showcase_help_requests', 'showcase_feedbacks']) {
     const ddl = schema.match(new RegExp(`CREATE TABLE ${table} \\([\\s\\S]*?\\n\\);`))?.[0]
     if (ddl) database.transaction(() => database.run(ddl.replace('CREATE TABLE ', 'CREATE TABLE IF NOT EXISTS ')))()
   }

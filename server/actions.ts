@@ -296,6 +296,9 @@ export function viewState(context: Context): MockDb {
           .map((c) => ({ ...c, removal: hideRemover(c.removal) }))
       : [],
     discussions: state.discussions.filter((discussion) => canReadDiscussion(state, discussion, me)),
+    // The Showcase is between members: a visitor reads none of it.
+    showcaseProjects: me ? state.showcaseProjects : [],
+    showcaseFeedbacks: me ? state.showcaseFeedbacks : [],
     feedCollections: state.feedCollections.filter((c) => c.userId === me || visibleCollections.has(c.id)),
     feedBookmarks: state.feedBookmarks.filter((b) => b.userId === me),
     applications: state.applications.filter((a) => !!me && (a.userId === me || manages(a.projectId))),

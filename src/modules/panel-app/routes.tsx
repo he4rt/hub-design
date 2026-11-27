@@ -15,6 +15,9 @@ import DiscussionCreate from './features/community/discussions/pages/create'
 import DiscussionsIndex from './features/community/discussions/pages/index'
 import DiscussionShow from './features/community/discussions/pages/show'
 import DiscussionFeedback from './features/community/discussions/pages/feedback'
+import ShowcaseCreate from './features/community/showcase/pages/create'
+import ShowcaseIndex from './features/community/showcase/pages/index'
+import ShowcaseShow from './features/community/showcase/pages/show'
 import MyApplications from './features/squads/applications/pages/index'
 import EntryTest from './features/squads/entry-test/pages/show'
 import ApplicationCreate from './features/squads/squads/applications/pages/create'
@@ -85,7 +88,11 @@ export const panelAppRoutes: RouteObject = {
     {
       // The Feed is the home of the Hub. It sets its own width: one reading column or a column with context.
       element: <AppLayout fullWidth />,
-      children: [{ index: true, Component: FeedIndex }],
+      children: [
+        { index: true, Component: FeedIndex },
+        // The Showcase grid takes the width a wide screen gives it.
+        { path: 'showcase', Component: ShowcaseIndex },
+      ],
     },
     {
       Component: AppLayout,
@@ -95,6 +102,9 @@ export const panelAppRoutes: RouteObject = {
         { path: 'feed/new', loader: () => redirect('/app?compose=1') },
         { path: 'feed/:postId/edit', Component: FeedEdit },
         { path: 'saved', Component: FeedSaved },
+        // Provisional: publishing and the project page come in later steps.
+        { path: 'showcase/new', Component: ShowcaseCreate },
+        { path: 'showcase/:slug', Component: ShowcaseShow },
         { path: 'projects/:projectId', Component: FeedProject },
         { path: 'settings/profile', Component: Profile },
         { path: 'squads/entry-test', Component: EntryTest },

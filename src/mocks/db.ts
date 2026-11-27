@@ -1,6 +1,7 @@
 import { createStore, useStore } from '@/lib/store'
 import { withCompleteness } from './profile-completeness'
 import { REPOSITORIES } from './repositories'
+import { showcaseSeed } from './showcase-seed'
 import { squadsSeed } from './squads-seed'
 
 /** Providers that sign a member in. */
@@ -486,6 +487,42 @@ export type Discussion = {
   solvedReplyId: string | null
 }
 
+/** Area of a Showcase project: any kind of work, not only code. */
+export type ShowcaseArea = 'development' | 'design' | 'content' | 'data' | 'other'
+
+/**
+ * A project a member presents in the Showcase to get feedback ("retorno") on what they ask about.
+ * Apart from the squad's `Project` and from the Feed's `MemberProject`; squad projects do not enter yet.
+ */
+export type ShowcaseProject = {
+  id: string
+  slug: string
+  title: string
+  /** Up to 140 characters. */
+  summary: string
+  area: ShowcaseArea
+  authorId: string
+  coverUrl: string | null
+  publishedAt: string
+  /** 0 to 2, in the author's order; none means the project is open to general feedback. */
+  helpRequests: ShowcaseHelpRequest[]
+}
+
+/**
+ * What the author wants help with. The card shows the question and the topic, never the context.
+ * `topic` is one of the area's topics (HELP_TOPICS in the Showcase feature).
+ */
+export type ShowcaseHelpRequest = {
+  /** Up to 120 characters. */
+  question: string
+  /** Up to 280 characters. */
+  context: string | null
+  topic: string | null
+}
+
+/** One feedback on a Showcase project. The card counts them; nothing ranks by them. */
+export type ShowcaseFeedback = { id: string; projectId: string; authorId: string; body: string; createdAt: string }
+
 /** Learning reactions to a publication. Never XP, never an order for the Feed. */
 export type ReactionType = 'helped' | 'learning-too' | 'want-to-learn' | 'inspiring'
 
@@ -655,6 +692,8 @@ export type MockDb = {
   /** Achievements each member chose to show on the profile. */
   achievementChoices: { userId: string; key: string }[]
   discussions: Discussion[]
+  showcaseProjects: ShowcaseProject[]
+  showcaseFeedbacks: ShowcaseFeedback[]
   squads: Squad[]
   projects: Project[]
   memberships: SquadMembership[]
@@ -1448,6 +1487,7 @@ const seed: MockDb = {
       solvedReplyId: null,
     },
   ],
+  ...showcaseSeed,
   ...squadsSeed,
 }
 

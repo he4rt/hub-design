@@ -1,0 +1,36 @@
+/* The secondary button's shape; pressed, the border and the fill darken, never brand. */
+.ui-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  height: var(--control-h);
+  padding: 0 var(--space-4);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--text-muted);
+  font: var(--text-body-strong);
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out);
+
+  &:hover {
+    color: var(--text);
+    background: var(--surface-2);
+  }
+
+  &[data-state='on'] {
+    border-color: var(--text);
+    background: var(--surface-2);
+    color: var(--text);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+  }
+}

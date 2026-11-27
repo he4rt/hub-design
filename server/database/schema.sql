@@ -380,6 +380,42 @@ CREATE TABLE discussion_replies (
 CREATE INDEX discussion_replies_discussion_id_index ON discussion_replies (discussion_id, created_at);
 
 ----------------------------------------------------------------------------------------------------
+-- Showcase: projects members present to get feedback
+----------------------------------------------------------------------------------------------------
+
+CREATE TABLE showcase_projects (
+  id TEXT PRIMARY KEY,
+  slug TEXT NOT NULL UNIQUE,
+  title TEXT NOT NULL,
+  summary TEXT NOT NULL CHECK (length(summary) <= 140),
+  area TEXT NOT NULL CHECK (area IN ('development', 'design', 'content', 'data', 'other')),
+  author_id TEXT NOT NULL REFERENCES users (id),
+  cover_url TEXT,
+  published_at TEXT NOT NULL
+);
+CREATE INDEX showcase_projects_published_at_index ON showcase_projects (published_at);
+
+-- 0 to 2 per project; none means open to general feedback. The topic comes from the area's list.
+CREATE TABLE showcase_help_requests (
+  project_id TEXT NOT NULL REFERENCES showcase_projects (id) ON DELETE CASCADE,
+  position INTEGER NOT NULL CHECK (position BETWEEN 0 AND 1),
+  question TEXT NOT NULL CHECK (length(question) <= 120),
+  context TEXT CHECK (length(context) <= 280),
+  topic TEXT,
+  PRIMARY KEY (project_id, position)
+);
+
+-- The card's count is a withCount over this table, never a stored column.
+CREATE TABLE showcase_feedbacks (
+  id TEXT PRIMARY KEY,
+  project_id TEXT NOT NULL REFERENCES showcase_projects (id) ON DELETE CASCADE,
+  author_id TEXT NOT NULL REFERENCES users (id),
+  body TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+CREATE INDEX showcase_feedbacks_project_id_index ON showcase_feedbacks (project_id, created_at);
+
+----------------------------------------------------------------------------------------------------
 -- Squads and projects (docs/squads.md)
 ----------------------------------------------------------------------------------------------------
 

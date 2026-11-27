@@ -7,9 +7,9 @@ import {
   Flag,
   House,
   Inbox,
+  LayoutGrid,
   ListChecks,
   LogOut,
-  MessagesSquare,
   PackageCheck,
   PanelLeftClose,
   PanelLeftOpen,
@@ -70,7 +70,7 @@ export function AppLayout({ fullWidth = false }: { fullWidth?: boolean }) {
         { key: 'profile', to: `/members/${account?.username}`, end: true, label: 'Meu perfil', icon: UserRound },
         // The member's private library of saved publications, beside their profile.
         { key: 'saved', to: '/app/saved', end: true, label: 'Salvos', icon: Bookmark },
-        { key: 'forum', to: '/app/discussions', label: 'Fórum', icon: MessagesSquare },
+        { key: 'showcase', to: '/app/showcase', label: 'Showcase', icon: LayoutGrid },
       ],
     },
     {

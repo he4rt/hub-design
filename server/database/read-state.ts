@@ -6,6 +6,7 @@ import type {
   MemberProfile,
   MockDb,
   Project,
+  ShowcaseProject,
   SquadApplication,
   SquadDelivery,
   User,
@@ -183,6 +184,21 @@ function readDiscussions(): Discussion[] {
     context: d.context_type ? { type: d.context_type, id: d.context_id } : null,
     replies: (replies.get(d.id) ?? []).map((r) => ({ id: r.id, authorId: r.author_id, body: r.body, createdAt: r.created_at })),
     solvedReplyId: d.solved_reply_id,
+  }))
+}
+
+function readShowcaseProjects(): ShowcaseProject[] {
+  const requests = groupBy(all('SELECT * FROM showcase_help_requests ORDER BY position'), 'project_id')
+  return all<R>('SELECT * FROM showcase_projects ORDER BY rowid').map((p) => ({
+    id: p.id,
+    slug: p.slug,
+    title: p.title,
+    summary: p.summary,
+    area: p.area,
+    authorId: p.author_id,
+    coverUrl: p.cover_url,
+    publishedAt: p.published_at,
+    helpRequests: (requests.get(p.id) ?? []).map((r) => ({ question: r.question, context: r.context, topic: r.topic })),
   }))
 }
 
@@ -412,6 +428,14 @@ export function readState(): MockDb {
     profileRevisions: all<R>('SELECT * FROM profile_revisions ORDER BY rowid').map((r) => ({ id: r.id, userId: r.user_id, actorId: r.actor_id, collection: r.collection, recordId: r.record_id, operation: r.operation, snapshot: JSON.parse(r.snapshot), at: r.at })),
     achievementChoices: all<R>('SELECT * FROM achievement_choices ORDER BY rowid').map((c) => ({ userId: c.user_id, key: c.key })),
     discussions: readDiscussions(),
+    showcaseProjects: readShowcaseProjects(),
+    showcaseFeedbacks: all<R>('SELECT * FROM showcase_feedbacks ORDER BY rowid').map((f) => ({
+      id: f.id,
+      projectId: f.project_id,
+      authorId: f.author_id,
+      body: f.body,
+      createdAt: f.created_at,
+    })),
     squads: all<R>('SELECT * FROM squads ORDER BY rowid').map((s) => ({
       id: s.id,
       slug: s.slug,

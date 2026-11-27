@@ -225,6 +225,25 @@ export function writeState(state: MockDb) {
     if (d.solvedReplyId) update('discussions', { id: d.id }, { solved_reply_id: d.solvedReplyId })
   }
 
+  for (const p of state.showcaseProjects) {
+    insert('showcase_projects', {
+      id: p.id,
+      slug: p.slug,
+      title: p.title,
+      summary: p.summary,
+      area: p.area,
+      author_id: p.authorId,
+      cover_url: p.coverUrl,
+      published_at: p.publishedAt,
+    })
+    p.helpRequests.forEach((r, position) =>
+      insert('showcase_help_requests', { project_id: p.id, position, question: r.question, context: r.context, topic: r.topic }),
+    )
+  }
+  for (const f of state.showcaseFeedbacks) {
+    insert('showcase_feedbacks', { id: f.id, project_id: f.projectId, author_id: f.authorId, body: f.body, created_at: f.createdAt })
+  }
+
   writeValidation(state)
 }
 

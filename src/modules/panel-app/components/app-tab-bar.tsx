@@ -8,7 +8,7 @@ import { isCurrent, type NavGroup } from '@/modules/panel-app/lib/nav'
 import './app-tab-bar.css'
 
 /** The four destinations a member opens every day; the rest of the navigation lives under "Mais". */
-const TABS = ['home', 'forum', 'squads', 'profile']
+const TABS = ['home', 'showcase', 'squads', 'profile']
 
 /**
  * Bottom navigation on a phone, within reach of the thumb. It takes the sidebar's groups: the daily
